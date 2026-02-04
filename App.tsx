@@ -1,131 +1,126 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import ChatInterface from './components/ChatInterface';
-import { Message, Sender, UserProfile, INITIAL_PROFILE, ChatSession, SessionType, SessionStatus, NativeLanguage, TargetLanguage } from './types';
-import { generateResponse, generateSpeech, translateText } from './services/geminiService';
+import AuthScreen from './components/AuthScreen';
+import { useAuth } from './src/hooks/useAuth';
+import { useSessions } from './src/hooks/useSessions';
+import { Message, Sender, UserProfile, INITIAL_PROFILE, ChatSession, SessionType, SessionStatus, NativeLanguage, TargetLanguage, AgeGroup } from './types';
+import { generateResponse } from './services/groqService';
+import { translateText } from './services/geminiService';
+import { generateSpeech as generateTTS, playAudio, stopAudio as stopTTSAudio, isPlaying } from './services/ttsService';
 
-const STORAGE_KEY_PROFILE = 'lingoloft_profile';
-const STORAGE_KEY_SESSIONS = 'lingoloft_sessions_v2'; 
+// Settings storage key (sessions now come from Pocketbase via useSessions)
 const STORAGE_KEY_AUTOTTS = 'lingoloft_autotts';
-
-// Audio Helper
-function decode(base64: string) {
-    const binaryString = atob(base64);
-    const len = binaryString.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    return bytes;
-}
 
 // Session ID Helper
 const getMainSessionId = (lang: TargetLanguage) => lang === 'French' ? 'main-hall-French' : 'main-hall';
 
 const LANGUAGES: NativeLanguage[] = ['English', 'Spanish', 'French', 'German', 'Portuguese', 'Ukrainian', 'Italian', 'Chinese', 'Japanese', 'Hindi', 'Romanian'];
 
+/**
+ * Main App Container
+ * Handles auth state and routing between auth screen and main app
+ */
 function App() {
-  // State
-  const [profile, setProfile] = useState<UserProfile>(INITIAL_PROFILE);
-  const [sessions, setSessions] = useState<Record<string, ChatSession>>({});
-  const [activeSessionId, setActiveSessionId] = useState<string>('main-hall');
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+
+  // Show loading screen while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-amber-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4 animate-bounce">🦉</div>
+          <p className="text-amber-700 font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show auth screen if not logged in
+  if (!isAuthenticated) {
+    return <AuthScreen />;
+  }
+
+  // Show main app when authenticated
+  return <MainApp />;
+}
+
+/**
+ * Main App Content (only rendered when authenticated)
+ * Profile sourced from Pocketbase via useAuth hook
+ * Sessions sourced from Pocketbase via useSessions hook
+ */
+function MainApp() {
+  const { profile: authProfile, logout, updateProfile, addXP } = useAuth();
+  
+  // Sessions from Pocketbase
+  const {
+    sessions,
+    activeSessionId,
+    activeSession,
+    activeLessons,
+    completedLessons,
+    isLoading: sessionsLoading,
+    setActiveSessionId,
+    createSession,
+    updateMessages,
+    updateStatus,
+    updateDraft,
+    getOrCreateMain,
+  } = useSessions();
+  
+  // Use auth profile as source of truth, with fallback to INITIAL_PROFILE
+  const profile = authProfile || INITIAL_PROFILE;
+  
+  // Local UI state
   const [isThinking, setIsThinking] = useState(false);
   const [autoTTS, setAutoTTS] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false); // Mobile toggle
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   
   // Audio State
   const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
   const [audioLoadingId, setAudioLoadingId] = useState<string | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const currentSourceRef = useRef<AudioBufferSourceNode | null>(null);
 
   // Translation State
   const [translationLoadingId, setTranslationLoadingId] = useState<string | null>(null);
 
-  // Load from storage on mount
+  // Load autoTTS setting on mount
   useEffect(() => {
-    const storedProfile = localStorage.getItem(STORAGE_KEY_PROFILE);
-    const storedSessions = localStorage.getItem(STORAGE_KEY_SESSIONS);
     const storedAutoTTS = localStorage.getItem(STORAGE_KEY_AUTOTTS);
-
-    if (storedProfile) {
-        const parsedProfile = JSON.parse(storedProfile);
-        setProfile(parsedProfile);
-        // Sync active session with loaded profile language on startup
-        if (parsedProfile.targetLanguage) {
-            setActiveSessionId(getMainSessionId(parsedProfile.targetLanguage));
-        }
-    }
-    
-    if (storedSessions) {
-        setSessions(JSON.parse(storedSessions));
-    } else {
-        // Initialize Default Session
-        const mainSessionId = 'main-hall';
-        const mainSession: ChatSession = {
-            id: mainSessionId,
-            type: SessionType.MAIN,
-            status: SessionStatus.ACTIVE,
-            title: 'Main Hall',
-            objectives: [],
-            messages: [],
-            createdAt: Date.now()
-        };
-        setSessions({ [mainSessionId]: mainSession });
-    }
-
     if (storedAutoTTS) setAutoTTS(JSON.parse(storedAutoTTS));
   }, []);
-
-  // Persistence
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(profile));
-  }, [profile]);
-
-  useEffect(() => {
-    if (Object.keys(sessions).length > 0) {
-        // Deep copy to avoid mutating state when stripping audio
-        const sessionToStore = JSON.parse(JSON.stringify(sessions));
-        
-        // Strip audioData before saving to localStorage to prevent quota exceeded errors
-        for (const key in sessionToStore) {
-            sessionToStore[key].messages.forEach((msg: Message) => {
-                if (msg.audioData) {
-                    delete msg.audioData; 
-                }
-            });
-        }
-        localStorage.setItem(STORAGE_KEY_SESSIONS, JSON.stringify(sessionToStore));
-    }
-  }, [sessions]);
   
+  // Save autoTTS setting
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY_AUTOTTS, JSON.stringify(autoTTS));
   }, [autoTTS]);
 
-  // Handle Language Switching
-  const handleSwitchLanguage = (newLang: TargetLanguage) => {
+  // Initialize main session when profile loads and no active session
+  useEffect(() => {
+    const initMainSession = async () => {
+      if (authProfile?.targetLanguage && !activeSession && !sessionsLoading) {
+        try {
+          await getOrCreateMain(authProfile.targetLanguage);
+        } catch (err) {
+          console.error('Failed to initialize main session:', err);
+        }
+      }
+    };
+    initMainSession();
+  }, [authProfile?.targetLanguage, activeSession, sessionsLoading, getOrCreateMain]);
+
+  // Handle Language Switching - syncs to Pocketbase
+  const handleSwitchLanguage = async (newLang: TargetLanguage) => {
     if (profile.targetLanguage === newLang) return;
 
-    setProfile(p => ({ ...p, targetLanguage: newLang }));
-    
-    const newSessionId = getMainSessionId(newLang);
-    
-    // Create new main session for this language if it doesn't exist
-    if (!sessions[newSessionId]) {
-        const newSession: ChatSession = {
-            id: newSessionId,
-            type: SessionType.MAIN,
-            status: SessionStatus.ACTIVE,
-            title: newLang === 'French' ? 'Main Hall (French)' : 'Main Hall',
-            objectives: [],
-            messages: [],
-            createdAt: Date.now()
-        };
-        setSessions(prev => ({ ...prev, [newSessionId]: newSession }));
+    // Update profile in Pocketbase
+    try {
+      await updateProfile({ targetLanguage: newLang });
+      // Get or create main session for the new language
+      await getOrCreateMain(newLang);
+    } catch (err) {
+      console.error('Failed to switch language:', err);
     }
-    
-    setActiveSessionId(newSessionId);
   };
 
   // Initial Greeting Logic (Dynamic based on active Main Hall)
@@ -145,7 +140,7 @@ function App() {
           timestamp: Date.now(),
         };
         
-        updateSessionMessages(currentMainId, [initialMsg]);
+        addMessagesToSession(currentMainId, [initialMsg]);
         
         if (autoTTS) handlePlayAudio(initialMsg.id, initialMsg.text);
       }, 1000);
@@ -154,125 +149,45 @@ function App() {
   }, [activeSessionId, sessions[activeSessionId]?.messages.length, profile.targetLanguage]); 
   // Note: We depend on the length of the *active* session messages to avoid loops
 
-  const updateSessionMessages = (sessionId: string, newMessages: Message[] | ((prev: Message[]) => Message[])) => {
-      setSessions(prev => {
-          const session = prev[sessionId];
-          if (!session) return prev;
-          
-          const updatedMsgs = typeof newMessages === 'function' 
-            ? newMessages(session.messages)
-            : [...session.messages, ...newMessages];
-
-          return {
-              ...prev,
-              [sessionId]: {
-                  ...session,
-                  messages: updatedMsgs
-              }
-          };
-      });
+  // Helper to add messages to a session - uses hook's updateMessages
+  const addMessagesToSession = (sessionId: string, newMsgs: Message[]) => {
+      const session = sessions[sessionId];
+      if (!session) return;
+      const updatedMsgs = [...session.messages, ...newMsgs];
+      updateMessages(sessionId, updatedMsgs);
   };
 
-  // Audio Logic
-  const getAudioContext = () => {
-    if (!audioContextRef.current) {
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({sampleRate: 24000});
-    }
-    if (audioContextRef.current.state === 'suspended') {
-        audioContextRef.current.resume();
-    }
-    return audioContextRef.current;
-  };
-
+  // Audio Logic - using new ttsService
   const stopAudio = () => {
-      if (currentSourceRef.current) {
-          try {
-            currentSourceRef.current.stop();
-          } catch (e) {}
-          currentSourceRef.current = null;
-      }
+      stopTTSAudio();
       setPlayingMessageId(null);
   };
 
-  const playPcmData = async (base64: string, messageId: string) => {
-      stopAudio();
-      try {
-          const ctx = getAudioContext();
-          const byteArray = decode(base64);
-          const dataInt16 = new Int16Array(byteArray.buffer);
-          const frameCount = dataInt16.length;
-          const buffer = ctx.createBuffer(1, frameCount, 24000);
-          const channelData = buffer.getChannelData(0);
-          
-          for (let i = 0; i < frameCount; i++) {
-             channelData[i] = dataInt16[i] / 32768.0;
-          }
-
-          const source = ctx.createBufferSource();
-          source.buffer = buffer;
-          
-          // Add GainNode to boost volume
-          const gainNode = ctx.createGain();
-          gainNode.gain.value = 2.5; // Boost volume by 2.5x
-
-          source.connect(gainNode);
-          gainNode.connect(ctx.destination);
-          
-          source.onended = () => {
-              if (playingMessageId === messageId) {
-                setPlayingMessageId(null);
-              }
-          };
-          currentSourceRef.current = source;
-          source.start();
-          setPlayingMessageId(messageId);
-      } catch (e) {
-          console.error("Audio playback failed", e);
-          setPlayingMessageId(null);
-      }
-  };
-
   const handlePlayAudio = async (messageId: string, text: string) => {
+      // If already playing this message, stop it
       if (playingMessageId === messageId) {
           stopAudio();
           return;
       }
       
-      // Search all sessions for the message to find audioData
-      let message: Message | undefined;
-      let foundSessionId: string | undefined;
+      // Stop any currently playing audio
+      stopAudio();
       
-      for (const sId in sessions) {
-          const m = sessions[sId].messages.find(msg => msg.id === messageId);
-          if (m) {
-              message = m;
-              foundSessionId = sId;
-              break;
-          }
-      }
-
-      if (!message || !foundSessionId) return;
-
-      if (message.audioData) {
-          await playPcmData(message.audioData, messageId);
-          return;
-      }
-
       setAudioLoadingId(messageId);
-      const audioData = await generateSpeech(text);
+      setPlayingMessageId(messageId);
+      
+      // Generate and play audio using Google Cloud TTS
+      const result = await generateTTS(text, { language: profile.targetLanguage });
       setAudioLoadingId(null);
 
-      if (audioData) {
-          setSessions(prev => ({
-              ...prev,
-              [foundSessionId!]: {
-                  ...prev[foundSessionId!],
-                  messages: prev[foundSessionId!].messages.map(m => 
-                    m.id === messageId ? { ...m, audioData } : m
-                  )
-              }
-          }));
-          await playPcmData(audioData, messageId);
+      if (result) {
+          await playAudio(result.audioContent, () => {
+              // Clear playing state when audio finishes
+              setPlayingMessageId(null);
+          });
+      } else {
+          // TTS failed, clear state
+          setPlayingMessageId(null);
       }
   };
   
@@ -298,15 +213,15 @@ function App() {
     setTranslationLoadingId(null);
 
     if (pairs) {
-         setSessions(prev => ({
-              ...prev,
-              [foundSessionId!]: {
-                  ...prev[foundSessionId!],
-                  messages: prev[foundSessionId!].messages.map(m => 
-                    m.id === messageId ? { ...m, translation: pairs, translationLanguage: profile.nativeLanguage } : m
-                  )
-              }
-          }));
+         // Translation is not persisted to DB - just displayed in UI for this session
+         // This is acceptable as users can re-translate if needed after refresh
+         const session = sessions[foundSessionId!];
+         if (session) {
+           const updatedMsgs = session.messages.map(m => 
+             m.id === messageId ? { ...m, translation: pairs, translationLanguage: profile.nativeLanguage } : m
+           );
+           updateMessages(foundSessionId!, updatedMsgs);
+         }
     }
   };
 
@@ -323,7 +238,7 @@ function App() {
       isHidden: options.isHidden
     };
 
-    updateSessionMessages(activeSessionId, [userMsg]);
+    addMessagesToSession(activeSessionId, [userMsg]);
     setIsThinking(true);
 
     try {
@@ -345,54 +260,47 @@ function App() {
             console.log("Processing action:", action);
 
             if (action.action === "UPDATE_PROFILE") {
-                setProfile(prev => ({
-                    ...prev,
-                    level: action.data.level || prev.level,
-                    goals: action.data.goals || prev.goals,
-                    interests: action.data.interests || prev.interests,
-                    onboardingComplete: true
-                }));
+                // Sync profile updates to Pocketbase
+                const profileUpdates: Partial<UserProfile> = {
+                  onboardingComplete: true
+                };
+                if (action.data.level) profileUpdates.level = action.data.level;
+                if (action.data.goals) profileUpdates.goals = action.data.goals;
+                if (action.data.interests) profileUpdates.interests = action.data.interests;
+                
+                updateProfile(profileUpdates).catch(err => {
+                  console.error('Failed to update profile from AI action:', err);
+                });
             } 
             else if (action.action === "ADD_TRAIT") {
-                setProfile(prev => {
-                    // Prevent duplicate traits by label
-                    if (prev.traits.some(t => t.label === action.data.label)) return prev;
-                    return {
-                        ...prev,
-                        traits: [...prev.traits, action.data]
-                    };
-                });
+                // Check if trait already exists before adding
+                const existingTraits = profile.traits || [];
+                if (!existingTraits.some(t => t.label === action.data.label)) {
+                  updateProfile({
+                    traits: [...existingTraits, action.data]
+                  }).catch(err => {
+                    console.error('Failed to add trait:', err);
+                  });
+                }
             }
             else if (action.action === "START_ACTIVITY") {
                 activityData = action.data;
             }
             else if (action.action === "UPDATE_DRAFT") {
-                setSessions(prev => ({
-                    ...prev,
-                    [activeSessionId]: {
-                        ...prev[activeSessionId],
-                        draft: action.data
-                    }
-                }));
+                // Update draft via hook
+                updateDraft(activeSessionId, action.data);
             }
             else if (action.action === "CREATE_LESSON") {
-                setSessions(prev => ({
-                    ...prev,
-                    [activeSessionId]: {
-                        ...prev[activeSessionId],
-                        draft: null 
-                    }
-                }));
+                // Clear draft on parent session
+                updateDraft(activeSessionId, null);
 
-                const newLessonId = `lesson-${Date.now()}`;
-                const newLesson: ChatSession = {
-                    id: newLessonId,
+                // Create new lesson session via Pocketbase
+                const newLesson = await createSession({
                     type: SessionType.LESSON,
                     status: SessionStatus.ACTIVE,
                     title: action.data.title,
                     objectives: action.data.objectives,
                     parentId: activeSessionId,
-                    createdAt: Date.now(),
                     messages: [
                         {
                             id: Date.now().toString(),
@@ -401,15 +309,10 @@ function App() {
                             timestamp: Date.now()
                         }
                     ]
-                };
-                
-                setSessions(prev => ({
-                    ...prev,
-                    [newLessonId]: newLesson
-                }));
+                });
 
                 lessonInviteData = {
-                    sessionId: newLessonId,
+                    sessionId: newLesson.id,
                     title: action.data.title,
                     objectives: action.data.objectives
                 };
@@ -427,7 +330,7 @@ function App() {
         lessonInvite: lessonInviteData
       };
 
-      updateSessionMessages(activeSessionId, [aiMsg]);
+      addMessagesToSession(activeSessionId, [aiMsg]);
       
       if (autoTTS && aiResponse.text) {
           handlePlayAudio(aiMsgId, aiResponse.text);
@@ -440,52 +343,42 @@ function App() {
     }
   };
 
-  const handleActivityComplete = (msgId: string, score: number) => {
-    setSessions(prev => ({
-        ...prev,
-        [activeSessionId]: {
-            ...prev[activeSessionId],
-            messages: prev[activeSessionId].messages.map(msg => 
-                msg.id === msgId ? { ...msg, activityCompleted: true } : msg
-            )
-        }
-    }));
+  const handleActivityComplete = async (msgId: string, score: number) => {
+    // Mark activity as completed in messages
+    const session = sessions[activeSessionId];
+    if (session) {
+      const updatedMsgs = session.messages.map(msg => 
+        msg.id === msgId ? { ...msg, activityCompleted: true } : msg
+      );
+      updateMessages(activeSessionId, updatedMsgs);
+    }
 
-    setProfile(prev => ({
-      ...prev,
-      xp: prev.xp + score,
-      completedLessons: prev.completedLessons + 1 
-    }));
+    // Add XP via Pocketbase with daily cap enforcement
+    const result = await addXP(score);
+    
+    // Show feedback if daily cap was hit
+    if (result.capped) {
+      console.log('Daily XP cap reached! Great work today.');
+    }
 
     setTimeout(() => {
         handleUserMessage(`[System: User completed the activity with score ${score}. Praise them and continue.]`, { isHidden: true });
     }, 500);
   };
 
-  const handleCompleteLesson = () => {
-      setSessions(prev => ({
-          ...prev,
-          [activeSessionId]: {
-              ...prev[activeSessionId],
-              status: SessionStatus.COMPLETED
-          }
-      }));
-      setProfile(prev => ({
-          ...prev,
-          completedLessons: prev.completedLessons + 1,
-          xp: prev.xp + 50 // Big bonus for finishing lesson
-      }));
+  const handleCompleteLesson = async () => {
+      // Update session status via hook
+      updateStatus(activeSessionId, SessionStatus.COMPLETED);
+      
+      // Award bonus XP for completing lesson via Pocketbase
+      const result = await addXP(50);
+      
+      if (result.capped) {
+        console.log('Daily XP cap reached! Great work today.');
+      }
   };
 
-  const activeSession = sessions[activeSessionId];
-  
-  const activeLessons = (Object.values(sessions) as ChatSession[])
-    .filter(s => s.type === SessionType.LESSON && s.status === SessionStatus.ACTIVE)
-    .sort((a, b) => b.createdAt - a.createdAt);
-
-  const completedLessons = (Object.values(sessions) as ChatSession[])
-    .filter(s => s.type === SessionType.LESSON && s.status === SessionStatus.COMPLETED)
-    .sort((a, b) => b.createdAt - a.createdAt);
+  // activeSession, activeLessons, completedLessons now come from useSessions hook
 
   return (
     <div className="h-[100dvh] w-screen bg-paper flex flex-col md:flex-row overflow-hidden">
@@ -628,7 +521,11 @@ function App() {
                     <div className="relative">
                         <select 
                             value={profile.nativeLanguage}
-                            onChange={(e) => setProfile(p => ({...p, nativeLanguage: e.target.value as NativeLanguage}))}
+                            onChange={(e) => {
+                              // Sync native language to Pocketbase
+                              updateProfile({ nativeLanguage: e.target.value as NativeLanguage })
+                                .catch(err => console.error('Failed to update native language:', err));
+                            }}
                             className="w-full text-sm pl-3 pr-8 py-2.5 rounded-lg border border-amber-200 bg-amber-50 text-ink appearance-none focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-colors cursor-pointer"
                         >
                             {LANGUAGES.map(lang => (
@@ -646,6 +543,14 @@ function App() {
                     className={`w-full text-xs py-2.5 px-2 rounded-lg border transition-colors flex items-center justify-center gap-2 ${autoTTS ? 'bg-emerald-50 border-emerald-200 text-emerald-700 font-bold' : 'bg-white border-amber-100 text-gray-500 hover:bg-amber-50'}`}
                  >
                     {autoTTS ? <span>🔊 Auto-Play Audio: <b>ON</b></span> : <span>🔇 Auto-Play Audio: <b>OFF</b></span>}
+                 </button>
+
+                 {/* Logout Button */}
+                 <button 
+                    onClick={logout}
+                    className="w-full text-xs py-2.5 px-2 rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
+                 >
+                    <span>👋</span> Log Out
                  </button>
               </div>
             </div>
@@ -677,15 +582,21 @@ function App() {
                 nativeLanguage={profile.nativeLanguage}
                 onMenuClick={() => setSidebarOpen(true)}
             />
+        ) : sessionsLoading ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-amber-700">
+                <div className="text-4xl mb-4 animate-bounce">🦉</div>
+                <p className="font-medium">Setting up your study...</p>
+            </div>
         ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
+            <div className="flex-1 flex flex-col items-center justify-center text-amber-700">
+                <div className="text-4xl mb-4">🏛️</div>
+                <p className="font-medium mb-4">Welcome to the Main Hall!</p>
                 <button 
-                    onClick={() => setSidebarOpen(true)}
-                    className="md:hidden mb-4 p-2 bg-white rounded-lg shadow-sm border border-amber-200 text-amber-900"
+                    onClick={() => getOrCreateMain(profile.targetLanguage)}
+                    className="px-6 py-3 bg-amber-500 text-white rounded-xl font-bold shadow-lg hover:bg-amber-600 transition-colors"
                 >
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                    Start Learning
                 </button>
-                Select a session from the sidebar
             </div>
         )}
       </div>

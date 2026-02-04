@@ -25,6 +25,12 @@ export type TargetLanguage = 'English' | 'French';
 
 export type NativeLanguage = 'English' | 'Spanish' | 'French' | 'German' | 'Portuguese' | 'Ukrainian' | 'Italian' | 'Chinese' | 'Japanese' | 'Hindi' | 'Romanian';
 
+/**
+ * Age groups for personalized learning experience.
+ * Each group gets different communication styles and content complexity.
+ */
+export type AgeGroup = '7-10' | '11-14' | '15-18';
+
 export interface TranslationPair {
   original: string;
   translated: string;
@@ -69,6 +75,7 @@ export interface UserProfile {
   targetLanguage: TargetLanguage;
   level: CEFRLevel;
   nativeLanguage: NativeLanguage;
+  ageGroup: AgeGroup; // For age-appropriate content and communication style
   goals: string[];
   interests: string[];
   traits: UserTrait[]; // AI-detected traits
@@ -84,6 +91,7 @@ export const INITIAL_PROFILE: UserProfile = {
   targetLanguage: 'English',
   level: CEFRLevel.A1,
   nativeLanguage: 'Spanish', // Default
+  ageGroup: '11-14', // Default to middle age group
   goals: [],
   interests: [],
   traits: [],

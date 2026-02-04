@@ -3,15 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Message, Sender, ActivityType, SessionType, LessonDraft, TranslationPair, TargetLanguage, NativeLanguage } from '../types';
 import ActivityWidget from './ActivityWidget';
-
-// Icons
-const MicIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-);
-
-const MicOffIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-);
+import VoiceButton from './VoiceButton';
 
 const SendIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
@@ -120,71 +112,19 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   onMenuClick
 }) => {
   const [input, setInput] = useState('');
-  const [isListening, setIsListening] = useState(false);
   const [showTranslationIds, setShowTranslationIds] = useState<Set<string>>(new Set());
   const endOfMessagesRef = useRef<HTMLDivElement>(null);
-  const recognitionRef = useRef<any>(null);
-
-  // Keep references to current callbacks/state to avoid stale closures in event listeners
-  const onSendMessageRef = useRef(onSendMessage);
-  const isCompletedRef = useRef(isCompleted);
-
-  useEffect(() => {
-    onSendMessageRef.current = onSendMessage;
-    isCompletedRef.current = isCompleted;
-  }, [onSendMessage, isCompleted]);
 
   useEffect(() => {
     endOfMessagesRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [history, isThinking, showTranslationIds]);
 
-  // Initialize Speech Recognition
-  useEffect(() => {
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
-      // Default to US English, but will be updated by the next useEffect
-      recognitionRef.current.lang = 'en-US';
-      recognitionRef.current.interimResults = false;
-
-      recognitionRef.current.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        setInput(transcript);
-        
-        // Use Refs to access the fresh callback, otherwise this closure uses stale props
-        if (!isCompletedRef.current && transcript.trim()) {
-            onSendMessageRef.current(transcript);
-            setInput('');
-        }
-        setIsListening(false);
-      };
-
-      recognitionRef.current.onerror = (event: any) => {
-        console.error("Speech recognition error", event.error);
-        setIsListening(false);
-      };
-
-      recognitionRef.current.onend = () => {
-        setIsListening(false);
-      };
-    }
-  }, []);
-
-  // Update Language dynamically
-  useEffect(() => {
-    if (recognitionRef.current) {
-        recognitionRef.current.lang = targetLanguage === 'French' ? 'fr-FR' : 'en-US';
-    }
-  }, [targetLanguage]);
-
-  const toggleListening = () => {
-    if (isCompleted) return;
-    if (isListening) {
-      recognitionRef.current?.stop();
-    } else {
-      recognitionRef.current?.start();
-      setIsListening(true);
+  /**
+   * Handle voice transcription from VoiceButton
+   */
+  const handleVoiceTranscription = (text: string) => {
+    if (!isCompleted && text.trim()) {
+      onSendMessage(text);
     }
   };
 
@@ -403,35 +343,31 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                  This lesson is complete. Return to Main Hall to continue learning.
              </div>
         ) : (
-            <div className="max-w-3xl mx-auto bg-white rounded-full shadow-lg border border-amber-100 flex items-center p-2 gap-2">
-            <button 
-                onClick={toggleListening}
-                className={`p-3 rounded-full transition-all ${
-                isListening 
-                    ? 'bg-red-500 text-white animate-pulse' 
-                    : 'bg-amber-50 text-amber-800 hover:bg-amber-100'
-                }`}
-            >
-                {isListening ? <MicOffIcon /> : <MicIcon />}
-            </button>
+            <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-lg border border-amber-100 flex items-center p-2 gap-2">
+              {/* Voice Button - using Groq Whisper STT */}
+              <VoiceButton
+                targetLanguage={targetLanguage}
+                onTranscription={handleVoiceTranscription}
+                disabled={isThinking}
+                size="small"
+              />
 
-            <input 
+              <input 
                 type="text" 
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                placeholder={isListening ? "Listening..." : "Type your response..."}
+                placeholder="Type or speak your response..."
                 className="flex-1 bg-transparent outline-none text-ink placeholder-gray-400 ml-2"
-                disabled={isListening}
-            />
+              />
 
-            <button 
+              <button 
                 onClick={() => handleSend()}
                 disabled={!input.trim()}
                 className="p-3 bg-amber-800 text-white rounded-full hover:bg-amber-900 disabled:opacity-50 transition-colors"
-            >
+              >
                 <SendIcon />
-            </button>
+              </button>
             </div>
         )}
       </div>

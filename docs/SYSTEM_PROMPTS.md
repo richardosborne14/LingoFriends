@@ -1,5 +1,7 @@
 # AI Tutor System Prompts
 
+> **Implementation Note:** The prompts documented here are now implemented in `services/systemPrompts.ts` which generates prompts dynamically based on the user's age group, target language, and session type.
+
 This file contains the system prompts for LingoFriends' AI tutors. These need to be appropriate for children ages 7-18 and follow our pedagogy principles.
 
 ---

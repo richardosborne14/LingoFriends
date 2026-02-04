@@ -7,10 +7,13 @@ This folder contains task documentation for each phase of development.
 ```
 docs/
 ├── README.md           # This file
+├── SYSTEM_PROMPTS.md   # AI tutor prompts documentation
 ├── phase-1/            # MVP tasks
-│   ├── task-1-1-code-audit.md
-│   ├── task-1-2-environment-setup.md
-│   ├── task-2-1-pocketbase-schema.md
+│   ├── task-0-1-documentation-setup.md
+│   ├── task-2-1-pocketbase-integration.md
+│   ├── task-2-3-profile-sync.md
+│   ├── task-2-4-session-persistence.md
+│   ├── task-3-ai-service-swap.md
 │   └── ...
 ├── phase-2/            # v1.0 tasks
 │   └── ...

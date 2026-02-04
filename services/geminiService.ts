@@ -271,6 +271,10 @@ export const generateSpeech = async (text: string): Promise<string | null> => {
   }
 }
 
+/**
+ * Translate text using Gemini 2.5 Flash Lite (cost-effective for translations)
+ * Breaks text into sentences and provides parallel translations.
+ */
 export const translateText = async (text: string, targetLanguage: string): Promise<TranslationPair[] | null> => {
   try {
     const prompt = `
@@ -284,8 +288,9 @@ export const translateText = async (text: string, targetLanguage: string): Promi
       Example: [{"original": "Hello.", "translated": "Hola."}]
     `;
 
+    // Using gemini-2.5-flash-lite for cost-effective translations
     const response = await aiClient.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.5-flash-lite',
       contents: [{ parts: [{ text: prompt }] }],
       config: {
         responseMimeType: 'application/json'

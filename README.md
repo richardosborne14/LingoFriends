@@ -18,18 +18,25 @@ The app treats language as a soft skill and personal development journey, not a 
 
 **Goal:** Kids can learn through AI conversation and compete with friends on a leaderboard.
 
+**Current Status:** 🟢 App running with auth flow
+
 ### MVP Features (In Scope)
 
-- [x] Pocketbase authentication (accounts, login)
-- [ ] Profile sync to Pocketbase
-- [ ] Friends list (add by username/friend code)
+- [x] Pocketbase authentication (email-based, with password reset)
+- [x] Auth UI (kid-friendly login/signup screen)
+- [x] Pocketbase collections created (profiles, sessions, friendships, etc.)
+- [x] Pocketbase service layer with CRUD operations
+- [x] Profile sync to Pocketbase (with XP daily cap)
+- [x] Session sync to Pocketbase (auto-save, resume)
+- [x] AI conversation with lesson detection (Groq Llama 3.3)
+- [x] Kid-appropriate system prompts and content filtering
+- [x] Age-based prompt adjustments (7-10, 11-14, 15-18)
+- [x] Basic activities (Quiz, Fill-blank, Matching)
+- [x] Lesson interruptibility (save/resume for short screen time)
+- [x] Daily progress cap with visual feedback
+- [x] Voice-first conversation (Groq Whisper STT + Google TTS)
+- [ ] Friends list (add by friend code)
 - [ ] Leaderboard (XP-based, friends only)
-- [ ] Voice-first conversation (Groq Whisper STT + Google TTS)
-- [ ] AI conversation with lesson detection (Groq Llama 3.3)
-- [ ] Kid-appropriate system prompts and content filtering
-- [ ] Basic activities (Quiz, Fill-blank, Matching)
-- [ ] Lesson interruptibility (save/resume for short screen time)
-- [ ] Daily progress cap with visual feedback
 
 ### Deferred to v1.0
 
@@ -116,5 +123,16 @@ This project started as "LingoLoft" in Google AI Studio, built to provide a free
 
 ---
 
-**Status:** Pre-development (Documentation Phase)
-**Last Updated:** 2025-02-04
+**Status:** 🟢 Active Development (Phase 1 - MVP)
+**Last Updated:** 2026-04-02
+
+### Recent Updates
+- ✅ **Task 4: Voice Services** - Google Cloud TTS + Groq Whisper STT
+- ✅ Email-based authentication (with password reset)
+- ✅ Auto-creation of Main Hall session for new users
+- ✅ **Task 3: AI Service Swap** - Groq Llama 3.3 70B now powers chat
+- ✅ Kid-friendly "Lingo" persona with age-based adjustments
+- ✅ Content safety filtering for all AI responses
+- ✅ Session persistence to Pocketbase with auto-save
+- ✅ Profile sync with XP daily cap enforcement
+- ✅ Pocketbase 0.36.2 integration complete
