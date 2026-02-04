@@ -1,0 +1,7 @@
+{
+  "name": "LingoLoft AI",
+  "description": "An eccentric, caring AI language companion that adapts to your learning style.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
