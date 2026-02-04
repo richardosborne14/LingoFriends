@@ -1,0 +1,277 @@
+# Claude Rules for LingoFriends
+
+## Project Context
+
+LingoFriends is a kid-friendly language learning app. We're replacing a Google AI Studio prototype with a proper architecture using Pocketbase, Groq (Llama 3.3), Google TTS, and Groq Whisper.
+
+**Current Phase:** MVP (Phase 1)
+**Target Users:** Children ages 7-18
+**Core Principle:** Privacy-first, healthy engagement, no pay-to-play
+
+---
+
+## Code Standards
+
+### Comments
+- **Target:** 40-50% comment coverage
+- **Focus:** Explain "why" not "what"
+- **Required:** Every function gets a JSDoc comment
+- **Kid-safety notes:** Flag any content that needs age-appropriate filtering
+
+```typescript
+/**
+ * Generates a friend code for sharing.
+ * Codes are 6 characters, alphanumeric, uppercase only.
+ * Excludes ambiguous characters (0, O, I, L, 1) for kids.
+ */
+function generateFriendCode(): string {
+  // Using crypto for randomness, not Math.random
+  // because friend codes are security-adjacent
+  ...
+}
+```
+
+### TypeScript
+- **Strict mode:** Enabled
+- **No `any`:** Use `unknown` and narrow types
+- **Interfaces over types:** For objects that will be extended
+- **Enums:** Use string enums for readability in debugging
+
+### React
+- **Functional components only:** No class components
+- **Custom hooks:** Extract reusable logic
+- **Error boundaries:** Wrap major sections
+- **Loading states:** Always show feedback, kids get impatient
+
+### Error Handling
+- **Never silent failures:** Log everything, show user-friendly messages
+- **Kid-friendly errors:** "Oops! Something went wrong. Let's try again!" not stack traces
+- **Retry logic:** Automatic for transient failures
+- **Offline handling:** Queue actions, sync when back online
+
+### Testing
+- **Unit tests:** Required for services (aiService, pocketbaseService, etc.)
+- **Integration tests:** Auth flow, lesson save/resume
+- **Manual testing:** Actually test with kids or kid-like scenarios
+
+---
+
+## AI Model Assignments
+
+| Task | Model | Endpoint | Notes |
+|------|-------|----------|-------|
+| Main conversation | Llama 3.3 70B | Groq | Fast, good for chat |
+| Lesson generation | Llama 3.3 70B | Groq | Same |
+| Activity generation | Llama 3.3 70B | Groq | Quiz, fill-blank, matching |
+| Complex reasoning | Claude Haiku | Anthropic | Edge cases, pedagogy decisions |
+| Text-to-Speech | TTS Pro | Google Cloud | Multilingual, natural voices |
+| Speech-to-Text | Whisper Large v3 | Groq | Fast, accurate |
+
+### Model Selection Logic
+
+```typescript
+// In modelRouter.ts
+function selectModel(task: AITask): ModelConfig {
+  switch (task.type) {
+    case 'conversation':
+    case 'lesson':
+    case 'activity':
+      return GROQ_LLAMA_CONFIG;
+    
+    case 'complex_pedagogy':
+    case 'content_safety':
+    case 'trait_analysis':
+      return ANTHROPIC_HAIKU_CONFIG;
+    
+    default:
+      return GROQ_LLAMA_CONFIG;
+  }
+}
+```
+
+---
+
+## Content Safety Rules
+
+### Age-Appropriate Content
+- No violence, even cartoon violence
+- No romantic content
+- No scary themes (horror, death)
+- No controversial topics (politics, religion)
+- Positive, encouraging tone always
+
+### Content Filtering
+- AI responses MUST be filtered before display
+- Flag and log any concerning content
+- Fallback to safe generic response if filter triggers
+
+### Personal Information
+- Never ask for or store: full names, addresses, phone numbers, school names
+- Username only for display
+- Parent email for account recovery only
+
+---
+
+## Pocketbase Rules
+
+### Collection Permissions
+- **profiles:** Owner read/write only
+- **sessions:** Owner read/write only
+- **friendships:** Both parties can read, only sender can create
+- **friend_codes:** Owner read/write, anyone can lookup by code
+- **daily_progress:** Owner read/write only
+
+### Data Validation
+- Validate on client AND server (Pocketbase rules)
+- Never trust client data
+- Sanitize all text inputs
+
+---
+
+## File Organization
+
+### Naming Conventions
+- **Components:** PascalCase (`ChatInterface.tsx`)
+- **Services:** camelCase (`aiService.ts`)
+- **Types:** PascalCase for types/interfaces (`UserProfile`)
+- **Constants:** SCREAMING_SNAKE_CASE (`MAX_DAILY_XP`)
+- **Files:** kebab-case for non-component files (`setup-pocketbase.js`)
+
+### Import Order
+1. React/external libraries
+2. Internal services
+3. Internal components
+4. Types
+5. Constants/utils
+6. Styles
+
+```typescript
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import { aiService } from '@/services/aiService';
+import { useAuth } from '@/hooks/useAuth';
+
+import { ChatBubble } from '@/components/ChatBubble';
+import { VoiceButton } from '@/components/VoiceButton';
+
+import type { Message, UserProfile } from '@/types';
+
+import { MAX_MESSAGE_LENGTH } from '@/constants';
+```
+
+---
+
+## Confidence Scoring
+
+After each task, provide:
+
+```markdown
+## Confidence: X/10
+
+**Met:**
+- [x] Criterion 1
+- [x] Criterion 2
+
+**Concerns:**
+- [ ] Potential issue (explain)
+
+**Deferred:**
+- [ ] Feature X (to Phase Y)
+```
+
+### Scoring Guide
+- **9-10:** Production ready, fully tested
+- **8:** Works well, minor polish needed
+- **7:** Functional but needs review
+- **6 or below:** Do not proceed, needs fixes
+
+**Minimum to proceed: 8/10**
+
+---
+
+## Ask Human When
+
+1. **Security decisions** — Auth flow changes, permission changes
+2. **Pedagogy choices** — How to teach something, age-appropriateness
+3. **UX for kids** — What works for children, what doesn't
+4. **API costs** — Before implementing something that might be expensive
+5. **Content policy** — Anything potentially sensitive
+6. **Architecture changes** — Major refactors, new dependencies
+7. **Confidence below 8** — Something feels off
+
+---
+
+## Git Commit Messages
+
+```
+[Component] Action: Description
+
+Examples:
+[Auth] Add: Pocketbase login flow
+[AI] Fix: Handle empty responses from Groq
+[Voice] Update: Switch STT to Groq Whisper
+[UI] Polish: Loading states for kids
+[Docs] Add: Task 2.1 completion notes
+```
+
+**Components:** Auth, AI, Voice, UI, DB, Docs, Config, Test
+**Actions:** Add, Fix, Update, Remove, Refactor, Polish
+
+---
+
+## Environment Variables
+
+```bash
+# Required
+VITE_POCKETBASE_URL=https://your-instance.pocketbase.io
+VITE_GROQ_API_KEY=gsk_...
+VITE_GOOGLE_TTS_API_KEY=...
+
+# Optional (for Haiku fallback)
+VITE_ANTHROPIC_API_KEY=sk-ant-...
+
+# Development only
+VITE_DEBUG_MODE=true
+```
+
+**Never commit .env files. Use .env.example as template.**
+
+---
+
+## Performance Targets
+
+| Metric | Target | Why |
+|--------|--------|-----|
+| First paint | < 2s | Kids lose patience |
+| AI response | < 3s | Feels conversational |
+| TTS start | < 1s | Voice should feel immediate |
+| STT processing | < 2s | Before they forget what they said |
+
+---
+
+## Dependencies Policy
+
+- **Minimize dependencies:** Every dep is a security risk
+- **Audit before adding:** Check maintenance status, bundle size
+- **Prefer built-in:** Use Web APIs over libraries when possible
+- **Document why:** Comment non-obvious dependency choices
+
+---
+
+## Quality Gates
+
+### Before PR/Merge
+- [ ] TypeScript compiles with no errors
+- [ ] ESLint passes with no warnings
+- [ ] Unit tests pass
+- [ ] Manual testing done
+- [ ] Confidence score ≥ 8/10
+- [ ] Task doc updated
+
+### Before Phase Completion
+- [ ] All tasks at 8/10+
+- [ ] Integration testing complete
+- [ ] Phase audit performed
+- [ ] LEARNINGS.md updated
+- [ ] README.md current status updated
