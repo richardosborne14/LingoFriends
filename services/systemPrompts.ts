@@ -7,7 +7,14 @@
  * @module systemPrompts
  */
 
-import type { AgeGroup, TargetLanguage, NativeLanguage, LessonDraft } from '../types';
+import type { 
+  AgeGroup, 
+  TargetLanguage, 
+  NativeLanguage, 
+  LessonDraft,
+  TargetSubject,
+  AIProfileField 
+} from '../types';
 
 // ============================================
 // TYPES
@@ -21,6 +28,12 @@ export interface PromptConfig {
   lessonTitle?: string;
   lessonObjectives?: string[];
   currentDraft?: LessonDraft | null;
+  /** Current learning subject (English, German, Maths, etc.) */
+  targetSubject?: TargetSubject;
+  /** Current theme/interest for this session */
+  currentTheme?: string;
+  /** AI-learned facts about this user */
+  aiProfileFields?: AIProfileField[];
 }
 
 // ============================================
@@ -167,25 +180,55 @@ function getAgeAdjustments(ageGroup: AgeGroup): string {
  * Get session-specific instructions (Main Hall vs Lesson)
  */
 export function getSessionInstructions(config: PromptConfig): string {
-  const { sessionType, lessonTitle, lessonObjectives, currentDraft } = config;
+  const { 
+    sessionType, 
+    lessonTitle, 
+    lessonObjectives, 
+    currentDraft,
+    targetSubject,
+    currentTheme,
+    aiProfileFields = []
+  } = config;
+  
+  // Format known facts about this user
+  const knownFacts = aiProfileFields.length > 0
+    ? aiProfileFields.map(f => `- ${f.fieldName}: ${f.fieldValue}`).join('\n')
+    : 'No specific facts known yet.';
+  
+  // Build theme/subject context
+  const themeContext = currentTheme 
+    ? `\n## Today's Theme: ${currentTheme}
+Use this theme to make examples relevant and engaging. Connect new vocabulary and phrases to ${currentTheme} whenever natural.`
+    : '';
+  
+  const subjectContext = targetSubject
+    ? `\n## Learning Subject: ${targetSubject}`
+    : '';
   
   if (sessionType === 'LESSON' && lessonTitle) {
     return `
 ## Current Lesson Context
 You are teaching: "${lessonTitle}"
 Objectives: ${lessonObjectives?.join(', ') || 'General practice'}
+${subjectContext}
+${themeContext}
 
 ## Lesson Mode Rules
 1. Stay focused on this lesson's objectives
 2. If they ask about something unrelated, acknowledge warmly but redirect
 3. Use activities to reinforce learning
 4. Celebrate when they master an objective
-5. When all objectives are met, congratulate them!`;
+5. When all objectives are met, congratulate them!
+
+## Known Facts About This User
+${knownFacts}`;
   }
   
   return `
 ## Main Hall Context
 You're in the Main Hall - the casual chat area.
+${subjectContext}
+${themeContext}
 
 ## Main Hall Rules
 1. Chat freely and get to know them
@@ -195,6 +238,13 @@ You're in the Main Hall - the casual chat area.
    - Build confidence score (0-1)
    - Create lesson when confident (>0.85)
 4. Don't rush into lessons - understand what they need
+
+## Known Facts About This User
+${knownFacts}
+
+## Learning Profile Information
+During conversation, listen for facts about the user that could help personalize future lessons.
+When you learn something new (favorite band, why they're learning, hobbies, etc.), remember it!
 
 Current draft: ${currentDraft ? JSON.stringify(currentDraft) : "No active draft"}`;
 }

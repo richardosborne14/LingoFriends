@@ -7,7 +7,7 @@
  * @module groqService
  */
 
-import type { UserProfile, ChatSession, Message } from '../types';
+import type { UserProfile, ChatSession, Message, AIProfileField, TargetSubject } from '../types';
 import { buildSystemPrompt } from './systemPrompts';
 import { filterResponse, sanitizeUserInput } from './contentFilter';
 
@@ -44,6 +44,17 @@ export interface StreamCallbacks {
   onToken: (token: string) => void;
   onComplete: (fullText: string) => void;
   onError: (error: Error) => void;
+}
+
+/**
+ * Additional context for AI conversations.
+ * Includes theme and learned facts about the user.
+ */
+export interface ConversationContext {
+  /** Current theme/interest for this learning session */
+  currentTheme?: string | null;
+  /** AI-learned facts about the user for personalization */
+  aiProfileFields?: AIProfileField[];
 }
 
 // ============================================
@@ -145,11 +156,17 @@ async function retryWithBackoff<T>(
 /**
  * Generate AI response (non-streaming)
  * Drop-in replacement for geminiService.generateResponse
+ * 
+ * @param session - Current chat session
+ * @param profile - User profile
+ * @param userMessage - User's message text
+ * @param context - Optional additional context (theme, AI profile fields)
  */
 export async function generateResponse(
   session: ChatSession,
   profile: UserProfile,
-  userMessage: string
+  userMessage: string,
+  context?: ConversationContext
 ): Promise<{ text: string; actions: any[] }> {
   // Sanitize input
   const sanitizedMessage = sanitizeUserInput(userMessage);
@@ -162,7 +179,7 @@ export async function generateResponse(
   }
   lastRequestTime = Date.now();
 
-  // Build system prompt
+  // Build system prompt with theme and AI profile context
   const systemPrompt = buildSystemPrompt({
     targetLanguage: profile.targetLanguage,
     nativeLanguage: profile.nativeLanguage,
@@ -171,6 +188,10 @@ export async function generateResponse(
     lessonTitle: session.title,
     lessonObjectives: session.objectives,
     currentDraft: session.draft,
+    // NEW: Pass subject, theme, and AI profile fields for personalization
+    targetSubject: profile.targetSubject,
+    currentTheme: context?.currentTheme || undefined,
+    aiProfileFields: context?.aiProfileFields || [],
   });
 
   // Convert message history
@@ -310,7 +331,73 @@ export async function generateResponseStream(
   }
 }
 
+// ============================================
+// LANGUAGE DETECTION
+// ============================================
+
+/**
+ * Detect the language of text using Groq AI.
+ * Uses a fast, small model for quick detection.
+ * 
+ * @param text - Text to analyze (will use first 200 chars)
+ * @returns ISO language code or 'en' as fallback
+ */
+export async function detectLanguageWithAI(text: string): Promise<string> {
+  if (!text || text.length < 3) {
+    return 'en';
+  }
+  
+  // Use only first 200 chars for speed and cost
+  const sample = text.slice(0, 200);
+  
+  try {
+    const res = await fetch(GROQ_API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${GROQ_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant', // Fast, small model for detection
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a language detector. Respond with ONLY the ISO 639-1 two-letter language code (e.g., en, fr, de, es, it). Nothing else.'
+          },
+          {
+            role: 'user',
+            content: `Detect the language: "${sample}"`
+          }
+        ],
+        temperature: 0,
+        max_tokens: 5,
+      }),
+    });
+
+    if (!res.ok) {
+      console.warn('[Groq] Language detection failed, using fallback');
+      return 'en';
+    }
+
+    const data = await res.json() as GroqResponse;
+    const detected = data.choices[0]?.message?.content?.trim().toLowerCase().slice(0, 2);
+    
+    // Validate it's a known language code
+    const validCodes = ['en', 'fr', 'de', 'es', 'it', 'pt', 'zh', 'ja', 'ko', 'ru'];
+    if (detected && validCodes.includes(detected)) {
+      console.log(`[Groq] Detected language: ${detected}`);
+      return detected;
+    }
+    
+    return 'en';
+  } catch (error) {
+    console.error('[Groq] Language detection error:', error);
+    return 'en';
+  }
+}
+
 export default {
   generateResponse,
   generateResponseStream,
+  detectLanguageWithAI,
 };

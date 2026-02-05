@@ -19,22 +19,39 @@ const GOOGLE_TTS_URL = 'https://texttospeech.googleapis.com/v1/text:synthesize';
 
 /**
  * Voice configurations for each supported language.
- * Using WaveNet voices for natural, kid-friendly sound.
+ * Using Journey voices (Google's newest, highest quality) for natural sound.
+ * Journey voices handle code-switching better (mixing languages in one sentence).
  * 
  * Voice selection criteria:
- * - Natural sounding (WaveNet/Neural2)
+ * - Highest quality available (Journey > Neural2 > WaveNet > Standard)
  * - Clear pronunciation for learners
  * - Appropriate for children (not too deep/serious)
+ * - Good multilingual support
  */
 const VOICE_CONFIG: Record<TargetLanguage, { languageCode: string; name: string; ssmlGender: string }> = {
   French: {
     languageCode: 'fr-FR',
-    name: 'fr-FR-Neural2-A', // Female French voice - clear and friendly
+    name: 'fr-FR-Journey-F', // Journey female voice - highest quality
     ssmlGender: 'FEMALE',
   },
   English: {
     languageCode: 'en-US',
-    name: 'en-US-Neural2-F', // Female US English voice - clear and friendly
+    name: 'en-US-Journey-F', // Journey female voice - highest quality
+    ssmlGender: 'FEMALE',
+  },
+  German: {
+    languageCode: 'de-DE',
+    name: 'de-DE-Journey-F', // Journey female voice - highest quality  
+    ssmlGender: 'FEMALE',
+  },
+  Spanish: {
+    languageCode: 'es-ES',
+    name: 'es-ES-Journey-F', // Journey female voice - highest quality
+    ssmlGender: 'FEMALE',
+  },
+  Italian: {
+    languageCode: 'it-IT',
+    name: 'it-IT-Journey-F', // Journey female voice - highest quality
     ssmlGender: 'FEMALE',
   },
 };
@@ -42,11 +59,12 @@ const VOICE_CONFIG: Record<TargetLanguage, { languageCode: string; name: string;
 /**
  * Audio configuration for TTS output.
  * MP3 chosen for broad browser compatibility and reasonable file size.
+ * Note: Journey voices don't support pitch adjustment, so we omit it.
  */
 const AUDIO_CONFIG = {
   audioEncoding: 'MP3' as const,
   speakingRate: 0.95, // Slightly slower for learners
-  pitch: 0.5, // Slightly higher pitch - friendlier for kids
+  // pitch removed - Journey voices don't support pitch parameters
   volumeGainDb: 0.0,
 };
 
@@ -91,8 +109,86 @@ let currentSource: AudioBufferSourceNode | null = null;
 let currentAudioElement: HTMLAudioElement | null = null;
 
 // ============================================
+// LANGUAGE DETECTION (using Groq AI)
+// ============================================
+
+import { detectLanguageWithAI } from './groqService';
+
+/**
+ * Map ISO 639-1 language codes to our TargetLanguage type
+ */
+const ISO_TO_TARGET: Record<string, TargetLanguage> = {
+  'en': 'English',
+  'fr': 'French',
+  'de': 'German',
+  'es': 'Spanish',
+  'it': 'Italian',
+};
+
+/**
+ * Detect the language of text using Groq AI.
+ * This is more accurate than pattern matching for mixed-language content.
+ * 
+ * @param text - Text to analyze
+ * @returns The detected language to use for TTS
+ */
+export async function detectLanguage(text: string): Promise<TargetLanguage> {
+  if (!text || text.length < 5) {
+    console.log(`[TTS] Text too short, defaulting to English`);
+    return 'English';
+  }
+  
+  try {
+    const isoCode = await detectLanguageWithAI(text);
+    const language = ISO_TO_TARGET[isoCode] || 'English';
+    console.log(`[TTS] Groq detected language: ${isoCode} → ${language}`);
+    return language;
+  } catch (error) {
+    console.error('[TTS] Language detection failed, defaulting to English:', error);
+    return 'English';
+  }
+}
+
+// ============================================
 // HELPER FUNCTIONS
 // ============================================
+
+/**
+ * Clean text for TTS by removing emojis and special characters.
+ * Google TTS reads emoji names aloud (e.g., "face with tears of joy") which sounds weird.
+ * 
+ * @param text - Raw text with potential emojis
+ * @returns Clean text suitable for TTS
+ */
+function cleanTextForTTS(text: string): string {
+  // Remove emojis using Unicode ranges
+  // This covers most common emoji ranges
+  let cleaned = text
+    // Remove emoji modifiers and joiners
+    .replace(/[\u{1F3FB}-\u{1F3FF}]/gu, '')
+    // Remove common emojis (emoticons, symbols, pictographs)
+    .replace(/[\u{1F600}-\u{1F64F}]/gu, '') // Emoticons
+    .replace(/[\u{1F300}-\u{1F5FF}]/gu, '') // Misc Symbols and Pictographs
+    .replace(/[\u{1F680}-\u{1F6FF}]/gu, '') // Transport and Map
+    .replace(/[\u{1F700}-\u{1F77F}]/gu, '') // Alchemical Symbols
+    .replace(/[\u{1F780}-\u{1F7FF}]/gu, '') // Geometric Shapes Extended
+    .replace(/[\u{1F800}-\u{1F8FF}]/gu, '') // Supplemental Arrows-C
+    .replace(/[\u{1F900}-\u{1F9FF}]/gu, '') // Supplemental Symbols and Pictographs
+    .replace(/[\u{1FA00}-\u{1FA6F}]/gu, '') // Chess Symbols
+    .replace(/[\u{1FA70}-\u{1FAFF}]/gu, '') // Symbols and Pictographs Extended-A
+    .replace(/[\u{2600}-\u{26FF}]/gu, '')   // Misc symbols (sun, moon, etc.)
+    .replace(/[\u{2700}-\u{27BF}]/gu, '')   // Dingbats
+    .replace(/[\u{FE00}-\u{FE0F}]/gu, '')   // Variation Selectors
+    .replace(/[\u{200D}]/gu, '')             // Zero Width Joiner
+    // Remove flag emojis (regional indicators)
+    .replace(/[\u{1F1E0}-\u{1F1FF}]/gu, '')
+    // Clean up multiple spaces left by removed emojis
+    .replace(/\s+/g, ' ')
+    .trim();
+  
+  console.log(`[TTS] Cleaned text (removed emojis): ${text.length} → ${cleaned.length} chars`);
+  return cleaned;
+}
 
 /**
  * Sleep helper for retry delays
@@ -191,6 +287,13 @@ export async function generateSpeech(
     return null;
   }
   
+  // Clean text by removing emojis and special characters
+  const cleanedText = cleanTextForTTS(text);
+  if (!cleanedText || cleanedText.length === 0) {
+    console.warn('[TTS] Text is empty after cleaning');
+    return null;
+  }
+  
   // Get voice config for language
   const voiceConfig = VOICE_CONFIG[options.language];
   if (!voiceConfig) {
@@ -198,10 +301,10 @@ export async function generateSpeech(
     return null;
   }
   
-  // Build request body
+  // Build request body with cleaned text
   const requestBody = {
     input: {
-      text: text.trim(),
+      text: cleanedText,
     },
     voice: {
       languageCode: voiceConfig.languageCode,
@@ -211,7 +314,7 @@ export async function generateSpeech(
     audioConfig: {
       audioEncoding: AUDIO_CONFIG.audioEncoding,
       speakingRate: options.speakingRate ?? AUDIO_CONFIG.speakingRate,
-      pitch: options.pitch ?? AUDIO_CONFIG.pitch,
+      // Note: pitch parameter removed - Journey voices don't support it
       volumeGainDb: AUDIO_CONFIG.volumeGainDb,
     },
   };

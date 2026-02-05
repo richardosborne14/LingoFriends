@@ -121,9 +121,9 @@ const VoiceButton: React.FC<VoiceButtonProps> = ({
   const currentSize = sizeConfig[size];
   
   // Set up recorder callbacks
+  // Note: We don't set language anymore - Whisper auto-detects
+  // This allows users to speak in any language (native or target)
   useEffect(() => {
-    recorder.setLanguage(targetLanguage);
-    
     recorder.setCallbacks({
       onStateChange: (state) => {
         setRecordingState(state);
@@ -178,21 +178,21 @@ const VoiceButton: React.FC<VoiceButtonProps> = ({
   
   // Determine button appearance based on state
   const getButtonStyles = () => {
-    const baseStyles = 'relative rounded-full transition-all duration-200 flex items-center justify-center shadow-lg focus:outline-none focus:ring-4';
+    const baseStyles = 'relative rounded-xl transition-all duration-200 flex items-center justify-center shadow-[0_2px_0_0_rgba(0,0,0,0.1)] focus:outline-none focus:ring-4';
     
     switch (recordingState) {
       case 'idle':
-        return `${baseStyles} bg-amber-100 text-amber-800 hover:bg-amber-200 focus:ring-amber-200`;
+        return `${baseStyles} bg-[#f0fdf4] text-[#58CC02] border-2 border-[#86efac] hover:bg-[#dcfce7] focus:ring-[#86efac]/30`;
       case 'requesting':
-        return `${baseStyles} bg-amber-200 text-amber-600 cursor-wait`;
+        return `${baseStyles} bg-[#e5e5e5] text-[#737373] border-2 border-[#d4d4d4] cursor-wait`;
       case 'recording':
-        return `${baseStyles} bg-red-500 text-white hover:bg-red-600 focus:ring-red-200 animate-pulse`;
+        return `${baseStyles} bg-[#FF4B4B] text-white border-2 border-[#FF4B4B] hover:bg-[#e63939] focus:ring-[#FF4B4B]/30 animate-pulse`;
       case 'processing':
-        return `${baseStyles} bg-amber-300 text-amber-800 cursor-wait`;
+        return `${baseStyles} bg-[#FFC800] text-white border-2 border-[#FFC800] cursor-wait`;
       case 'error':
-        return `${baseStyles} bg-red-100 text-red-600 hover:bg-red-200 focus:ring-red-200`;
+        return `${baseStyles} bg-[#fee2e2] text-[#FF4B4B] border-2 border-[#fecaca] hover:bg-[#fecaca] focus:ring-[#fecaca]/30`;
       default:
-        return `${baseStyles} bg-amber-100 text-amber-800`;
+        return `${baseStyles} bg-[#f0fdf4] text-[#58CC02] border-2 border-[#86efac]`;
     }
   };
   

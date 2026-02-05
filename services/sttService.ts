@@ -24,6 +24,9 @@ const WHISPER_MODEL = 'whisper-large-v3';
 const LANGUAGE_CODES: Record<TargetLanguage, string> = {
   French: 'fr',
   English: 'en',
+  German: 'de',
+  Spanish: 'es',
+  Italian: 'it',
 };
 
 /**
@@ -392,13 +395,16 @@ class AudioRecorder {
 /**
  * Send audio blob to Groq Whisper for transcription.
  * 
+ * Whisper auto-detects the language - we don't force a specific language
+ * because users may speak in their native language or target language.
+ * 
  * @param audioBlob - Audio data as Blob
- * @param language - Target language for better accuracy
+ * @param language - Hint language (no longer used - Whisper auto-detects)
  * @returns TranscriptionResult or null on error
  */
 async function transcribeAudio(
   audioBlob: Blob,
-  language: TargetLanguage
+  _language: TargetLanguage // Unused - Whisper auto-detects
 ): Promise<TranscriptionResult | null> {
   if (!GROQ_API_KEY) {
     console.error('[STT] Missing VITE_GROQ_API_KEY');
@@ -416,7 +422,8 @@ async function transcribeAudio(
     
     formData.append('file', audioBlob, `recording.${extension}`);
     formData.append('model', WHISPER_MODEL);
-    formData.append('language', LANGUAGE_CODES[language]);
+    // Let Whisper auto-detect language - don't force a specific language
+    // This allows users to speak in any language (native or target)
     formData.append('response_format', 'json');
     
     // Make API request
@@ -443,7 +450,7 @@ async function transcribeAudio(
     
     return {
       text: result.text.trim(),
-      language: result.language || LANGUAGE_CODES[language],
+      language: result.language || 'auto', // Whisper returns detected language
       duration: result.duration,
     };
     

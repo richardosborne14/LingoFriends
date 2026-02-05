@@ -3,31 +3,69 @@
  * 
  * Kid-friendly login and signup screen.
  * Features:
- * - Simple, colorful design
- * - Clear error messages
+ * - Modern, colorful design using new UI components
+ * - Clear error messages with i18n support
  * - Toggle between login and signup
- * - Native language selection for new users
+ * - Flag toggle for UI language (EN/FR) at top of screen
+ * - Native language is now selected during onboarding (not at signup)
  * - Password reset via email
  * 
  * @module AuthScreen
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../src/hooks/useAuth';
 import { requestPasswordReset } from '../services/pocketbaseService';
-import type { NativeLanguage } from '../types';
+import { Logo, Button, Input, Card } from './ui';
+import { getAuthTranslations } from './onboarding/translations';
 
-// Available native languages
-const LANGUAGES: NativeLanguage[] = [
-  'English', 'Spanish', 'French', 'German', 'Portuguese', 
-  'Ukrainian', 'Italian', 'Chinese', 'Japanese', 'Hindi', 'Romanian'
+// ============================================
+// CONSTANTS
+// ============================================
+
+/**
+ * UI language options for the auth screen.
+ * Native language is selected during onboarding, not at signup.
+ */
+type UILanguage = 'English' | 'French';
+
+interface LanguageOption {
+  code: UILanguage;
+  flag: string;
+}
+
+const UI_LANGUAGES: LanguageOption[] = [
+  { code: 'English', flag: '🇬🇧' },
+  { code: 'French', flag: '🇫🇷' },
 ];
+
+// Animation variants for page transitions
+const containerVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { duration: 0.4, ease: 'easeOut' as const }
+  },
+  exit: { 
+    opacity: 0, 
+    y: -20,
+    transition: { duration: 0.2 }
+  }
+};
+
+// ============================================
+// COMPONENT
+// ============================================
 
 /**
  * Auth Screen Component
  * 
  * Displays login or signup form based on user selection.
  * Handles all auth flow with kid-friendly messaging.
+ * UI language adapts to selected flag at top of screen.
+ * Native language is collected in onboarding (Step 1).
  */
 export function AuthScreen() {
   // Auth context
@@ -37,12 +75,16 @@ export function AuthScreen() {
   const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
-  const [nativeLanguage, setNativeLanguage] = useState<NativeLanguage>('English');
+  // UI language state (for translations only - not saved to profile)
+  // Native language is collected during onboarding
+  const [uiLanguage, setUILanguage] = useState<UILanguage>('English');
   
   // Validation state
   const [validationError, setValidationError] = useState<string | null>(null);
   const [resetSent, setResetSent] = useState(false);
+
+  // Get translations based on selected UI language
+  const t = useMemo(() => getAuthTranslations(uiLanguage), [uiLanguage]);
 
   /**
    * Validate email format
@@ -58,31 +100,26 @@ export function AuthScreen() {
     setValidationError(null);
 
     if (!email.trim()) {
-      setValidationError('Please enter your email!');
+      setValidationError(t.errorEmail);
       return false;
     }
 
     if (!isValidEmail(email)) {
-      setValidationError('Please enter a valid email address!');
+      setValidationError(t.errorEmailInvalid);
       return false;
     }
 
     if (mode === 'forgot') {
-      return true; // Only need email for password reset
+      return true;
     }
 
     if (!password) {
-      setValidationError('Please enter a password!');
+      setValidationError(t.errorPassword);
       return false;
     }
 
     if (password.length < 8) {
-      setValidationError('Password needs at least 8 characters!');
-      return false;
-    }
-
-    if (mode === 'signup' && !displayName.trim()) {
-      setValidationError('Please enter your name!');
+      setValidationError(t.errorPasswordLength);
       return false;
     }
 
@@ -101,7 +138,9 @@ export function AuthScreen() {
     if (mode === 'login') {
       await login(email, password);
     } else if (mode === 'signup') {
-      await signup(email, password, displayName, nativeLanguage);
+      // Use 'Learner' as default name and 'English' as default native language
+      // Both are collected properly during onboarding
+      await signup(email, password, 'Learner', 'English');
     } else if (mode === 'forgot') {
       await requestPasswordReset(email);
       setResetSent(true);
@@ -109,211 +148,201 @@ export function AuthScreen() {
   };
 
   /**
-   * Toggle between login and signup modes
+   * Switch between modes
    */
-  const toggleMode = () => {
-    setMode(mode === 'login' ? 'signup' : 'login');
+  const switchMode = (newMode: 'login' | 'signup' | 'forgot') => {
+    setMode(newMode);
     clearError();
     setValidationError(null);
+    setResetSent(false);
+  };
+
+  /**
+   * Toggle UI language (EN/FR)
+   */
+  const toggleUILanguage = (lang: UILanguage) => {
+    setUILanguage(lang);
+    // Clear any existing errors since they'll be in the old language
+    setValidationError(null);
+    clearError();
   };
 
   // Combined error message
   const displayError = validationError || error;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-amber-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#f0fdf4] via-white to-[#e0f2fe] flex flex-col items-center justify-center p-4">
+      {/* Language Toggle - Top Right */}
+      <div className="absolute top-4 right-4 flex gap-1">
+        {UI_LANGUAGES.map((lang) => (
+          <button
+            key={lang.code}
+            onClick={() => toggleUILanguage(lang.code)}
+            className={`
+              text-2xl p-2 rounded-lg transition-all
+              ${uiLanguage === lang.code 
+                ? 'bg-white shadow-md scale-110' 
+                : 'opacity-60 hover:opacity-100 hover:bg-white/50'
+              }
+            `}
+            aria-label={`Switch to ${lang.code}`}
+          >
+            {lang.flag}
+          </button>
+        ))}
+      </div>
+      
       <div className="w-full max-w-md">
         {/* Logo & Title */}
-        <div className="text-center mb-8">
-          <div className="text-6xl mb-4">🦉</div>
-          <h1 className="text-3xl font-serif text-amber-900">LingoFriends</h1>
-          <p className="text-amber-700 mt-2">Learn languages with friends!</p>
-        </div>
+        <motion.div 
+          className="text-center mb-8"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="flex justify-center mb-4">
+            <Logo size="xl" animate />
+          </div>
+          <h1 className="text-3xl font-bold text-[#262626]">LingoFriends</h1>
+          <p className="text-[#737373] mt-2">
+            {uiLanguage === 'French' 
+              ? 'Apprends des langues avec des amis !' 
+              : 'Learn languages with friends!'}
+          </p>
+        </motion.div>
 
         {/* Auth Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-amber-100">
-          <h2 className="text-2xl font-bold text-amber-900 text-center mb-6">
-            {mode === 'login' ? 'Welcome Back! 👋' : mode === 'signup' ? 'Join the Adventure! 🚀' : 'Reset Password 🔑'}
-          </h2>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`${mode}-${uiLanguage}`}
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
+            <Card variant="elevated" padding="lg">
+              {/* Title - Translated */}
+              <h2 className="text-2xl font-bold text-[#262626] text-center mb-6">
+                {mode === 'login' && t.welcomeBack}
+                {mode === 'signup' && t.joinAdventure}
+                {mode === 'forgot' && t.resetPassword}
+              </h2>
 
-          {/* Password Reset Success Message */}
-          {resetSent && mode === 'forgot' && (
-            <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm mb-4">
-              <span className="mr-2">✉️</span>
-              Check your email! We sent a link to reset your password.
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {mode === 'signup' ? "Parent's Email" : 'Email'}
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value.toLowerCase())}
-                placeholder="parent@example.com"
-                className="w-full px-4 py-3 rounded-xl border border-amber-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-200 outline-none transition-all"
-                disabled={isLoading}
-                autoComplete="email"
-              />
-              {mode === 'signup' && (
-                <p className="text-xs text-gray-500 mt-1">Ask a parent to help with this!</p>
+              {/* Password Reset Success Message */}
+              {resetSent && mode === 'forgot' && (
+                <motion.div 
+                  className="bg-[#dcfce7] border border-[#86efac] text-[#166534] px-4 py-3 rounded-2xl text-sm mb-4 flex items-center gap-2"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                >
+                  <span>✉️</span>
+                  {t.resetEmailSent}
+                </motion.div>
               )}
-            </div>
 
-            {/* Password (not shown for forgot mode) */}
-            {mode !== 'forgot' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full px-4 py-3 rounded-xl border border-amber-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-200 outline-none transition-all"
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Email */}
+                <Input
+                  type="email"
+                  label={mode === 'signup' ? t.email : t.email.replace("Parent's ", '')}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value.toLowerCase())}
+                  placeholder={t.emailPlaceholder}
                   disabled={isLoading}
-                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                  helperText={mode === 'signup' ? t.emailHelper : undefined}
                 />
-              </div>
-            )}
 
-            {/* Signup-only fields */}
-            {mode === 'signup' && (
-              <>
-                {/* Display Name */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    What should we call you?
-                  </label>
-                  <input
-                    type="text"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="Alex"
-                    className="w-full px-4 py-3 rounded-xl border border-amber-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-200 outline-none transition-all"
+                {/* Password (not shown for forgot mode) */}
+                {mode !== 'forgot' && (
+                  <Input
+                    type="password"
+                    label={t.password}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={t.passwordPlaceholder}
                     disabled={isLoading}
                   />
-                </div>
+                )}
 
-                {/* Native Language */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    What language do you speak at home?
-                  </label>
-                  <select
-                    value={nativeLanguage}
-                    onChange={(e) => setNativeLanguage(e.target.value as NativeLanguage)}
-                    className="w-full px-4 py-3 rounded-xl border border-amber-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-200 outline-none transition-all bg-white"
+                {/* NOTE: Native language selection removed from signup */}
+                {/* User selects their native language in onboarding (Step 1) */}
+
+                {/* Error Message */}
+                {displayError && (
+                  <motion.div 
+                    className="bg-[#fee2e2] border border-[#fecaca] text-[#991b1b] px-4 py-3 rounded-2xl text-sm flex items-center gap-2"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                  >
+                    <span>😅</span>
+                    {displayError}
+                  </motion.div>
+                )}
+
+                {/* Submit Button */}
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="lg"
+                  fullWidth
+                  isLoading={isLoading}
+                >
+                  {mode === 'login' && t.letsGo}
+                  {mode === 'signup' && t.createAccount}
+                  {mode === 'forgot' && t.sendResetLink}
+                </Button>
+              </form>
+
+              {/* Forgot Password Link (login mode only) */}
+              {mode === 'login' && (
+                <div className="mt-4 text-center">
+                  <button
+                    onClick={() => switchMode('forgot')}
+                    className="text-sm text-[#737373] hover:text-[#58CC02] transition-colors"
                     disabled={isLoading}
                   >
-                    {LANGUAGES.map((lang) => (
-                      <option key={lang} value={lang}>
-                        {lang}
-                      </option>
-                    ))}
-                  </select>
+                    {t.forgotPassword}
+                  </button>
                 </div>
-              </>
-            )}
+              )}
 
-            {/* Error Message */}
-            {displayError && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
-                <span className="mr-2">😅</span>
-                {displayError}
+              {/* Toggle Mode */}
+              <div className="mt-4 text-center">
+                <button
+                  onClick={() => {
+                    if (mode === 'forgot') {
+                      switchMode('login');
+                    } else {
+                      switchMode(mode === 'login' ? 'signup' : 'login');
+                    }
+                  }}
+                  className="text-[#1CB0F6] hover:text-[#0284c7] font-medium transition-colors"
+                  disabled={isLoading}
+                >
+                  {mode === 'login' && (
+                    <>{t.newHere} <span className="underline">{t.createAnAccount}</span></>
+                  )}
+                  {mode === 'signup' && (
+                    <>{t.alreadyHaveAccount} <span className="underline">{t.logIn}</span></>
+                  )}
+                  {mode === 'forgot' && (
+                    <span className="underline">{t.backToLogin}</span>
+                  )}
+                </button>
               </div>
-            )}
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className={`
-                w-full py-4 rounded-xl font-bold text-lg transition-all
-                ${isLoading 
-                  ? 'bg-amber-200 text-amber-600 cursor-not-allowed' 
-                  : 'bg-amber-500 text-white hover:bg-amber-600 active:scale-98 shadow-lg hover:shadow-xl'
-                }
-              `}
-            >
-              {isLoading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  Loading...
-                </span>
-              ) : mode === 'login' ? (
-                "Let's Go! 🎉"
-              ) : mode === 'signup' ? (
-                "Create Account! 🌟"
-              ) : (
-                "Send Reset Link 📧"
-              )}
-            </button>
-          </form>
-
-          {/* Forgot Password Link (login mode only) */}
-          {mode === 'login' && (
-            <div className="mt-4 text-center">
-              <button
-                onClick={() => {
-                  setMode('forgot');
-                  clearError();
-                  setValidationError(null);
-                  setResetSent(false);
-                }}
-                className="text-sm text-gray-500 hover:text-amber-700 transition-colors"
-                disabled={isLoading}
-              >
-                Forgot your password?
-              </button>
-            </div>
-          )}
-
-          {/* Toggle Mode */}
-          <div className="mt-4 text-center">
-            <button
-              onClick={() => {
-                if (mode === 'forgot') {
-                  setMode('login');
-                } else {
-                  setMode(mode === 'login' ? 'signup' : 'login');
-                }
-                clearError();
-                setValidationError(null);
-                setResetSent(false);
-              }}
-              className="text-amber-700 hover:text-amber-900 font-medium transition-colors"
-              disabled={isLoading}
-            >
-              {mode === 'login' ? (
-                <>
-                  New here? <span className="underline">Create an account</span>
-                </>
-              ) : mode === 'signup' ? (
-                <>
-                  Already have an account? <span className="underline">Log in</span>
-                </>
-              ) : (
-                <>
-                  <span className="underline">← Back to login</span>
-                </>
-              )}
-            </button>
-          </div>
-        </div>
+            </Card>
+          </motion.div>
+        </AnimatePresence>
 
         {/* Footer */}
-        <p className="text-center text-amber-600 text-sm mt-6">
-          🔒 Your data is safe with us
-        </p>
+        <motion.p 
+          className="text-center text-[#a3a3a3] text-sm mt-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          {t.dataSafe}
+        </motion.p>
       </div>
     </div>
   );

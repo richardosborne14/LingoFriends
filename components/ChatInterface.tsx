@@ -88,6 +88,10 @@ interface ChatInterfaceProps {
   targetLanguage: TargetLanguage;
   nativeLanguage: NativeLanguage;
   onMenuClick?: () => void;
+  /** Callback to change topic (return to LearningLauncher) */
+  onChangeTopic?: () => void;
+  /** Current theme selected for this learning session */
+  currentTheme?: string | null;
 }
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ 
@@ -109,7 +113,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   currentDraft,
   targetLanguage,
   nativeLanguage,
-  onMenuClick
+  onMenuClick,
+  onChangeTopic,
+  currentTheme,
 }) => {
   const [input, setInput] = useState('');
   const [showTranslationIds, setShowTranslationIds] = useState<Set<string>>(new Set());
@@ -161,11 +167,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     <div className="flex flex-col h-full relative bg-paper">
       
       {/* Header */}
-      <div className="bg-white border-b border-amber-100 p-4 flex items-center shadow-sm z-10">
+      <div className="bg-white border-b border-[#f5f5f5] p-4 flex items-center z-10">
         {onMenuClick && (
             <button 
                 onClick={onMenuClick}
-                className="md:hidden mr-3 text-amber-900 p-2 hover:bg-amber-50 rounded-lg -ml-2"
+                className="md:hidden mr-3 text-[#525252] p-2 hover:bg-[#f5f5f5] rounded-xl -ml-2 transition-colors"
                 aria-label="Open Menu"
             >
                 <MenuIcon />
@@ -174,38 +180,60 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         <div className="flex-1 flex justify-between items-center overflow-hidden">
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                    <h2 className="font-serif text-lg font-bold text-ink truncate">{sessionTitle}</h2>
-                    {isCompleted && <span className="px-2 py-0.5 bg-gray-100 text-gray-500 text-xs rounded-full uppercase font-bold tracking-wide flex-shrink-0">Read Only</span>}
+                    <h2 className="text-lg font-bold text-[#262626] truncate">{sessionTitle}</h2>
+                    {isCompleted && <span className="px-2 py-0.5 bg-[#f5f5f5] text-[#737373] text-xs rounded-full uppercase font-bold tracking-wide flex-shrink-0">Read Only</span>}
                 </div>
                 {sessionObjectives.length > 0 && (
-                    <div className="text-xs text-gray-500 flex gap-2 mt-1 overflow-x-auto no-scrollbar">
+                    <div className="text-xs text-[#737373] flex gap-2 mt-1.5 overflow-x-auto no-scrollbar">
                         {sessionObjectives.slice(0, 2).map((obj, i) => (
-                            <span key={i} className="bg-amber-50 px-2 py-0.5 rounded-md border border-amber-100 whitespace-nowrap">{obj}</span>
+                            <span key={i} className="bg-[#f0fdf4] text-[#166534] px-2 py-0.5 rounded-lg border border-[#86efac] whitespace-nowrap">{obj}</span>
                         ))}
-                        {sessionObjectives.length > 2 && <span className="whitespace-nowrap">+{sessionObjectives.length - 2} more</span>}
+                        {sessionObjectives.length > 2 && <span className="whitespace-nowrap text-[#a3a3a3]">+{sessionObjectives.length - 2} more</span>}
                     </div>
                 )}
                 {currentDraft && (
-                <div className="mt-1 flex items-center gap-2 animate-pulse">
-                    <span className="text-xs font-bold text-amber-600 uppercase tracking-wider flex-shrink-0">Planning Lesson:</span>
-                    <span className="text-xs text-ink truncate">{currentDraft.topic}</span>
-                    <div className="h-1.5 w-16 bg-gray-200 rounded-full ml-2 flex-shrink-0">
+                <div className="mt-1.5 flex items-center gap-2 animate-pulse">
+                    <span className="text-xs font-bold text-[#1CB0F6] uppercase tracking-wider flex-shrink-0">Planning Lesson:</span>
+                    <span className="text-xs text-[#262626] truncate">{currentDraft.topic}</span>
+                    <div className="h-1.5 w-16 bg-[#e5e5e5] rounded-full ml-2 flex-shrink-0">
                         <div 
-                        className={`h-full rounded-full transition-all duration-500 ${currentDraft.confidenceScore > 0.8 ? 'bg-emerald-500' : 'bg-amber-400'}`} 
+                        className={`h-full rounded-full transition-all duration-500 ${currentDraft.confidenceScore > 0.8 ? 'bg-[#58CC02]' : 'bg-[#FFC800]'}`} 
                         style={{ width: `${currentDraft.confidenceScore * 100}%` }}
                         />
                     </div>
                 </div>
                 )}
             </div>
-            {sessionType === SessionType.LESSON && !isCompleted && onCompleteLesson && (
-                <button 
-                    onClick={onCompleteLesson}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-sm font-medium transition-colors border border-emerald-200 ml-2 flex-shrink-0"
-                >
-                    <CheckIcon /> <span className="hidden sm:inline">Complete</span>
-                </button>
-            )}
+            {/* Header Actions */}
+            <div className="flex items-center gap-2 ml-2 flex-shrink-0">
+                {/* Current Theme Badge (Main Hall only) */}
+                {sessionType === SessionType.MAIN && currentTheme && (
+                    <span className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-[#e0f2fe] text-[#0369a1] rounded-xl text-xs font-bold border border-[#7dd3fc]">
+                        🎯 {currentTheme}
+                    </span>
+                )}
+                
+                {/* Change Topic Button (Main Hall only) */}
+                {sessionType === SessionType.MAIN && onChangeTopic && !isCompleted && (
+                    <button 
+                        onClick={onChangeTopic}
+                        className="flex items-center gap-1.5 px-3 py-2 bg-[#f5f5f5] text-[#525252] hover:bg-[#e5e5e5] rounded-xl text-sm font-medium transition-colors border border-[#e5e5e5]"
+                        title="Change Topic"
+                    >
+                        🔄 <span className="hidden sm:inline">Change Topic</span>
+                    </button>
+                )}
+                
+                {/* Complete Lesson Button (Lesson only) */}
+                {sessionType === SessionType.LESSON && !isCompleted && onCompleteLesson && (
+                    <button 
+                        onClick={onCompleteLesson}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-[#58CC02] text-white hover:bg-[#46a302] rounded-xl text-sm font-bold transition-colors shadow-[0_2px_0_0_rgba(0,0,0,0.15)]"
+                    >
+                        <CheckIcon /> <span className="hidden sm:inline">Complete</span>
+                    </button>
+                )}
+            </div>
         </div>
       </div>
 
@@ -217,15 +245,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           <div key={msg.id} className={`flex ${msg.sender === Sender.USER ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[85%] md:max-w-[70%] ${msg.sender === Sender.USER ? 'items-end' : 'items-start'} flex flex-col`}>
               
-              <span className="text-xs text-gray-400 mb-1 px-1">
-                {msg.sender === Sender.USER ? 'You' : 'Professor Finch'}
+              <span className="text-xs text-[#a3a3a3] mb-1 px-1 font-medium">
+                {msg.sender === Sender.USER ? 'You' : '🦉 Professor Finch'}
               </span>
 
               {msg.text && (
-                <div className={`px-5 py-3 rounded-2xl text-base leading-relaxed shadow-sm relative group ${
+                <div className={`px-4 py-3 rounded-2xl text-base leading-relaxed relative group ${
                   msg.sender === Sender.USER 
-                    ? 'bg-amber-800 text-white rounded-tr-none' 
-                    : 'bg-white text-ink border border-gray-100 rounded-tl-none'
+                    ? 'bg-[#1CB0F6] text-white rounded-br-md shadow-[0_2px_0_0_rgba(0,0,0,0.1)]' 
+                    : 'bg-white text-[#262626] border-2 border-[#e5e5e5] rounded-bl-md'
                 }`}>
                   
                   {/* Render Content: Either Plain/Markdown OR Interactive Translation */}
@@ -233,7 +261,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                       msg.translation && msg.translationLanguage === nativeLanguage ? (
                           <InteractiveTranslation data={msg.translation} />
                       ) : (
-                          <div className="flex items-center gap-2 text-gray-500 py-2">
+                          <div className="flex items-center gap-2 text-[#737373] py-2">
                               <Spinner /> <span className="text-sm">Translating...</span>
                           </div>
                       )
@@ -244,7 +272,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                                 p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
                                 ul: ({node, ...props}) => <ul className="list-disc pl-4 mb-2" {...props} />,
                                 li: ({node, ...props}) => <li className="mb-1" {...props} />,
-                                strong: ({node, ...props}) => <strong className="font-bold text-amber-900" {...props} />
+                                strong: ({node, ...props}) => <strong className="font-bold text-[#58CC02]" {...props} />
                             }}
                         >
                             {msg.text}
@@ -257,7 +285,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                         {/* Audio Button */}
                         <button 
                         onClick={() => onPlayAudio(msg.id, msg.text)}
-                        className="bg-amber-100 p-1.5 rounded-full text-amber-800 hover:bg-amber-200 shadow-sm"
+                        className="bg-[#f0fdf4] p-1.5 rounded-full text-[#58CC02] hover:bg-[#dcfce7] shadow-sm border border-[#86efac]"
                         title="Play Audio"
                         >
                         {audioLoadingId === msg.id ? <Spinner /> : (playingMessageId === msg.id ? <StopIcon /> : <SpeakerIcon />)}
@@ -266,8 +294,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                         {/* Translate Button */}
                         <button 
                         onClick={() => handleTranslateClick(msg.id, msg.text)}
-                        className={`p-1.5 rounded-full shadow-sm transition-colors ${
-                            showTranslationIds.has(msg.id) ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                        className={`p-1.5 rounded-full shadow-sm transition-colors border ${
+                            showTranslationIds.has(msg.id) ? 'bg-[#dcfce7] text-[#166534] border-[#86efac]' : 'bg-[#e0f2fe] text-[#1CB0F6] border-[#7dd3fc] hover:bg-[#bae6fd]'
                         }`}
                         title="Translate to Native Language"
                         >
@@ -280,15 +308,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
               {/* Lesson Invite Card */}
               {msg.lessonInvite && onJoinLesson && (
-                  <div className="mt-3 w-full max-w-sm bg-white border border-amber-200 rounded-xl shadow-sm overflow-hidden">
-                      <div className="bg-amber-50 px-4 py-3 border-b border-amber-100">
-                          <h4 className="font-serif text-amber-900 font-bold flex items-center gap-2">
-                              📚 New Lesson Created
+                  <div className="mt-3 w-full max-w-sm bg-white border-2 border-[#86efac] rounded-2xl shadow-lg overflow-hidden">
+                      <div className="bg-[#f0fdf4] px-4 py-3 border-b border-[#86efac]">
+                          <h4 className="text-[#166534] font-bold flex items-center gap-2">
+                              📚 New Lesson Ready!
                           </h4>
                       </div>
                       <div className="p-4">
-                          <h3 className="font-bold text-lg mb-2 text-ink">{msg.lessonInvite.title}</h3>
-                          <div className="text-sm text-gray-600 mb-4">
+                          <h3 className="font-bold text-lg mb-2 text-[#262626]">{msg.lessonInvite.title}</h3>
+                          <div className="text-sm text-[#525252] mb-4">
                               <ul className="list-disc pl-4 space-y-1">
                                   {msg.lessonInvite.objectives.map((obj, i) => (
                                       <li key={i}>{obj}</li>
@@ -297,9 +325,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                           </div>
                           <button 
                               onClick={() => onJoinLesson(msg.lessonInvite!.sessionId)}
-                              className="w-full py-2 bg-amber-800 text-white rounded-lg hover:bg-amber-900 transition-colors font-medium"
+                              className="w-full py-3 bg-[#58CC02] text-white rounded-xl hover:bg-[#46a302] transition-colors font-bold shadow-[0_2px_0_0_rgba(0,0,0,0.15)]"
                           >
-                              Start Lesson
+                              🚀 Start Lesson
                           </button>
                       </div>
                   </div>
@@ -326,10 +354,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
         {isThinking && (
           <div className="flex justify-start">
-             <div className="bg-white px-5 py-3 rounded-2xl rounded-tl-none border border-gray-100 shadow-sm flex items-center gap-2">
-                <span className="w-2 h-2 bg-amber-400 rounded-full animate-bounce"></span>
-                <span className="w-2 h-2 bg-amber-600 rounded-full animate-bounce delay-75"></span>
-                <span className="w-2 h-2 bg-amber-800 rounded-full animate-bounce delay-150"></span>
+             <div className="bg-white px-5 py-3 rounded-2xl rounded-bl-md border-2 border-[#e5e5e5] flex items-center gap-2">
+                <span className="w-2.5 h-2.5 bg-[#58CC02] rounded-full animate-bounce"></span>
+                <span className="w-2.5 h-2.5 bg-[#1CB0F6] rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></span>
+                <span className="w-2.5 h-2.5 bg-[#FFC800] rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
              </div>
           </div>
         )}
@@ -337,13 +365,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       </div>
 
       {/* Input Area */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#fdfbf7] via-[#fdfbf7] to-transparent pt-10 pb-4 px-4">
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white to-transparent pt-8 pb-4 px-4">
         {isCompleted ? (
-             <div className="max-w-3xl mx-auto bg-gray-50 rounded-full shadow-sm border border-gray-200 p-4 text-center text-gray-500 font-medium text-sm">
-                 This lesson is complete. Return to Main Hall to continue learning.
+             <div className="max-w-3xl mx-auto bg-[#f5f5f5] rounded-2xl border-2 border-[#e5e5e5] p-4 text-center text-[#737373] font-medium text-sm">
+                 ✅ This lesson is complete. Return to Main Hall to continue learning.
              </div>
         ) : (
-            <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-lg border border-amber-100 flex items-center p-2 gap-2">
+            <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-lg border-2 border-[#e5e5e5] flex items-center p-2 gap-2">
               {/* Voice Button - using Groq Whisper STT */}
               <VoiceButton
                 targetLanguage={targetLanguage}
@@ -358,13 +386,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                 placeholder="Type or speak your response..."
-                className="flex-1 bg-transparent outline-none text-ink placeholder-gray-400 ml-2"
+                className="flex-1 bg-transparent outline-none text-[#262626] placeholder-[#a3a3a3] ml-2 text-base"
               />
 
               <button 
                 onClick={() => handleSend()}
                 disabled={!input.trim()}
-                className="p-3 bg-amber-800 text-white rounded-full hover:bg-amber-900 disabled:opacity-50 transition-colors"
+                className="p-3 bg-[#58CC02] text-white rounded-xl hover:bg-[#46a302] disabled:opacity-40 disabled:bg-[#e5e5e5] disabled:text-[#a3a3a3] transition-colors shadow-[0_2px_0_0_rgba(0,0,0,0.15)] disabled:shadow-none"
               >
                 <SendIcon />
               </button>

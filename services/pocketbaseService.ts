@@ -22,7 +22,11 @@ import type {
   AgeGroup,
   SessionType,
   SessionStatus,
-  LessonDraft
+  LessonDraft,
+  SubjectType,
+  TargetSubject,
+  UserInterest,
+  AIProfileField
 } from '../types';
 
 // ============================================
@@ -61,6 +65,20 @@ interface PBProfile extends RecordModel {
   daily_xp_today: number;
   daily_cap: number;
   onboarding_complete: boolean;
+  // NEW: Subject-based learning fields (Phase 1 Task 5)
+  subject_type?: SubjectType;
+  target_subject?: TargetSubject;
+  selected_interests?: UserInterest[];
+}
+
+/** Pocketbase AI profile field record structure */
+interface PBAIProfileField extends RecordModel {
+  user: string;
+  field_name: string;
+  field_value: string;
+  confidence: number;
+  source_session?: string;
+  learned_at: string;
 }
 
 /** Pocketbase session record structure */
@@ -256,6 +274,27 @@ function pbProfileToUserProfile(pb: PBProfile): UserProfile {
     completedLessons: 0, // Computed from sessions
     xp: pb.xp,
     onboardingComplete: pb.onboarding_complete,
+    // NEW: Subject-based learning fields (Phase 1 Task 5)
+    subjectType: pb.subject_type as SubjectType | undefined,
+    targetSubject: pb.target_subject as TargetSubject | undefined,
+    selectedInterests: pb.selected_interests || [],
+  };
+}
+
+/**
+ * Convert Pocketbase AI profile field to app AIProfileField type
+ */
+function pbAIFieldToAIProfileField(pb: PBAIProfileField): AIProfileField {
+  return {
+    id: pb.id,
+    user: pb.user,
+    fieldName: pb.field_name,
+    fieldValue: pb.field_value,
+    confidence: pb.confidence,
+    sourceSession: pb.source_session,
+    learnedAt: pb.learned_at,
+    created: pb.created,
+    updated: pb.updated,
   };
 }
 
@@ -299,26 +338,46 @@ export async function updateProfile(updates: Partial<UserProfile>): Promise<User
   // Auto-create profile if missing (repair mode for edge cases)
   if (records.items.length === 0) {
     console.warn('[PB] Profile not found for user, attempting to create default profile');
+    
+    // Build profile data with all fields including new subject-based fields
+    // Explicitly ensure numeric values are numbers (not undefined/null)
+    const xpValue = Number(updates.xp ?? 0);
+    const streakValue = Number(updates.streak ?? 0);
+    
+    const profileData: Record<string, unknown> = {
+      user: userId,
+      display_name: updates.name || 'Learner',
+      native_language: updates.nativeLanguage || 'English',
+      target_language: updates.targetLanguage || 'English',
+      age_group: updates.ageGroup || '11-14',
+      level: updates.level || 'A1',
+      goals: updates.goals ?? [],
+      interests: updates.interests ?? [],
+      traits: updates.traits ?? [],
+      xp: xpValue,
+      streak: streakValue,
+      daily_xp_today: 0,
+      daily_cap: 100,
+      onboarding_complete: updates.onboardingComplete ?? false,
+      // NEW: Subject-based learning fields (Phase 1 Task 5)
+      subject_type: updates.subjectType ?? null,
+      target_subject: updates.targetSubject ?? null,
+      selected_interests: updates.selectedInterests ?? [],
+    };
+    
+    console.log('[PB] Creating profile with data:', JSON.stringify(profileData, null, 2));
+    console.log('[PB] xp value:', xpValue, 'type:', typeof xpValue);
+    console.log('[PB] streak value:', streakValue, 'type:', typeof streakValue);
+    
     try {
-      const newProfile = await pb.collection('profiles').create<PBProfile>({
-        user: userId,
-        display_name: updates.name || 'Learner',
-        native_language: updates.nativeLanguage || 'English',
-        target_language: updates.targetLanguage || 'English',
-        age_group: updates.ageGroup || '11-14',
-        level: updates.level || 'A1',
-        goals: updates.goals || [],
-        interests: updates.interests || [],
-        traits: updates.traits || [],
-        xp: updates.xp || 0,
-        streak: updates.streak || 0,
-        daily_xp_today: 0,
-        daily_cap: 100,
-        onboarding_complete: updates.onboardingComplete || false,
-      });
+      const newProfile = await pb.collection('profiles').create<PBProfile>(profileData);
       return pbProfileToUserProfile(newProfile);
     } catch (createError) {
       console.error('[PB] Auto-create profile failed:', createError);
+      // Log the error details for debugging
+      if ((createError as { data?: unknown })?.data) {
+        console.error('[PB] Error details:', JSON.stringify((createError as { data?: unknown }).data, null, 2));
+      }
       // Return a fake in-memory profile so the app doesn't crash
       // Updates won't persist but UX continues
       return {
@@ -335,6 +394,9 @@ export async function updateProfile(updates: Partial<UserProfile>): Promise<User
         completedLessons: 0,
         xp: updates.xp || 0,
         onboardingComplete: updates.onboardingComplete || false,
+        subjectType: updates.subjectType,
+        targetSubject: updates.targetSubject,
+        selectedInterests: updates.selectedInterests || [],
       };
     }
   }
@@ -355,6 +417,10 @@ export async function updateProfile(updates: Partial<UserProfile>): Promise<User
   if (updates.xp !== undefined) pbUpdates.xp = updates.xp;
   if (updates.streak !== undefined) pbUpdates.streak = updates.streak;
   if (updates.onboardingComplete !== undefined) pbUpdates.onboarding_complete = updates.onboardingComplete;
+  // NEW: Subject-based learning fields (Phase 1 Task 5)
+  if (updates.subjectType !== undefined) pbUpdates.subject_type = updates.subjectType;
+  if (updates.targetSubject !== undefined) pbUpdates.target_subject = updates.targetSubject;
+  if (updates.selectedInterests !== undefined) pbUpdates.selected_interests = updates.selectedInterests;
 
   // Always update last_activity when profile is updated
   pbUpdates.last_activity = new Date().toISOString();
@@ -403,6 +469,136 @@ export async function addXP(amount: number): Promise<{ xp: number; dailyXP: numb
     dailyXP: currentDaily + actualXP,
     capped,
   };
+}
+
+// ============================================
+// AI PROFILE FIELDS SERVICE
+// ============================================
+
+/**
+ * Get all AI profile fields for the current user.
+ * These are facts the AI has learned during conversations.
+ * 
+ * @returns Array of AI profile fields
+ */
+export async function getAIProfileFields(): Promise<AIProfileField[]> {
+  const userId = getCurrentUserId();
+  if (!userId) return [];
+
+  try {
+    const records = await pb.collection('ai_profile_fields').getList<PBAIProfileField>(1, 100, {
+      filter: `user = "${userId}"`,
+      sort: '-learned_at',
+    });
+
+    return records.items.map(pbAIFieldToAIProfileField);
+  } catch (error) {
+    console.error('[PB] Error fetching AI profile fields:', error);
+    return [];
+  }
+}
+
+/**
+ * Add or update an AI profile field.
+ * If a field with the same name exists, it will be updated if new confidence is higher.
+ * 
+ * @param fieldName - Name of the field (e.g. "favorite_kpop_group")
+ * @param fieldValue - Value of the field (e.g. "BTS")
+ * @param confidence - Confidence score 0.0 to 1.0
+ * @param sourceSession - Optional session ID where this was learned
+ * @returns The created or updated AI profile field
+ */
+export async function upsertAIProfileField(
+  fieldName: string,
+  fieldValue: string,
+  confidence: number,
+  sourceSession?: string
+): Promise<AIProfileField> {
+  const userId = getCurrentUserId();
+  if (!userId) throw new Error('Not authenticated');
+
+  // Clamp confidence to valid range
+  const clampedConfidence = Math.max(0, Math.min(1, confidence));
+
+  try {
+    // Check if field already exists
+    const existing = await pb.collection('ai_profile_fields').getList<PBAIProfileField>(1, 1, {
+      filter: `user = "${userId}" && field_name = "${fieldName}"`,
+    });
+
+    if (existing.items.length > 0) {
+      const existingField = existing.items[0];
+      
+      // Only update if new confidence is higher or value changed
+      if (clampedConfidence >= existingField.confidence || fieldValue !== existingField.field_value) {
+        const updated = await pb.collection('ai_profile_fields').update<PBAIProfileField>(
+          existingField.id,
+          {
+            field_value: fieldValue,
+            confidence: clampedConfidence,
+            source_session: sourceSession || existingField.source_session,
+            learned_at: new Date().toISOString(),
+          }
+        );
+        return pbAIFieldToAIProfileField(updated);
+      }
+      
+      // Return existing if no update needed
+      return pbAIFieldToAIProfileField(existingField);
+    }
+
+    // Create new field
+    const created = await pb.collection('ai_profile_fields').create<PBAIProfileField>({
+      user: userId,
+      field_name: fieldName,
+      field_value: fieldValue,
+      confidence: clampedConfidence,
+      source_session: sourceSession || null,
+      learned_at: new Date().toISOString(),
+    });
+
+    return pbAIFieldToAIProfileField(created);
+  } catch (error) {
+    console.error('[PB] Error upserting AI profile field:', error);
+    throw new Error('Failed to save AI profile field');
+  }
+}
+
+/**
+ * Delete an AI profile field by ID.
+ * 
+ * @param id - The ID of the field to delete
+ */
+export async function deleteAIProfileField(id: string): Promise<void> {
+  try {
+    await pb.collection('ai_profile_fields').delete(id);
+  } catch (error) {
+    console.error('[PB] Error deleting AI profile field:', error);
+    throw new Error('Failed to delete AI profile field');
+  }
+}
+
+/**
+ * Get a specific AI profile field by name.
+ * Useful for checking if we already know something about the user.
+ * 
+ * @param fieldName - Name of the field to find
+ * @returns The field if found, null otherwise
+ */
+export async function getAIProfileFieldByName(fieldName: string): Promise<AIProfileField | null> {
+  const userId = getCurrentUserId();
+  if (!userId) return null;
+
+  try {
+    const records = await pb.collection('ai_profile_fields').getList<PBAIProfileField>(1, 1, {
+      filter: `user = "${userId}" && field_name = "${fieldName}"`,
+    });
+
+    if (records.items.length === 0) return null;
+    return pbAIFieldToAIProfileField(records.items[0]);
+  } catch {
+    return null;
+  }
 }
 
 // ============================================

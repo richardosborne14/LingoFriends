@@ -21,7 +21,27 @@ export interface ActivityData {
   pairs?: Array<{term: string, definition: string}>; // For Matching
 }
 
-export type TargetLanguage = 'English' | 'French';
+export type TargetLanguage = 'English' | 'French' | 'German' | 'Spanish' | 'Italian';
+
+/**
+ * Subject types for learning - supports expansion beyond just languages.
+ * Language: English, German, French, etc.
+ * Maths: Math tutoring (future)
+ * Coding: Scratch, Python basics (future)
+ */
+export type SubjectType = 'language' | 'maths' | 'coding';
+
+/**
+ * Specific subjects within each subject type.
+ * Expands as we add more curriculum options.
+ */
+export type TargetSubject = 'English' | 'German' | 'Maths' | 'Scratch';
+
+/**
+ * User-selected interests from onboarding.
+ * Free-form strings from predefined categories.
+ */
+export type UserInterest = string;
 
 export type NativeLanguage = 'English' | 'Spanish' | 'French' | 'German' | 'Portuguese' | 'Ukrainian' | 'Italian' | 'Chinese' | 'Japanese' | 'Hindi' | 'Romanian';
 
@@ -84,6 +104,28 @@ export interface UserProfile {
   completedLessons: number;
   xp: number;
   onboardingComplete: boolean;
+  
+  // NEW: Subject-based learning (Phase 1 Task 5)
+  subjectType?: SubjectType; // 'language', 'maths', 'coding'
+  targetSubject?: TargetSubject; // 'English', 'German', 'Maths', 'Scratch'
+  selectedInterests?: UserInterest[]; // User-selected interests from onboarding
+}
+
+/**
+ * AI Profile Field - Facts learned about the user during conversations.
+ * Separate from traits (which are coach-generated personality observations).
+ * These are specific facts like "favorite band: BTS" or "learning motivation: talk to Korean friends".
+ */
+export interface AIProfileField {
+  id: string;
+  user: string;
+  fieldName: string; // e.g. "favorite_kpop_group", "learning_motivation"
+  fieldValue: string; // e.g. "BTS", "Wants to talk to Korean friends"
+  confidence: number; // 0.0 to 1.0 - how confident AI is about this fact
+  sourceSession?: string; // Optional: session ID where this was learned
+  learnedAt: string; // ISO Date
+  created: string; // Pocketbase timestamp
+  updated: string; // Pocketbase timestamp
 }
 
 export const INITIAL_PROFILE: UserProfile = {

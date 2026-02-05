@@ -105,7 +105,7 @@ const collections = [
       buildField('user', 'relation', true, { collectionId: '_pb_users_auth_', cascadeDelete: true, maxSelect: 1 }),
       buildField('display_name', 'text', true, { min: 1, max: 50 }),
       buildField('native_language', 'select', true, { maxSelect: 1, values: ['English', 'Spanish', 'French', 'German', 'Portuguese', 'Ukrainian', 'Italian', 'Chinese', 'Japanese', 'Hindi', 'Romanian'] }),
-      buildField('target_language', 'select', true, { maxSelect: 1, values: ['English', 'French'] }),
+      buildField('target_language', 'select', true, { maxSelect: 1, values: ['English', 'French', 'German', 'Spanish', 'Italian'] }),
       buildField('age_group', 'select', true, { maxSelect: 1, values: ['7-10', '11-14', '15-18'] }),
       buildField('level', 'select', true, { maxSelect: 1, values: ['A1', 'A2', 'B1', 'B2', 'C1'] }),
       buildField('goals', 'json', false),
@@ -117,6 +117,10 @@ const collections = [
       buildField('daily_xp_today', 'number', true, { min: 0, noDecimal: true }),
       buildField('daily_cap', 'number', true, { min: 50, noDecimal: true }),
       buildField('onboarding_complete', 'bool', true),
+      // NEW: Subject-based learning fields (Phase 1 Task 5)
+      buildField('subject_type', 'select', false, { maxSelect: 1, values: ['language', 'maths', 'coding'] }),
+      buildField('target_subject', 'text', false, { max: 50 }), // 'English', 'German', 'Maths', 'Scratch'
+      buildField('selected_interests', 'json', false), // Array of user-selected interests from onboarding
     ],
     rules: {
       listRule: '@request.auth.id != "" && user = @request.auth.id',
@@ -129,6 +133,7 @@ const collections = [
 
   // ============================================
   // SESSIONS - Chat sessions (Main Hall + Lessons)
+  // NOTE: Must be created before ai_profile_fields (which references it)
   // ============================================
   {
     name: 'sessions',
@@ -142,7 +147,7 @@ const collections = [
       buildField('messages', 'json', false),
       buildField('draft', 'json', false),
       buildField('parent_session', 'relation', false, { collectionId: 'sessions', maxSelect: 1 }),
-      buildField('target_language', 'select', true, { maxSelect: 1, values: ['English', 'French'] }),
+      buildField('target_language', 'select', true, { maxSelect: 1, values: ['English', 'French', 'German', 'Spanish', 'Italian'] }),
     ],
     rules: {
       listRule: '@request.auth.id != "" && user = @request.auth.id',
@@ -236,6 +241,32 @@ const collections = [
       buildField('last_reviewed', 'date', false),
       buildField('next_review', 'date', false),
       buildField('growth_stage', 'number', true, { min: 0, max: 5, noDecimal: true }),
+    ],
+    rules: {
+      listRule: '@request.auth.id != "" && user = @request.auth.id',
+      viewRule: '@request.auth.id != "" && user = @request.auth.id',
+      createRule: '@request.auth.id != ""',
+      updateRule: '@request.auth.id != "" && user = @request.auth.id',
+      deleteRule: '@request.auth.id != "" && user = @request.auth.id',
+    }
+  },
+
+  // ============================================
+  // AI_PROFILE_FIELDS - Facts learned about user during conversations
+  // Separate from traits (coach observations) - these are specific facts
+  // e.g. "favorite_kpop_group: BTS", "learning_motivation: talk to Korean friends"
+  // NOTE: Must be created AFTER sessions (it references sessions collection)
+  // ============================================
+  {
+    name: 'ai_profile_fields',
+    type: 'base',
+    fields: [
+      buildField('user', 'relation', true, { collectionId: '_pb_users_auth_', cascadeDelete: true, maxSelect: 1 }),
+      buildField('field_name', 'text', true, { min: 1, max: 100 }), // e.g. "favorite_kpop_group"
+      buildField('field_value', 'text', true, { min: 1, max: 500 }), // e.g. "BTS"
+      buildField('confidence', 'number', true, { min: 0, max: 1 }), // 0.0 to 1.0
+      buildField('source_session', 'relation', false, { collectionId: 'sessions', maxSelect: 1 }), // Where this was learned
+      buildField('learned_at', 'date', true), // When this fact was learned
     ],
     rules: {
       listRule: '@request.auth.id != "" && user = @request.auth.id',
@@ -362,6 +393,48 @@ async function createIndexes(pb, collectionDef) {
   }
 }
 
+/**
+ * Resolve collection name to actual ID for relations
+ */
+async function resolveCollectionId(pb, nameOrId) {
+  // If it's the built-in users collection, return as-is
+  if (nameOrId === '_pb_users_auth_') {
+    return nameOrId;
+  }
+  
+  try {
+    const collection = await pb.collections.getOne(nameOrId);
+    return collection.id;
+  } catch {
+    // Return name as fallback (for collections being created in same run)
+    return nameOrId;
+  }
+}
+
+/**
+ * Process a collection definition to resolve relation IDs
+ */
+async function processCollectionForRelations(pb, collectionDef) {
+  const processedFields = [];
+  
+  for (const field of collectionDef.fields) {
+    if (field.type === 'relation' && field.collectionId) {
+      const resolvedId = await resolveCollectionId(pb, field.collectionId);
+      processedFields.push({
+        ...field,
+        collectionId: resolvedId,
+      });
+    } else {
+      processedFields.push(field);
+    }
+  }
+  
+  return {
+    ...collectionDef,
+    fields: processedFields,
+  };
+}
+
 async function setupPocketbase() {
   const PocketBase = (await import('pocketbase')).default;
   const pb = new PocketBase(PB_URL);
@@ -384,8 +457,10 @@ async function setupPocketbase() {
     const createdCollections = [];
     for (const collection of collections) {
       try {
-        const created = await createCollection(pb, collection);
-        createdCollections.push({ def: collection, created });
+        // Resolve any relation collection IDs before creating
+        const processed = await processCollectionForRelations(pb, collection);
+        const created = await createCollection(pb, processed);
+        createdCollections.push({ def: processed, created });
       } catch (e) {
         console.error(`   Skipping ${collection.name} due to error`);
       }

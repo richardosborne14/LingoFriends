@@ -1,0 +1,460 @@
+/**
+ * LingoFriends - Main Stylesheet
+ * 
+ * This is the main CSS entry point. It loads Tailwind CSS v4
+ * and contains any custom global styles.
+ * 
+ * @see docs/design-system.md for design guidelines
+ */
+
+/* ==========================================
+   TAILWIND CSS v4
+   ========================================== */
+
+@import "tailwindcss";
+
+/* Import our custom theme configuration */
+@config "../../tailwind.config.js";
+
+/* ==========================================
+   CUSTOM BASE STYLES
+   ========================================== */
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Default body styling */
+body {
+  font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #fafafa;
+  color: #2d2d2d;
+}
+
+/* Better focus states for accessibility */
+*:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px white, 0 0 0 4px #58CC02;
+}
+
+/* Remove focus ring for mouse users */
+*:focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+/* Selection colors */
+::selection {
+  background-color: #bbf7d0;
+  color: #285500;
+}
+
+/* ==========================================
+   COMPONENT CLASSES (Plain CSS, no @layer)
+   ========================================== */
+
+/* Kid-friendly button base */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 1rem;
+  transition: all 200ms ease;
+  min-height: 44px;
+  cursor: pointer;
+  border: none;
+}
+
+.btn:focus {
+  outline: none;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Primary button - Green, main action */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 1rem;
+  transition: all 200ms ease;
+  min-height: 44px;
+  cursor: pointer;
+  border: none;
+  color: white;
+  background-color: #58CC02;
+  box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.15);
+}
+
+.btn-primary:hover {
+  background-color: #4CAF00;
+  transform: translateY(-2px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 0 0 rgba(0, 0, 0, 0.15);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Secondary button - Blue, secondary action */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 1rem;
+  transition: all 200ms ease;
+  min-height: 44px;
+  cursor: pointer;
+  border: none;
+  color: white;
+  background-color: #1CB0F6;
+  box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.15);
+}
+
+.btn-secondary:hover {
+  background-color: #0284c7;
+  transform: translateY(-2px);
+}
+
+.btn-secondary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 0 0 rgba(0, 0, 0, 0.15);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Accent button - Orange, highlighting */
+.btn-accent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 1rem;
+  transition: all 200ms ease;
+  min-height: 44px;
+  cursor: pointer;
+  border: none;
+  color: white;
+  background-color: #FF9600;
+  box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.15);
+}
+
+.btn-accent:hover {
+  background-color: #d97706;
+  transform: translateY(-2px);
+}
+
+.btn-accent:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 0 0 rgba(0, 0, 0, 0.15);
+}
+
+.btn-accent:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Ghost button - Transparent */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 1rem;
+  transition: all 200ms ease;
+  min-height: 44px;
+  cursor: pointer;
+  border: none;
+  color: #525252;
+  background-color: transparent;
+}
+
+.btn-ghost:hover {
+  background-color: #f5f5f5;
+}
+
+.btn-ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Danger button - Red, destructive actions */
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 1rem;
+  transition: all 200ms ease;
+  min-height: 44px;
+  cursor: pointer;
+  border: none;
+  color: white;
+  background-color: #FF4B4B;
+  box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.15);
+}
+
+.btn-danger:hover {
+  background-color: #dc2626;
+  transform: translateY(-2px);
+}
+
+.btn-danger:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 0 0 rgba(0, 0, 0, 0.15);
+}
+
+.btn-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Card component */
+.card {
+  background-color: white;
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  transition: box-shadow 200ms ease;
+  border: 1px solid #f5f5f5;
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.08);
+}
+
+.card:hover {
+  box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.12);
+}
+
+/* Input field */
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  background-color: white;
+  border-radius: 0.75rem;
+  transition: all 200ms ease;
+  color: #2d2d2d;
+  border: 2px solid #e5e5e5;
+}
+
+.input::placeholder {
+  color: #a3a3a3;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #58CC02;
+  box-shadow: 0 0 0 3px rgba(88, 204, 2, 0.1);
+}
+
+.input:disabled {
+  background-color: #fafafa;
+  cursor: not-allowed;
+}
+
+/* Badge/tag */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  border-radius: 9999px;
+}
+
+.badge-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  border-radius: 9999px;
+  background-color: #dcfce7;
+  color: #3d8c00;
+}
+
+.badge-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  border-radius: 9999px;
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.badge-accent {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  border-radius: 9999px;
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+/* Progress bar */
+.progress-bar {
+  width: 100%;
+  height: 0.75rem;
+  border-radius: 9999px;
+  overflow: hidden;
+  background-color: #f5f5f5;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: all 500ms ease-out;
+}
+
+/* ==========================================
+   UTILITY CLASSES
+   ========================================== */
+
+/* Hide scrollbar but keep functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Safe area insets for mobile */
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.safe-left {
+  padding-left: env(safe-area-inset-left);
+}
+.safe-right {
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Prevent text selection (for interactive elements) */
+.select-none-children * {
+  user-select: none;
+}
+
+/* ==========================================
+   LEGACY SUPPORT
+   
+   These styles maintain backward compatibility
+   with existing components during migration.
+   ========================================== */
+
+/* Legacy paper background color */
+.bg-paper {
+  background-color: #fdfbf7;
+}
+
+/* Legacy ink text color */
+.text-ink {
+  color: #2d2d2d;
+}
+
+/* Animation delay utilities (used by existing components) */
+.delay-75 { animation-delay: 75ms; }
+.delay-150 { animation-delay: 150ms; }
+
+/* Animate-in utilities (used by ChatInterface) */
+.animate-in {
+  animation-duration: 200ms;
+  animation-fill-mode: both;
+}
+
+.fade-in {
+  animation-name: fadeIn;
+}
+
+.slide-in-from-top-1 {
+  animation-name: slideInFromTop;
+}
+
+.slide-in-from-bottom-1 {
+  animation-name: slideInFromBottom;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInFromTop {
+  from {
+    transform: translateY(-4px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInFromBottom {
+  from {
+    transform: translateY(4px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
