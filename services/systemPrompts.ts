@@ -13,7 +13,8 @@ import type {
   NativeLanguage, 
   LessonDraft,
   TargetSubject,
-  AIProfileField 
+  AIProfileField,
+  CompletedLessonSummary
 } from '../types';
 
 // ============================================
@@ -34,6 +35,8 @@ export interface PromptConfig {
   currentTheme?: string;
   /** AI-learned facts about this user */
   aiProfileFields?: AIProfileField[];
+  /** History of completed lessons so AI can build on prior learning */
+  completedLessons?: CompletedLessonSummary[];
 }
 
 // ============================================
@@ -177,7 +180,32 @@ function getAgeAdjustments(ageGroup: AgeGroup): string {
 // ============================================
 
 /**
+ * Format completed lessons into a readable context block for the AI.
+ * Shows what the user has already learned so the AI can build on it.
+ */
+function formatCompletedLessons(lessons: CompletedLessonSummary[]): string {
+  if (!lessons || lessons.length === 0) {
+    return 'No completed lessons yet — this is a new learner! Start with basics.';
+  }
+  
+  // Show most recent 10 lessons (enough context without overwhelming the prompt)
+  const recent = lessons.slice(0, 10);
+  
+  return recent.map((lesson, i) => {
+    const objectives = lesson.objectives.length > 0
+      ? lesson.objectives.join(', ')
+      : 'General practice';
+    return `${i + 1}. "${lesson.title}" — Objectives: ${objectives}`;
+  }).join('\n');
+}
+
+/**
  * Get session-specific instructions (Main Hall vs Lesson)
+ * 
+ * Main Hall: Fast-track lesson creation. Kids pick a theme, say one thing,
+ * and the AI should jump into a lesson immediately. No slow draft building.
+ * 
+ * Lesson: Focused teaching on specific objectives.
  */
 export function getSessionInstructions(config: PromptConfig): string {
   const { 
@@ -187,7 +215,8 @@ export function getSessionInstructions(config: PromptConfig): string {
     currentDraft,
     targetSubject,
     currentTheme,
-    aiProfileFields = []
+    aiProfileFields = [],
+    completedLessons = []
   } = config;
   
   // Format known facts about this user
@@ -195,10 +224,13 @@ export function getSessionInstructions(config: PromptConfig): string {
     ? aiProfileFields.map(f => `- ${f.fieldName}: ${f.fieldValue}`).join('\n')
     : 'No specific facts known yet.';
   
+  // Format completed lesson history
+  const lessonHistory = formatCompletedLessons(completedLessons);
+  
   // Build theme/subject context
   const themeContext = currentTheme 
     ? `\n## Today's Theme: ${currentTheme}
-Use this theme to make examples relevant and engaging. Connect new vocabulary and phrases to ${currentTheme} whenever natural.`
+The user already chose "${currentTheme}" as their interest. Use this to make the lesson relevant and fun.`
     : '';
   
   const subjectContext = targetSubject
@@ -216,35 +248,68 @@ ${themeContext}
 ## Lesson Mode Rules
 1. Stay focused on this lesson's objectives
 2. If they ask about something unrelated, acknowledge warmly but redirect
-3. Use activities to reinforce learning
+3. Use activities to reinforce learning (START_ACTIVITY)
 4. Celebrate when they master an objective
 5. When all objectives are met, congratulate them!
 
 ## Known Facts About This User
-${knownFacts}`;
+${knownFacts}
+
+## What They've Already Learned (don't repeat these!)
+${lessonHistory}`;
   }
   
   return `
 ## Main Hall Context
-You're in the Main Hall - the casual chat area.
+You're in the Main Hall — the starting point for learning sessions.
 ${subjectContext}
 ${themeContext}
 
-## Main Hall Rules
-1. Chat freely and get to know them
-2. Listen for learning opportunities
-3. When they want to learn something, START A DRAFT:
-   - Ask clarifying questions
-   - Build confidence score (0-1)
-   - Create lesson when confident (>0.85)
-4. Don't rush into lessons - understand what they need
+## FAST LESSON CREATION (IMPORTANT!)
+Your #1 job is to get the user into a focused lesson FAST. Kids lose interest quickly.
+
+**The user has already chosen a theme from the launcher.** You don't need to ask "what do you want to learn?" — they already told you!
+
+### How to create a lesson:
+1. On the user's FIRST or SECOND message, create a lesson immediately using CREATE_LESSON
+2. Pick 2-3 specific objectives that BUILD ON their completed lessons (see below)
+3. Don't use UPDATE_DRAFT — go straight to CREATE_LESSON
+4. Make the lesson title fun and specific (e.g., "Talking about Katseye in German 🎤")
+
+### Choosing objectives:
+- Look at their completed lessons below — don't repeat what they've already done
+- Pick the NEXT natural step. Example progression:
+  - If they learned "I like / I don't like" → Next: "I want to see / I want to listen to"
+  - If they learned greetings → Next: "Asking questions about someone"
+  - If they learned food vocabulary → Next: "Ordering at a restaurant"
+- Keep objectives practical and communicative (lexical approach!)
+- 2-3 objectives max per lesson
+
+### CREATE_LESSON format:
+\`\`\`json
+{
+  "action": "CREATE_LESSON",
+  "data": {
+    "title": "Fun lesson title with emoji",
+    "objectives": ["Objective 1", "Objective 2", "Objective 3"],
+    "initialMessage": "Exciting opening message for the lesson"
+  }
+}
+\`\`\`
+
+### When to NOT create a lesson:
+- If the user explicitly just wants to chat ("just talk to me", "I'm bored")
+- If the user asks a question that needs answering first
+- In these cases, chat naturally but look for the next opportunity
 
 ## Known Facts About This User
 ${knownFacts}
 
-## Learning Profile Information
-During conversation, listen for facts about the user that could help personalize future lessons.
-When you learn something new (favorite band, why they're learning, hobbies, etc.), remember it!
+## Completed Lessons (BUILD ON THESE — don't repeat!)
+${lessonHistory}
+
+## Learning Profile
+Listen for facts about the user during conversation. When you learn something new, use ADD_TRAIT or UPDATE_PROFILE to save it.
 
 Current draft: ${currentDraft ? JSON.stringify(currentDraft) : "No active draft"}`;
 }

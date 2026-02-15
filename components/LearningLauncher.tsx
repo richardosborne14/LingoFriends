@@ -33,6 +33,8 @@ interface LearningLauncherProps {
   profile: UserProfile;
   /** Callback when user clicks Start Learning */
   onStart: (theme: string) => Promise<void>;
+  /** Callback when user clicks Just Chat (skip theme selection) */
+  onJustChat?: () => void;
   /** Whether the AI is generating the opening message */
   isLoading?: boolean;
 }
@@ -52,6 +54,7 @@ interface LauncherTranslations {
   loadingButton: string;
   noInterestsTip: string;
   locked: string;
+  justChatButton: string;
 }
 
 const TRANSLATIONS: Record<'English' | 'French', LauncherTranslations> = {
@@ -66,6 +69,7 @@ const TRANSLATIONS: Record<'English' | 'French', LauncherTranslations> = {
     loadingButton: 'Getting ready...',
     noInterestsTip: "💡 Add interests in your profile for more personalized lessons!",
     locked: 'Set in profile',
+    justChatButton: '💬 Just Chat',
   },
   French: {
     greeting: 'Salut',
@@ -78,6 +82,7 @@ const TRANSLATIONS: Record<'English' | 'French', LauncherTranslations> = {
     loadingButton: 'Préparation...',
     noInterestsTip: "💡 Ajoute des centres d'intérêt dans ton profil pour des leçons personnalisées !",
     locked: 'Défini dans le profil',
+    justChatButton: '💬 Discuter',
   },
 };
 
@@ -137,6 +142,7 @@ function getSubjectDisplay(
 export default function LearningLauncher({
   profile,
   onStart,
+  onJustChat,
   isLoading = false,
 }: LearningLauncherProps) {
   // Selected theme state
@@ -301,6 +307,17 @@ export default function LearningLauncher({
               t.startButton
             )}
           </Button>
+          
+          {/* Just Chat - skip theme, go straight to Main Hall */}
+          {onJustChat && (
+            <button
+              onClick={onJustChat}
+              disabled={isLoading}
+              className="mt-3 w-full py-3 text-[#737373] hover:text-[#525252] hover:bg-[#f5f5f5] rounded-xl transition-colors text-sm font-medium disabled:opacity-40"
+            >
+              {t.justChatButton}
+            </button>
+          )}
         </Card>
         
         {/* Fun decoration */}

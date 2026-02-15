@@ -674,19 +674,31 @@ export async function createSession(session: Omit<ChatSession, 'id' | 'createdAt
   const userId = getCurrentUserId();
   if (!userId) throw new Error('Not authenticated');
 
-  const record = await pb.collection('sessions').create<PBSession>({
-    user: userId,
-    session_type: session.type,
-    status: session.status,
-    title: session.title,
-    objectives: session.objectives,
-    messages: session.messages,
-    draft: session.draft || null,
-    parent_session: session.parentId || null,
-    target_language: 'English', // Default, should come from profile
-  });
+  try {
+    const record = await pb.collection('sessions').create<PBSession>({
+      user: userId,
+      session_type: session.type,
+      status: session.status,
+      title: session.title,
+      objectives: session.objectives,
+      messages: session.messages,
+      draft: session.draft || null,
+      // parent_session can cause relation validation errors if the ID is invalid
+      // So we validate it carefully — pass null if it looks wrong
+      parent_session: (session.parentId && session.parentId.length > 5) ? session.parentId : null,
+      // Use targetLanguage from session data, fallback to 'English'
+      target_language: session.targetLanguage || 'English',
+    });
 
-  return pbSessionToChatSession(record);
+    console.log('[PB] Session created successfully:', record.id, record.session_type, record.title);
+    return pbSessionToChatSession(record);
+  } catch (error) {
+    console.error('[PB] Failed to create session:', error);
+    if ((error as { data?: unknown })?.data) {
+      console.error('[PB] Error details:', JSON.stringify((error as { data?: unknown }).data, null, 2));
+    }
+    throw error;
+  }
 }
 
 /**

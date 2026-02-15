@@ -20,7 +20,8 @@ import type {
   Message, 
   UserProfile, 
   ChatSession,
-  AIProfileField
+  AIProfileField,
+  CompletedLessonSummary
 } from '../../types';
 
 interface UseMessageHandlerOptions {
@@ -50,6 +51,8 @@ interface UseMessageHandlerOptions {
   stopAudio: () => void;
   /** Current theme/interest for this learning session (Task 7) */
   currentTheme?: string | null;
+  /** Completed lessons for curriculum-aware AI lesson planning */
+  completedLessons?: CompletedLessonSummary[];
 }
 
 interface UseMessageHandlerReturn {
@@ -81,6 +84,7 @@ export function useMessageHandler({
   handlePlayAudio,
   stopAudio,
   currentTheme,
+  completedLessons,
 }: UseMessageHandlerOptions): UseMessageHandlerReturn {
   const [isThinking, setIsThinking] = useState(false);
   
@@ -163,10 +167,12 @@ export function useMessageHandler({
         console.warn('[MessageHandler] Failed to fetch AI profile fields:', err);
       }
 
-      // Build conversation context for AI
+      // Build conversation context for AI — includes completed lessons
+      // so the AI can build on prior learning instead of repeating
       const context: ConversationContext = {
         currentTheme: currentTheme || undefined,
         aiProfileFields,
+        completedLessons: completedLessons || [],
       };
 
       // Pass the WHOLE session object to get context-aware responses
@@ -222,28 +228,38 @@ export function useMessageHandler({
             // Clear draft on parent session
             updateDraft(activeSessionId, null);
 
-            // Create new lesson session via Pocketbase
-            const newLesson = await createSession({
-              type: SessionType.LESSON,
-              status: SessionStatus.ACTIVE,
-              title: action.data.title,
-              objectives: action.data.objectives,
-              parentId: activeSessionId,
-              messages: [
-                {
-                  id: Date.now().toString(),
-                  sender: Sender.AI,
-                  text: action.data.initialMessage || `Welcome to your lesson on ${action.data.title}!`,
-                  timestamp: Date.now()
-                }
-              ]
-            });
+            try {
+              // Create new lesson session via Pocketbase
+              // Pass targetLanguage from profile so it's stored correctly
+              const newLesson = await createSession({
+                type: SessionType.LESSON,
+                status: SessionStatus.ACTIVE,
+                title: action.data.title,
+                objectives: action.data.objectives,
+                parentId: activeSessionId,
+                targetLanguage: profile.targetLanguage, // Fix: was hardcoded to 'English'
+                messages: [
+                  {
+                    id: Date.now().toString(),
+                    sender: Sender.AI,
+                    text: action.data.initialMessage || `Welcome to your lesson on ${action.data.title}!`,
+                    timestamp: Date.now()
+                  }
+                ]
+              });
 
-            lessonInviteData = {
-              sessionId: newLesson.id,
-              title: action.data.title,
-              objectives: action.data.objectives
-            };
+              lessonInviteData = {
+                sessionId: newLesson.id,
+                title: action.data.title,
+                objectives: action.data.objectives
+              };
+              
+              console.log('[MessageHandler] Lesson created successfully:', newLesson.id, action.data.title);
+            } catch (lessonError) {
+              console.error('[MessageHandler] Failed to create lesson session:', lessonError);
+              // Don't let the lesson creation failure break the whole response
+              // The AI text will still show, just no invite card
+            }
           }
         }
       }
@@ -285,6 +301,7 @@ export function useMessageHandler({
     handlePlayAudio,
     currentTheme,
     cachedAIFields,
+    completedLessons,
   ]);
 
   /**

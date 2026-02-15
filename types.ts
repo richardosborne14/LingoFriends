@@ -172,4 +172,15 @@ export interface ChatSession {
   createdAt: number;
   parentId?: string; // If spawned from another session
   draft?: LessonDraft | null; // Current lesson being negotiated
+  targetLanguage?: TargetLanguage; // Language for this session (used when creating in Pocketbase)
+}
+
+/**
+ * Summary of a completed lesson for curriculum-aware AI planning.
+ * Passed to the AI so it can build on prior learning, not repeat it.
+ */
+export interface CompletedLessonSummary {
+  title: string;
+  objectives: string[];
+  completedAt: number;
 }

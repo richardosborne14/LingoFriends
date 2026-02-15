@@ -7,7 +7,7 @@
  * @module groqService
  */
 
-import type { UserProfile, ChatSession, Message, AIProfileField, TargetSubject } from '../types';
+import type { UserProfile, ChatSession, Message, AIProfileField, CompletedLessonSummary, TargetSubject } from '../types';
 import { buildSystemPrompt } from './systemPrompts';
 import { filterResponse, sanitizeUserInput } from './contentFilter';
 
@@ -48,13 +48,16 @@ export interface StreamCallbacks {
 
 /**
  * Additional context for AI conversations.
- * Includes theme and learned facts about the user.
+ * Includes theme, learned facts, and completed lesson history
+ * so the AI can build on prior learning instead of repeating.
  */
 export interface ConversationContext {
   /** Current theme/interest for this learning session */
   currentTheme?: string | null;
   /** AI-learned facts about the user for personalization */
   aiProfileFields?: AIProfileField[];
+  /** Completed lessons so AI can build on prior learning */
+  completedLessons?: CompletedLessonSummary[];
 }
 
 // ============================================
@@ -179,7 +182,7 @@ export async function generateResponse(
   }
   lastRequestTime = Date.now();
 
-  // Build system prompt with theme and AI profile context
+  // Build system prompt with theme, AI profile, and completed lessons context
   const systemPrompt = buildSystemPrompt({
     targetLanguage: profile.targetLanguage,
     nativeLanguage: profile.nativeLanguage,
@@ -188,10 +191,10 @@ export async function generateResponse(
     lessonTitle: session.title,
     lessonObjectives: session.objectives,
     currentDraft: session.draft,
-    // NEW: Pass subject, theme, and AI profile fields for personalization
     targetSubject: profile.targetSubject,
     currentTheme: context?.currentTheme || undefined,
     aiProfileFields: context?.aiProfileFields || [],
+    completedLessons: context?.completedLessons || [],
   });
 
   // Convert message history

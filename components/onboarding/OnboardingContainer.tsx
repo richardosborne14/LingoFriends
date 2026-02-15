@@ -301,25 +301,28 @@ export function OnboardingContainer({
         <div className="w-20" />
       </header>
 
-      {/* Main Content - scrollable area with constrained height */}
-      <main className="flex-1 flex flex-col items-center justify-center px-4 py-4 overflow-y-auto min-h-0">
-        <AnimatePresence mode="wait" custom={direction}>
-          <motion.div
-            key={state.currentStep}
-            custom={direction}
-            variants={stepVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{
-              x: { type: 'spring', stiffness: 300, damping: 30 },
-              opacity: { duration: 0.2 },
-            }}
-            className="w-full max-w-2xl"
-          >
-            {renderStep()}
-          </motion.div>
-        </AnimatePresence>
+      {/* Main Content - scrollable area that respects header/footer heights */}
+      <main className="flex-1 overflow-y-auto min-h-0">
+        {/* Inner wrapper: fills scroll area for centering short content, grows for tall content */}
+        <div className="min-h-full flex flex-col items-center justify-center px-4 py-4">
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={state.currentStep}
+              custom={direction}
+              variants={stepVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{
+                x: { type: 'spring', stiffness: 300, damping: 30 },
+                opacity: { duration: 0.2 },
+              }}
+              className="w-full max-w-2xl"
+            >
+              {renderStep()}
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </main>
 
       {/* Footer Navigation - fixed at bottom (not shown on complete screen) */}

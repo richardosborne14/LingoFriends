@@ -42,6 +42,7 @@ import {
   TargetLanguage, 
   NativeLanguage 
 } from './types';
+import type { CompletedLessonSummary } from './types';
 
 // Settings storage key
 const STORAGE_KEY_AUTOTTS = 'lingoloft_autotts';
@@ -204,7 +205,15 @@ function MainApp() {
     updateMessages,
   });
 
-  // Message handler hook - now includes currentTheme for context-aware AI (Task 7)
+  // Build completed lesson summaries for curriculum-aware AI planning
+  // The AI uses this to know what the user already learned and build on it
+  const completedLessonSummaries: CompletedLessonSummary[] = completedLessons.map(lesson => ({
+    title: lesson.title,
+    objectives: lesson.objectives,
+    completedAt: lesson.createdAt,
+  }));
+
+  // Message handler hook - includes theme + completed lessons for smart AI (Task 7+)
   const { 
     isThinking, 
     handleUserMessage, 
@@ -224,6 +233,7 @@ function MainApp() {
     handlePlayAudio,
     stopAudio,
     currentTheme: selectedTheme, // Pass theme for AI context
+    completedLessons: completedLessonSummaries, // Pass lesson history for curriculum awareness
   });
 
   // Load autoTTS setting on mount
@@ -327,6 +337,15 @@ function MainApp() {
   }, []);
 
   /**
+   * Handle "Just Chat" — skip the launcher and go straight to Main Hall.
+   * No theme set, no AI opening message generated. Free-form chat.
+   */
+  const handleJustChat = useCallback(() => {
+    setSelectedTheme(null);
+    setShowLauncher(false);
+  }, []);
+
+  /**
    * Handle native language change - syncs to Pocketbase
    */
   const handleNativeLanguageChange = async (newLang: NativeLanguage) => {
@@ -343,6 +362,7 @@ function MainApp() {
       <LearningLauncher
         profile={profile}
         onStart={handleStartLearning}
+        onJustChat={handleJustChat}
         isLoading={launcherLoading}
       />
     );
