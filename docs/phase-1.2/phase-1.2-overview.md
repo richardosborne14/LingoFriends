@@ -471,12 +471,12 @@ interface ActivityGenerationRequest {
 
 | Task | Name | Est. Time | Status |
 |------|------|-----------|--------|
-| 1.2.1 | Learner Model Schema | 2-3h | Complete ✓ |
-| 1.2.2 | Chunk Generation Framework | 4-6h | Complete ✓ |
-| 1.2.3 | Chunk Generation Service | 4-6h | Not Started |
-| 1.2.4 | Learner Profile Service | 3-4h | Not Started |
-| 1.2.5 | Pedagogy Engine Core | 6-8h | Not Started |
-| 1.2.6 | i+1 Difficulty Calibration | 4-5h | Not Started |
+| 1.2.1 | Learner Model Schema | 2-3h | ✅ Complete |
+| 1.2.2 | Chunk Generation Framework | 4-6h | ✅ Complete |
+| 1.2.3 | Chunk Generation Service | 4-6h | ✅ Complete |
+| 1.2.4 | Learner Profile Service | 3-4h | ✅ Complete |
+| 1.2.5 | Pedagogy Engine Core | 6-8h | ✅ Complete |
+| 1.2.6 | i+1 Difficulty Calibration | 4-5h | ✅ Complete |
 | 1.2.7 | Affective Filter Monitoring | 4-5h | Not Started |
 | 1.2.8 | AI Lesson Generator v2 | 6-8h | Not Started |
 | 1.2.9 | Dynamic Path Generation | 4-5h | Not Started |

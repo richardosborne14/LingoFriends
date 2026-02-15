@@ -1,9 +1,10 @@
 # Task 1.2.8: AI Lesson Generator v2
 
-**Status:** Not Started
+**Status:** ✅ Complete
 **Phase:** 1.2 (Pedagogy Engine)
 **Dependencies:** Task 1.2.5, 1.2.6, 1.2.7
 **Estimated Time:** 6-8 hours
+**Completed:** 2026-02-15
 
 ---
 
@@ -314,13 +315,13 @@ async prepareSession(userId: string, options: SessionOptions): Promise<SessionPl
 
 ## Testing Checklist
 
-- [ ] Lessons generate with chunk-based content
-- [ ] i+1 difficulty is respected
-- [ ] Review chunks are included
-- [ ] Context chunks surround new content
-- [ ] Activities are varied
-- [ ] Tutor persona is consistent
-- [ ] Filter risk affects generation
+- [x] Lessons generate with chunk-based content
+- [x] i+1 difficulty is respected
+- [x] Review chunks are included
+- [x] Context chunks surround new content
+- [x] Activities are varied
+- [x] Tutor persona is consistent
+- [x] Filter risk affects generation
 
 ---
 
@@ -328,11 +329,36 @@ async prepareSession(userId: string, options: SessionOptions): Promise<SessionPl
 
 | Requirement | Status |
 |-------------|--------|
-| Chunks used instead of vocabulary | [ ] |
-| i+1 calibration works | [ ] |
-| All four pedagogies integrated | [ ] |
-| AI prompts are well-structured | [ ] |
-| Generated activities are valid | [ ] |
+| Chunks used instead of vocabulary | ✅ Done |
+| i+1 calibration works | ✅ Done |
+| All four pedagogies integrated | ✅ Done |
+| AI prompts are well-structured | ✅ Done |
+| Generated activities are valid | ✅ Done |
+| Fallback lessons when AI fails | ✅ Done |
+| Lesson caching implemented | ✅ Done |
+| Unit tests pass (23 tests) | ✅ Done |
+
+---
+
+## Implementation Summary
+
+### Files Created
+- `src/services/aiPedagogyClient.ts` — AI client with full pedagogy context
+- `src/services/lessonGeneratorV2.ts` — Chunk-based lesson generator
+- `src/services/lessonGeneratorV2.test.ts` — Comprehensive unit tests
+
+### Files Updated
+- `services/systemPrompts.ts` — Added PROFESSOR_FINCH_V2 prompt with pedagogy
+- `src/types/pedagogy.ts` — Added level evaluation and game activity types
+
+### Key Features
+1. **Chunk-Based Content**: Uses LexicalChunk objects instead of vocabulary strings
+2. **i+1 Calibration**: Passes learner level and target level to AI for proper difficulty
+3. **Scaffolding**: Includes familiar chunks for context
+4. **Affective Filter**: Passes filter risk score to AI for adaptation
+5. **Fallback Generation**: Creates lessons from chunks when AI unavailable
+6. **Lesson Caching**: Caches generated lessons with configurable TTL
+7. **Multi-Activity Support**: Generates all activity types (multiple_choice, fill_blank, matching, translate, true_false, word_arrange)
 
 ---
 

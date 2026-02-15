@@ -1,9 +1,10 @@
-# Task 1.1.11: Gift System
+t# Task 1.1.11: Gift System
 
-**Status:** Not Started
+**Status:** ✅ Complete
 **Phase:** C (Social & Rewards)
 **Dependencies:** Task 1.1.7 (Pocketbase Schema), Task 1.1.8 (Garden State)
 **Estimated Time:** 5-6 hours
+**Completed:** 2026-02-15
 
 ---
 
@@ -496,24 +497,31 @@ function LessonComplete({ sunDropsEarned, sunDropsMax, stars, ... }: Props) {
 ## Testing Checklist
 
 ### Gift Unlocking
-- [ ] Water drop unlocks on any lesson completion
-- [ ] Sparkle unlocks on 20+ Sun Drops
-- [ ] Ribbon unlocks on 3 lessons same day
-- [ ] Golden flower unlocks on 3 stars
-- [ ] Only highest-tier gift unlocked
+- [x] Water drop unlocks on any lesson completion
+- [x] Sparkle unlocks on 20+ Sun Drops
+- [x] Ribbon unlocks on 3 lessons same day
+- [x] Golden flower unlocks on 3 stars
+- [x] Seed unlocks on path completion
+- [x] Only highest-tier gift unlocked
 
 ### Gift Sending
-- [ ] Can select friend to send to
-- [ ] Can add optional message
-- [ ] Gift removed from inventory after sending
-- [ ] Gift appears in friend's inbox
+- [x] Can select friend to send to
+- [x] Can add optional message
+- [x] Gift removed from inventory after sending
+- [x] Gift appears in friend's inbox
 
 ### Gift Receiving
-- [ ] Pending gifts appear in inbox
-- [ ] Can apply gift to tree
-- [ ] Applied gift effects tree health
-- [ ] Can decline gift
-- [ ] Notifications for new gifts
+- [x] Pending gifts appear in inbox
+- [x] Can apply gift to tree
+- [x] Applied gift effects tree health
+- [x] Can decline gift
+- [ ] Notifications for new gifts (Phase 2)
+
+### Dev Test Harness
+- [x] Test harness accessible via 🧪 Dev button or Ctrl+Shift+D
+- [x] All gift unlock scenarios testable
+- [x] GiftUnlock modal animation works
+- [x] LessonComplete gift detection works
 
 ---
 
@@ -521,11 +529,39 @@ function LessonComplete({ sunDropsEarned, sunDropsMax, stars, ... }: Props) {
 
 | Requirement | Status |
 |-------------|--------|
-| Gifts unlock correctly | [ ] |
-| Sending flow works | [ ] |
-| Receiving flow works | [ ] |
-| Applying gift affects tree | [ ] |
-| UI is kid-friendly | [ ] |
+| Gifts unlock correctly | ✅ |
+| Sending flow works | ✅ |
+| Receiving flow works | ✅ |
+| Applying gift affects tree | ✅ |
+| UI is kid-friendly | ✅ |
+| Unit tests passing | ✅ (33 tests) |
+| Dev test harness | ✅ |
+
+---
+
+## Implementation Summary
+
+### Files Created
+- `src/services/giftService.ts` — Core gift service (400+ lines)
+- `src/services/giftService.test.ts` — Unit tests (33 tests)
+- `src/components/social/GiftUnlock.tsx` — Gift unlock animation modal
+- `src/components/social/SendGift.tsx` — Friend selection for sending
+- `src/components/social/FriendGifts.tsx` — Gift inbox component
+- `src/components/social/index.ts` — Barrel export
+- `src/components/dev/GiftTestHarness.tsx` — Visual testing interface
+- `src/components/dev/index.ts` — Dev components index
+- `docs/phase-1.1/TESTING-CHECKLIST.md` — Manual testing checklist
+
+### Files Modified
+- `src/components/lesson/LessonComplete.tsx` — Integrated gift unlock detection
+- `App.tsx` — Added dev mode toggle (🧪 Dev button + keyboard shortcut)
+- `src/types/game.ts` — GiftType enum already present
+
+### Key Implementation Details
+1. **Gift Detection** — Uses `useMemo` for synchronous gift detection on initial render
+2. **Priority System** — Golden Flower > Seed > Sparkle > Ribbon > Water Drop
+3. **Dev Test Harness** — Press Ctrl+Shift+D or click 🧪 Dev button to test all scenarios
+4. **Pocketbase Integration** — Full CRUD for gifts collection (schema from Task 1.1.7)
 
 ---
 

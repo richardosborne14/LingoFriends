@@ -5,16 +5,23 @@
  * - Trophy animation
  * - Sun Drops earned vs maximum
  * - Star rating (1-3)
- * - Gift unlocked card (placeholder)
+ * - Gift unlocked card with send functionality
  * - Navigation buttons
  * 
  * @module LessonComplete
+ * @see docs/phase-1.1/task-1-1-11-gift-system.md
  */
 
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { SunDropIcon } from '../shared/SunDropIcon';
 import { calculateStars } from '../../services/sunDropService';
+import { 
+  checkGiftUnlock, 
+  getGiftConfig,
+  type LessonResult 
+} from '../../services/giftService';
+import { GiftUnlock } from '../social/GiftUnlock';
 import type { GiftType } from '../../types/game';
 
 // ============================================
@@ -33,55 +40,15 @@ export interface LessonCompleteProps {
   onContinue: () => void;
   /** Callback when user replays the lesson */
   onReplay: () => void;
-  /** Optional gift type unlocked (placeholder for Task 1.1.11) */
+  /** Optional: Override auto-detected gift type */
   giftUnlocked?: GiftType | null;
+  /** Number of lessons completed today (for ribbon gift logic) */
+  lessonsCompletedToday?: number;
+  /** Whether this completes the skill path (for seed gift logic) */
+  pathComplete?: boolean;
+  /** User ID for gift sending */
+  userId?: string;
 }
-
-/**
- * Gift display configuration.
- * Will be expanded in Task 1.1.11 (Gift System).
- */
-interface GiftConfig {
-  emoji: string;
-  name: string;
-  description: string;
-}
-
-// ============================================
-// CONSTANTS
-// ============================================
-
-/**
- * Gift configurations for display.
- * Placeholder data until Gift System is implemented.
- */
-const GIFT_CONFIGS: Record<GiftType, GiftConfig> = {
-  water_drop: {
-    emoji: '💧',
-    name: 'Water Drop',
-    description: "Keep a friend's tree alive!",
-  },
-  sparkle: {
-    emoji: '✨',
-    name: 'Sparkle',
-    description: 'Add some sparkle to a tree!',
-  },
-  seed: {
-    emoji: '🌱',
-    name: 'Seed',
-    description: 'Start a new skill path!',
-  },
-  ribbon: {
-    emoji: '🎀',
-    name: 'Ribbon',
-    description: 'Decorate a tree!',
-  },
-  golden_flower: {
-    emoji: '🌸',
-    name: 'Golden Flower',
-    description: 'A rare decoration!',
-  },
-};
 
 // ============================================
 // ANIMATION VARIANTS
@@ -155,13 +122,37 @@ export const LessonComplete: React.FC<LessonCompleteProps> = ({
   sunDropsMax,
   onContinue,
   onReplay,
-  giftUnlocked = 'water_drop', // Default gift for now
+  giftUnlocked,
+  lessonsCompletedToday = 1,
+  pathComplete = false,
+  userId,
 }) => {
   // Calculate star rating based on performance
   const stars = calculateStars(sunDropsEarned, sunDropsMax);
   
+  // Auto-detect gift type synchronously using useMemo
+  const effectiveGiftType = useMemo(() => {
+    // Use provided gift if available
+    if (giftUnlocked !== undefined) {
+      return giftUnlocked;
+    }
+    
+    // Otherwise detect based on lesson result
+    const result: LessonResult = {
+      sunDropsEarned,
+      sunDropsMax,
+      stars,
+      lessonsCompletedToday,
+      pathComplete,
+    };
+    return checkGiftUnlock(result);
+  }, [giftUnlocked, sunDropsEarned, sunDropsMax, stars, lessonsCompletedToday, pathComplete]);
+  
   // Get gift config if a gift was unlocked
-  const gift = giftUnlocked ? GIFT_CONFIGS[giftUnlocked] : null;
+  const gift = effectiveGiftType ? getGiftConfig(effectiveGiftType) : null;
+  
+  // State for gift unlock modal
+  const [showGiftUnlock, setShowGiftUnlock] = useState(false);
 
   return (
     <motion.div
@@ -244,8 +235,8 @@ export const LessonComplete: React.FC<LessonCompleteProps> = ({
         </motion.div>
       )}
 
-      {/* Send to friend button (placeholder) */}
-      {gift && (
+      {/* Send to friend button */}
+      {gift && effectiveGiftType && (
         <motion.button
           whileTap={{ scale: 0.95 }}
           className="w-full max-w-[260px] mx-auto mb-4 py-3 px-6 rounded-lg font-bold text-sm"
@@ -254,14 +245,27 @@ export const LessonComplete: React.FC<LessonCompleteProps> = ({
             color: '#fff',
             boxShadow: '0 4px 0 #BE185D', // pink-700
           }}
-          onClick={() => {
-            // Placeholder - will connect to Gift System in Task 1.1.11
-            console.log('Send gift to friend - not implemented yet');
-          }}
+          onClick={() => setShowGiftUnlock(true)}
         >
           Send to Friend 💌
         </motion.button>
       )}
+
+      {/* Gift unlock modal */}
+      <AnimatePresence>
+        {showGiftUnlock && effectiveGiftType && (
+          <GiftUnlock
+            giftType={effectiveGiftType}
+            onDismiss={() => setShowGiftUnlock(false)}
+            onSend={() => {
+              setShowGiftUnlock(false);
+              // Could navigate to friend selection or show send modal
+              console.log('Send gift flow - to be connected with SendGift component');
+            }}
+            canSend={!!userId}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Action buttons */}
       <div className="flex gap-3 justify-center">

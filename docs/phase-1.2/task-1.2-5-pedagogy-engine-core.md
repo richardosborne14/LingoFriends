@@ -1,6 +1,6 @@
 # Task 1.2.5: Pedagogy Engine Core Service
 
-**Status:** Not Started
+**Status:** Completed
 **Phase:** 1.2 (Pedagogy Engine)
 **Dependencies:** Task 1.2.1, 1.2.4
 **Estimated Time:** 6-8 hours
@@ -172,11 +172,11 @@ function calculateIPlusOne(profile: LearnerProfile): number {
 
 ## Testing Checklist
 
-- [ ] Engine prepares session with correct i+1 chunks
-- [ ] Chunk manager queries chunks by difficulty
-- [ ] SRS updates correctly on encounters
-- [ ] Adaptation triggers when filter risk is high
-- [ ] Session summary includes all stats
+- [x] Engine prepares session with correct i+1 chunks
+- [x] Chunk manager queries chunks by difficulty
+- [x] SRS updates correctly on encounters
+- [x] Adaptation triggers when filter risk is high
+- [x] Session summary includes all stats
 
 ---
 
@@ -184,11 +184,11 @@ function calculateIPlusOne(profile: LearnerProfile): number {
 
 | Requirement | Status |
 |-------------|--------|
-| Session preparation works | [ ] |
-| i+1 calculation is accurate | [ ] |
-| Chunk queries are efficient | [ ] |
-| SRS updates correctly | [ ] |
-| Adaptations are timely | [ ] |
+| Session preparation works | [x] |
+| i+1 calculation is accurate | [x] |
+| Chunk queries are efficient | [x] |
+| SRS updates correctly | [x] |
+| Adaptations are timely | [x] |
 
 ---
 

@@ -1,9 +1,10 @@
 # Task 1.2.6: i+1 Difficulty Calibration
 
-**Status:** Not Started
+**Status:** ✅ Completed
 **Phase:** 1.2 (Pedagogy Engine)
 **Dependencies:** Task 1.2.5 (Pedagogy Engine Core)
 **Estimated Time:** 4-5 hours
+**Completed:** 2026-02-15
 
 ---
 
@@ -237,12 +238,12 @@ async function prepareLesson(userId: string, topic: string) {
 
 ## Testing Checklist
 
-- [ ] getCurrentLevel returns accurate level
-- [ ] getTargetLevel correctly adds 1
-- [ ] selectChunksForLevel returns appropriate chunks
-- [ ] getContextChunks returns only known chunks
-- [ ] adaptDifficulty adjusts correctly
-- [ ] shouldDropBack triggers at right thresholds
+- [x] getCurrentLevel returns accurate level
+- [x] getTargetLevel correctly adds 1
+- [x] selectChunksForLevel returns appropriate chunks
+- [x] getContextChunks returns only known chunks
+- [x] adaptDifficulty adjusts correctly
+- [x] shouldDropBack triggers at right thresholds
 
 ---
 
@@ -250,11 +251,46 @@ async function prepareLesson(userId: string, topic: string) {
 
 | Requirement | Status |
 |-------------|--------|
-| i+1 calculation matches pedagogy | [ ] |
-| Chunk selection is efficient | [ ] |
-| Adaptation is responsive | [ ] |
-| Drop-back prevents frustration | [ ] |
-| Level mapping is accurate | [ ] |
+| i+1 calculation matches pedagogy | ✅ |
+| Chunk selection is efficient | ✅ |
+| Adaptation is responsive | ✅ |
+| Drop-back prevents frustration | ✅ |
+| Level mapping is accurate | ✅ |
+
+---
+
+## Implementation Notes
+
+**Completed Files:**
+- `src/services/difficultyCalibration.ts` — Main service with all i+1 calibration functions
+- `src/services/difficultyCalibration.test.ts` — Comprehensive test suite (49 tests passing)
+
+**Key Functions Implemented:**
+- `getCurrentLevel()` — Maps acquired chunks + confidence + filter risk to 1-5 scale
+- `getTargetLevel()` — Calculates i+1 with filter risk handling (drops to i when stressed)
+- `calibrateDifficulty()` — Full calibration analysis with factor breakdown
+- `selectChunksForLevel()` — Async chunk selection at target difficulty
+- `getContextChunks()` — Async retrieval of acquired chunks for scaffolding
+- `adaptDifficulty()` — Performance-based difficulty adjustment
+- `shouldDropBack()` — Frustration detection for consolidation mode
+- `mapChunksToLevel()` — CEFR-based chunk count to level mapping
+- `levelToCEFRLabel()` — Level to CEFR string conversion
+- `getDifficultyRange()` — Difficulty range calculation with tolerance
+- `getConsolidationChunks()` — Chunks for review mode
+- `summarizePerformance()` — Activity result aggregation
+
+**CEFR Level Mapping (based on vocabulary research):**
+| Chunks | Level | CEFR |
+|--------|-------|------|
+| 0-49 | 1.0 | A1 |
+| 50-149 | 1.5 | A1+ |
+| 150-299 | 2.0 | A2 |
+| 300-499 | 2.5 | A2+ |
+| 500-799 | 3.0 | B1 |
+| 800-1199 | 3.5 | B1+ |
+| 1200-1699 | 4.0 | B2 |
+| 1700-2299 | 4.5 | B2+ |
+| 2300+ | 5.0 | C1 |
 
 ---
 

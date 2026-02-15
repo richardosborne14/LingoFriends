@@ -27,6 +27,7 @@ import { GardenWorld } from './src/components/garden';
 import { PathView } from './src/components/path';
 import { LessonView } from './src/components/lesson';
 import { generateLessonPlan } from './src/services/lessonPlanService';
+import { GiftTestHarness } from './src/components/dev';
 import {
   MOCK_USER_TREES,
   MOCK_SKILL_PATHS,
@@ -334,7 +335,7 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
       {state.currentView !== 'lesson' && !isLessonExiting && (
         <TabBar
           currentView={state.currentView}
-          onGarden={actions.goTo
+          onGarden={actions.goToGarden}
           onFriends={handleFriendsClick}
         />
       )}
@@ -381,9 +382,41 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
  * Main App Container
  * 
  * Handles auth routing and orchestrates the main views.
+ * 
+ * DEV MODE: Press Ctrl+Shift+D (or Cmd+Shift+D on Mac) to toggle test harness.
  */
 function App() {
   const { isAuthenticated, isLoading: authLoading, profile, logout, updateProfile } = useAuth();
+  
+  // Dev mode for testing components directly
+  const [showDevHarness, setShowDevHarness] = useState(false);
+  
+  // Keyboard shortcut to toggle dev harness (Ctrl/Cmd + Shift + D)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'D') {
+        setShowDevHarness(prev => !prev);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Show dev test harness if toggled
+  if (showDevHarness) {
+    return (
+      <>
+        <GiftTestHarness />
+        <button
+          onClick={() => setShowDevHarness(false)}
+          className="fixed bottom-4 right-4 px-4 py-2 bg-gray-800 text-white rounded-lg shadow-lg text-sm z-50"
+        >
+          Exit Dev Mode
+        </button>
+      </>
+    );
+  }
 
   // Show loading screen while checking auth
   if (authLoading) {
@@ -407,11 +440,23 @@ function App() {
 
   // Show main game app
   return (
-    <GameApp
-      profile={profile}
-      onLogout={logout}
-      onUpdateProfile={updateProfile}
-    />
+    <>
+      <GameApp
+        profile={profile}
+        onLogout={logout}
+        onUpdateProfile={updateProfile}
+      />
+      {/* Dev mode indicator (only in development) */}
+      {import.meta.env.DEV && (
+        <button
+          onClick={() => setShowDevHarness(true)}
+          className="fixed bottom-4 right-4 px-2 py-1 bg-gray-200 text-gray-500 rounded text-xs hover:bg-gray-300 transition z-40"
+          title="Open Dev Test Harness (Ctrl+Shift+D)"
+        >
+          🧪 Dev
+        </button>
+      )}
+    </>
   );
 }
 

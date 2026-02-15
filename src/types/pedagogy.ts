@@ -103,17 +103,33 @@ export enum ChunkStatus {
 }
 
 /**
- * CEFR level mapping for difficulty calibration.
+ * Granular CEFR sub-level for precise progress tracking.
  * 
- * Our internal scale (0-100) maps to CEFR levels:
- * - A1 (Beginner): 0-20
- * - A2 (Elementary): 21-40
- * - B1 (Intermediate): 41-60
- * - B2 (Upper-Intermediate): 61-80
- * - C1 (Advanced): 81-90
- * - C2 (Proficient): 91-100
+ * Each major CEFR level is split into sub-levels:
+ * - Base (e.g., A1): Starting point of that level
+ * - Plus (e.g., A1+): Strong in that level, ready for next
+ * - Minus (e.g., A2-): Just entered that level, still building
+ * 
+ * This provides learners with a sense of progress within each level
+ * and helps the AI target appropriate difficulty.
  * 
  * @see https://www.coe.int/en/common-european-framework-reference-languages
+ */
+export type CEFRSubLevel = 
+  | 'A1' | 'A1+' 
+  | 'A2-' | 'A2' | 'A2+' 
+  | 'B1-' | 'B1' | 'B1+' 
+  | 'B2-' | 'B2' | 'B2+' 
+  | 'C1-' | 'C1' | 'C1+' 
+  | 'C2';
+
+/**
+ * CEFR level mapping for difficulty calibration.
+ * 
+ * Our internal scale (0-100) maps to granular CEFR sub-levels.
+ * These are used for difficulty targeting and progress display.
+ * 
+ * @deprecated Use CEFRSubLevel for display, internal values for calculations
  */
 export enum CEFRLevel {
   A1 = 'A1',
@@ -122,6 +138,48 @@ export enum CEFRLevel {
   B2 = 'B2',
   C1 = 'C1',
   C2 = 'C2',
+}
+
+/**
+ * Input for AI level evaluation.
+ * Contains recent activity data for qualitative assessment.
+ */
+export interface LevelEvaluationInput {
+  /** Recent user responses to activities */
+  recentResponses: Array<{
+    chunk: string;
+    userAnswer: string;
+    correct: boolean;
+    usedHelp: boolean;
+    responseTime: number;  // seconds
+  }>;
+  /** Current displayed level */
+  currentLevel: CEFRSubLevel;
+  /** Chunk statistics */
+  chunkStats: {
+    acquired: number;
+    learning: number;
+    fragile: number;
+  };
+  /** Last N confidence scores for trend analysis */
+  confidenceTrend: number[];
+}
+
+/**
+ * Result of AI level evaluation.
+ * Provides suggested level with reasoning and areas to work on.
+ */
+export interface LevelEvaluationResult {
+  /** AI's suggested level based on performance */
+  suggestedLevel: CEFRSubLevel;
+  /** Areas where learner is strong */
+  strengths: string[];
+  /** Areas that need improvement */
+  areas: string[];
+  /** AI's confidence in this assessment (0-1) */
+  confidence: number;
+  /** Explanation for the learner */
+  reasoning: string;
 }
 
 // ============================================================================
@@ -667,4 +725,439 @@ export function parseDifficultyRange(range: string): { min: number; max: number 
     return { min: 1, max: 5 }; // Default to full range
   }
   return { min: parts[0], max: parts[1] };
+}
+
+// ============================================================================
+// LEVEL CONVERSION FUNCTIONS (GRANULAR CEFR)
+// ============================================================================
+
+/**
+ * Mapping of internal level values to CEFRSubLevel display strings.
+ * Used for converting the numeric level to user-facing text.
+ */
+const LEVEL_TO_SUBLEVEL: Map<number, CEFRSubLevel> = new Map([
+  [0, 'A1'], [10, 'A1+'],
+  [20, 'A2-'], [30, 'A2'], [40, 'A2+'],
+  [50, 'B1-'], [60, 'B1'], [70, 'B1+'],
+  [80, 'B2-'], [85, 'B2'], [90, 'B2+'],
+  [93, 'C1-'], [96, 'C1'], [98, 'C1+'],
+  [100, 'C2'],
+]);
+
+/**
+ * Mapping of CEFRSubLevel display strings to internal level values.
+ * Used for converting user selections to numeric values.
+ */
+const SUBLEVEL_TO_LEVEL: Map<CEFRSubLevel, number> = new Map([
+  ['A1', 0], ['A1+', 10],
+  ['A2-', 20], ['A2', 30], ['A2+', 40],
+  ['B1-', 50], ['B1', 60], ['B1+', 70],
+  ['B2-', 80], ['B2', 85], ['B2+', 90],
+  ['C1-', 93], ['C1', 96], ['C1+', 98],
+  ['C2', 100],
+]);
+
+/**
+ * Convert internal level (0-100) to CEFRSubLevel display string.
+ * Finds the nearest sub-level for any given numeric level.
+ * 
+ * @param level - Internal level value (0-100)
+ * @returns CEFRSubLevel display string (e.g., "A2+")
+ * 
+ * @example
+ * levelToSubLevel(0);   // 'A1'
+ * levelToSubLevel(15);  // 'A1+'
+ * levelToSubLevel(35);  // 'A2'
+ * levelToSubLevel(67);  // 'B1+'
+ */
+export function levelToSubLevel(level: number): CEFRSubLevel {
+  // Clamp to valid range
+  const clampedLevel = Math.max(0, Math.min(100, level));
+  
+  // Find the closest level threshold
+  const thresholds = Array.from(LEVEL_TO_SUBLEVEL.keys()).sort((a, b) => a - b);
+  
+  // Start with the lowest level
+  let closestThreshold = thresholds[0];
+  
+  // Find the highest threshold that the level meets or exceeds
+  for (const threshold of thresholds) {
+    if (clampedLevel >= threshold) {
+      closestThreshold = threshold;
+    } else {
+      break;
+    }
+  }
+  
+  return LEVEL_TO_SUBLEVEL.get(closestThreshold) || 'A1';
+}
+
+/**
+ * Convert CEFRSubLevel display string to internal level value.
+ * 
+ * @param subLevel - CEFRSubLevel display string (e.g., "A2+")
+ * @returns Internal level value (0-100)
+ * 
+ * @example
+ * subLevelToLevel('A1');   // 0
+ * subLevelToLevel('A2+');  // 40
+ * subLevelToLevel('B1');   // 60
+ */
+export function subLevelToLevel(subLevel: CEFRSubLevel): number {
+  return SUBLEVEL_TO_LEVEL.get(subLevel) ?? 0;
+}
+
+/**
+ * Get a rough level estimate from chunk count.
+ * This is used for quick UI feedback, not authoritative.
+ * AI evaluation provides the actual level assessment.
+ * 
+ * @param acquired - Number of chunks acquired
+ * @returns Estimated internal level (0-100)
+ * 
+ * @example
+ * getEstimatedLevel(50);   // 5 (early A1)
+ * getEstimatedLevel(150);  // 22 (early A2-)
+ * getEstimatedLevel(500);  // 52 (solid B1-)
+ */
+export function getEstimatedLevel(acquired: number): number {
+  if (acquired < 50) return Math.floor(acquired / 5);        // 0-10 (A1 to A1+)
+  if (acquired < 200) return 10 + Math.floor((acquired - 50) / 10);   // 11-25 (A2- range)
+  if (acquired < 450) return 25 + Math.floor((acquired - 200) / 15);  // 26-41 (A2-A2+ range)
+  if (acquired < 800) return 42 + Math.floor((acquired - 450) / 18);  // 42-61 (B1 range)
+  if (acquired < 1250) return 62 + Math.floor((acquired - 800) / 15); // 62-91 (B1+-B2 range)
+  if (acquired < 2000) return 92 + Math.floor((acquired - 1250) / 50); // 92-107 (cap at 100)
+  return 100;
+}
+
+/**
+ * Get the chunks needed to reach the next sub-level.
+ * Useful for progress display ("50 chunks to A2!").
+ * 
+ * @param currentLevel - Current internal level (0-100)
+ * @param acquired - Current chunks acquired
+ * @returns Object with next level and chunks needed
+ */
+export function getChunksToNextLevel(currentLevel: number, acquired: number): {
+  nextLevel: CEFRSubLevel;
+  chunksNeeded: number;
+} {
+  // Threshold planning (chunks needed for each level)
+  const thresholds: Array<{ level: number; subLevel: CEFRSubLevel; chunks: number }> = [
+    { level: 0, subLevel: 'A1', chunks: 0 },
+    { level: 10, subLevel: 'A1+', chunks: 50 },
+    { level: 20, subLevel: 'A2-', chunks: 100 },
+    { level: 30, subLevel: 'A2', chunks: 200 },
+    { level: 40, subLevel: 'A2+', chunks: 300 },
+    { level: 50, subLevel: 'B1-', chunks: 450 },
+    { level: 60, subLevel: 'B1', chunks: 600 },
+    { level: 70, subLevel: 'B1+', chunks: 800 },
+    { level: 80, subLevel: 'B2-', chunks: 1000 },
+    { level: 85, subLevel: 'B2', chunks: 1250 },
+    { level: 90, subLevel: 'B2+', chunks: 1500 },
+    { level: 93, subLevel: 'C1-', chunks: 1750 },
+    { level: 96, subLevel: 'C1', chunks: 2000 },
+    { level: 98, subLevel: 'C1+', chunks: 2500 },
+    { level: 100, subLevel: 'C2', chunks: 3000 },
+  ];
+  
+  // Find next threshold
+  for (const threshold of thresholds) {
+    if (acquired < threshold.chunks) {
+      return {
+        nextLevel: threshold.subLevel,
+        chunksNeeded: threshold.chunks - acquired,
+      };
+    }
+  }
+  
+  // Already at C2
+  return {
+    nextLevel: 'C2',
+    chunksNeeded: 0,
+  };
+}
+
+// ============================================================================
+// SESSION TYPES (for Pedagogy Engine)
+// ============================================================================
+
+/**
+ * Activity types available in the learning games.
+ * 
+ * Each type presents chunks in different ways to reinforce learning
+ * through varied practice modalities.
+ */
+export type GameActivityType = 
+  | 'multiple_choice'    // Select the correct answer from options
+  | 'fill_blank'         // Type or select missing word(s)
+  | 'matching'           // Match pairs (chunk to translation)
+  | 'translate'          // Translate a chunk
+  | 'true_false'         // Determine if statement is correct
+  | 'word_arrange'       // Arrange scrambled words into correct order
+  | 'listening'          // Listen and identify (Phase 2)
+  | 'speaking';          // Speak and compare (Phase 2)
+
+/**
+ * Result of a single activity completion.
+ * 
+ * Used to track performance and update the learner model after
+ * each activity in a session.
+ */
+export interface ActivityResult {
+  /** Unique identifier for this activity */
+  id: string;
+  
+  /** Type of activity completed */
+  activityType: GameActivityType;
+  
+  /** Chunk ID(s) involved in this activity */
+  chunkIds: string[];
+  
+  /** Whether the learner answered correctly */
+  correct: boolean;
+  
+  /** Time taken to answer (milliseconds) */
+  responseTimeMs: number;
+  
+  /** Whether help button was used */
+  usedHelp: boolean;
+  
+  /** Number of attempts before correct (1 = first try) */
+  attempts: number;
+  
+  /** Confidence rating if provided (0-1) */
+  selfRatedConfidence?: number;
+  
+  /** When the activity was completed */
+  timestamp: string;
+}
+
+/**
+ * An adaptation action triggered by the affective filter monitor.
+ * 
+ * When the system detects learner frustration, disengagement, or
+ * other affective states, it can adapt the session accordingly.
+ */
+export type AdaptationAction = 
+  | { type: 'none' }
+  | { type: 'simplify'; message: string; dropToLevel: number }
+  | { type: 'encourage'; message: string }
+  | { type: 'challenge'; message: string; increaseToLevel: number }
+  | { type: 'suggest_break'; message: string }
+  | { type: 'change_topic'; message: string; reason: string };
+
+/**
+ * Context for a learning session.
+ * 
+ * Tracks the current state of a session including performance data,
+ * signals for the affective filter, and any adaptations made.
+ */
+export interface SessionContext {
+  /** Unique session identifier */
+  sessionId: string;
+  
+  /** User ID */
+  userId: string;
+  
+  /** Topic being studied */
+  topic: string;
+  
+  /** When the session started */
+  startedAt: string;
+  
+  /** Activity results so far */
+  activities: ActivityResult[];
+  
+  /** Current i+1 target level (1-5 scale) */
+  currentTargetLevel: number;
+  
+  /** Base level before adaptations */
+  baseTargetLevel: number;
+  
+  /** Chunks introduced this session */
+  newChunkIds: string[];
+  
+  /** Chunks reviewed this session */
+  reviewChunkIds: string[];
+  
+  /** Affective filter signals recorded */
+  filterSignals: FilterSignal[];
+  
+  /** Adaptations applied so far */
+  adaptations: AdaptationAction[];
+  
+  /** Whether session is complete */
+  isComplete: boolean;
+}
+
+/**
+ * A signal for the affective filter monitor.
+ * 
+ * These signals help detect when the learner might be struggling
+ * or disengaging, triggering adaptations.
+ */
+export interface FilterSignal {
+  /** Type of signal */
+  type: 'wrong_answer' | 'help_used' | 'slow_response' | 'fast_response' | 'session_quit';
+  
+  /** When the signal occurred */
+  timestamp: string;
+  
+  /** Activity ID that triggered it */
+  activityId: string;
+  
+  /** Optional additional data */
+  data?: Record<string, unknown>;
+}
+
+/**
+ * A plan for a learning session.
+ * 
+ * Created by the Pedagogy Engine at the start of a session,
+ * containing the chunks to learn and review.
+ */
+export interface SessionPlan {
+  /** Unique session identifier */
+  sessionId: string;
+  
+  /** Topic being studied */
+  topic: string;
+  
+  /** New chunks to introduce (at i+1 level) */
+  targetChunks: LexicalChunk[];
+  
+  /** Fragile chunks to reinforce (review) */
+  reviewChunks: LexicalChunk[];
+  
+  /** Familiar chunks for context (already acquired) */
+  contextChunks: LexicalChunk[];
+  
+  /** Recommended activity types for this session */
+  recommendedActivities: GameActivityType[];
+  
+  /** Estimated session duration (minutes) */
+  estimatedDuration: number;
+  
+  /** Difficulty level (i+1, on 1-5 scale) */
+  difficulty: number;
+  
+  /** Why this session was designed this way (for debugging/logging) */
+  reasoning?: string;
+}
+
+/**
+ * Recommendation for the next activity.
+ * 
+ * Generated after each activity completion to determine
+ * what the learner should do next.
+ */
+export interface ActivityRecommendation {
+  /** Type of activity to do next */
+  activityType: GameActivityType;
+  
+  /** Chunks to use in this activity */
+  chunks: LexicalChunk[];
+  
+  /** Why this activity was chosen */
+  reason: string;
+  
+  /** Difficulty level for this activity */
+  difficulty: number;
+  
+  /** Any adaptation being applied */
+  adaptation?: AdaptationAction;
+  
+  /** Whether this is a review activity */
+  isReview: boolean;
+}
+
+/**
+ * Summary at the end of a learning session.
+ * 
+ * Provides the learner with feedback on their performance and
+ * highlights what they learned.
+ */
+export interface SessionSummary {
+  /** Session ID */
+  sessionId: string;
+  
+  /** Duration in minutes */
+  durationMinutes: number;
+  
+  /** Total activities completed */
+  activitiesCompleted: number;
+  
+  /** Activities answered correctly on first try */
+  correctFirstTry: number;
+  
+  /** Accuracy rate (0-1) */
+  accuracy: number;
+  
+  /** New chunks encountered */
+  newChunksLearned: number;
+  
+  /** Chunks now acquired after this session */
+  chunksAcquired: number;
+  
+  /** Review chunks reinforced */
+  chunksReviewed: number;
+  
+  /** SunDrops earned (based on performance) */
+  sunDropsEarned: number;
+  
+  /** Confidence change during session */
+  confidenceChange: number;
+  
+  /** Filter risk at end of session */
+  filterRiskScore: number;
+  
+  /** Tips for next session */
+  tips: string[];
+  
+  /** Chunks that need more practice */
+  strugglingChunks: string[];
+  
+  /** Chunks mastered this session */
+  masteredChunks: string[];
+}
+
+/**
+ * Options for preparing a learning session.
+ */
+export interface SessionOptions {
+  /** Topic to study (optional - if not provided, will choose based on interests/reviews) */
+  topic?: string;
+  
+  /** Target session duration in minutes */
+  duration: number;
+  
+  /** Preferred activity types (optional) */
+  activityTypes?: GameActivityType[];
+  
+  /** Force include specific chunks (optional) */
+  forceChunkIds?: string[];
+  
+  /** Whether to include review chunks */
+  includeReviews?: boolean;
+  
+  /** Maximum new chunks to introduce */
+  maxNewChunks?: number;
+}
+
+/**
+ * Performance data for difficulty adaptation.
+ */
+export interface PerformanceData {
+  /** Number of correct answers */
+  correct: number;
+  
+  /** Total activities */
+  total: number;
+  
+  /** Average response time in milliseconds */
+  avgResponseTimeMs: number;
+  
+  /** Number of help button uses */
+  helpUsedCount: number;
 }

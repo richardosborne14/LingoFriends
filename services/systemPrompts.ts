@@ -324,8 +324,248 @@ export function buildSystemPrompt(config: PromptConfig): string {
   return `${base}\n${session}`;
 }
 
+/**
+ * Professor Finch V2 System Prompt
+ * 
+ * Enhanced prompt with full pedagogical awareness:
+ * - Lexical Approach (Michael Lewis)
+ * - Krashen's Input Hypothesis (i+1)
+ * - Affective Filter monitoring
+ * - Language Coaching style
+ * 
+ * Used by the Chunk Generator and AI Pedagogy Client.
+ */
+export const PROFESSOR_FINCH_V2 = `
+## Persona
+You are Professor Finch, a warm, encouraging language coach who helps learners discover language naturally through meaningful chunks.
+
+## Teaching Philosophy
+
+### Lexical Approach (Michael Lewis)
+- Always teach language in chunks, never as isolated words
+- Focus on phrases learners can use immediately
+- Highlight patterns within chunks, not grammar rules
+- Use sentence frames to show flexibility: "I'd like ___" (a coffee, the salad, the check)
+
+### Input Hypothesis (Stephen Krashen)
+- Pitch content at i+1: just above current level
+- Surround new chunks with familiar context (comprehensible input)
+- Don't introduce too many new chunks at once (2-3 per activity)
+- Focus on meaning over form
+
+### Affective Filter
+- Keep the emotional barrier LOW
+- Celebrate every attempt
+- Never make learners feel wrong
+- If struggling, simplify; if excelling, challenge
+- Use encouraging language: "Great try!" "You're making progress!"
+
+### Language Coaching
+- Help learners discover patterns themselves
+- Ask reflective questions: "What do you notice about...?"
+- Connect to their interests and goals
+- Build confidence and autonomy
+- Guide, don't lecture
+
+## Content Rules
+
+1. **Chunks, not words**
+   - "I would like a coffee" not "would" + "like" + "coffee"
+   - Teach whole phrases with natural translations
+   - Always provide context for how the chunk is used
+
+2. **i+1 Calibration**
+   - Introduce 1-2 new chunks per activity
+   - Surround with familiar chunks for context
+   - Build progressively within a lesson
+
+3. **Context First**
+   - Present chunks in meaningful situations
+   - Use scenarios related to learner's interests
+   - Connect to real-world use
+
+4. **Activity Types**
+   - multiple_choice: 4 options, one correct (2-3 SunDrops)
+   - fill_blank: Complete sentence with missing chunk (2-3 SunDrops)
+   - matching: Match 4 terms to definitions (3-4 SunDrops)
+   - translate: Type translation of phrase (3 SunDrops)
+   - true_false: Is statement correct? (1-2 SunDrops)
+   - word_arrange: Arrange scrambled words into sentence (3 SunDrops)
+
+5. **Safety**
+   - NO violence, scary themes, or romantic content
+   - Positive, encouraging tone always
+   - Age-appropriate vocabulary and contexts
+   - Never ask for personal information
+
+## Response Format
+
+Always respond with valid JSON matching the requested structure.
+Do not include markdown code blocks unless explicitly asked.
+`;
+
+/**
+ * Build a prompt for chunk generation.
+ * 
+ * @param params - Parameters for chunk generation
+ * @returns User prompt for AI
+ */
+export function buildChunkGenerationPrompt(params: {
+  targetLanguage: string;
+  nativeLanguage: string;
+  cefrLevel: string;
+  topic: string;
+  count: number;
+  chunkTypes: string[];
+  interests?: string[];
+  excludeTexts?: string[];
+}): string {
+  const { 
+    targetLanguage, 
+    nativeLanguage, 
+    cefrLevel, 
+    topic, 
+    count, 
+    chunkTypes, 
+    interests = [],
+    excludeTexts = [] 
+  } = params;
+  
+  let prompt = `Generate ${count} lexical chunks for learning ${targetLanguage}.
+
+## Learner Profile
+- Native language: ${nativeLanguage}
+- CEFR level: ${cefrLevel}
+- Topic: ${topic}
+${interests.length > 0 ? `- Interests: ${interests.join(', ')}` : ''}
+
+## Chunk Types to Generate
+${chunkTypes.map(t => `- ${t}`).join('\n')}
+
+## Requirements
+- Each chunk must be a meaningful phrase or sentence
+- Include natural translation in ${nativeLanguage}
+- Difficulty should match ${cefrLevel} level
+- Chunks should relate to "${topic}" theme
+- Make chunks age-appropriate and engaging`;
+
+  if (excludeTexts.length > 0) {
+    prompt += `\n\n## Chunks to Avoid (already learned)
+${excludeTexts.slice(0, 10).map(t => `- "${t}"`).join('\n')}`;
+  }
+
+  prompt += `\n\n## Response Format
+Return a JSON object with a "chunks" array:
+{
+  "chunks": [
+    {
+      "text": "target language chunk",
+      "translation": "native language translation",
+      "chunkType": "utterance|polyword|collocation|frame",
+      "difficulty": 1-5,
+      "notes": "optional usage notes",
+      "culturalContext": "optional cultural notes",
+      "slots": [] // only for frame type
+    }
+  ]
+}`;
+
+  return prompt;
+}
+
+/**
+ * Build a prompt for lesson generation with chunk context.
+ * 
+ * @param params - Parameters for lesson generation
+ * @returns User prompt for AI
+ */
+export function buildLessonGenerationPrompt(params: {
+  targetLanguage: string;
+  nativeLanguage: string;
+  targetChunks: Array<{ id: string; text: string; translation: string; difficulty: number }>;
+  reviewChunks: Array<{ id: string; text: string; translation: string }>;
+  familiarChunks: Array<{ id: string; text: string }>;
+  learnerLevel: number;
+  targetLevel: number;
+  interests: string[];
+  activityTypes: string[];
+  activityCount: number;
+  filterRiskScore: number;
+}): string {
+  const {
+    targetLanguage,
+    nativeLanguage,
+    targetChunks,
+    reviewChunks,
+    familiarChunks,
+    learnerLevel,
+    targetLevel,
+    interests,
+    activityTypes,
+    activityCount,
+    filterRiskScore,
+  } = params;
+  
+  const formatChunkList = (chunks: Array<{ text: string; translation?: string; difficulty?: number }>) => {
+    return chunks.map(c => {
+      let str = `- "${c.text}"`;
+      if (c.translation) str += ` = "${c.translation}"`;
+      if (c.difficulty) str += ` (difficulty: ${c.difficulty})`;
+      return str;
+    }).join('\n');
+  };
+  
+  let prompt = `Create a ${targetLanguage} lesson for a ${nativeLanguage} speaker.
+
+## Learner Level
+- Current level: ${learnerLevel}/100
+- Target level: ${targetLevel}/100 (i+1)
+- Affective filter risk: ${filterRiskScore < 0.3 ? 'Low' : filterRiskScore < 0.6 ? 'Medium' : 'High'}${filterRiskScore > 0.5 ? ' - SIMPLIFY content' : ''}
+
+## NEW CHUNKS TO TEACH
+${targetChunks.length > 0 ? formatChunkList(targetChunks) : 'None specified'}
+
+## REVIEW CHUNKS (Reinforce these)
+${reviewChunks.length > 0 ? formatChunkList(reviewChunks) : 'None specified'}
+
+## FAMILIAR CHUNKS (Use for scaffolding)
+${familiarChunks.length > 0 ? familiarChunks.map(c => `- "${c.text}"`).join('\n') : 'None specified'}
+
+## Lesson Requirements
+- ${activityCount} activities
+- Activity types to use: ${activityTypes.join(', ')}
+- Mix new chunks with review chunks
+- Use familiar chunks for context/scaffolding
+${interests.length > 0 ? `- Connect to learner interests: ${interests.slice(0, 3).join(', ')}` : ''}
+
+## Response Format
+{
+  "title": "Fun lesson title with emoji",
+  "description": "Brief description",
+  "intro": "Professor Finch's opening message (1-2 sentences)",
+  "activities": [
+    {
+      "type": "multiple_choice|fill_blank|matching|translate|true_false|word_arrange",
+      "focusChunkId": "id of main chunk",
+      "chunkIds": ["array of chunk ids used"],
+      "difficulty": 1-5,
+      "tutorText": "Friendly intro",
+      "helpText": "Hint when stuck",
+      "sunDrops": 1-4,
+      "data": { /* activity-specific fields */ }
+    }
+  ],
+  "transitions": ["Between activities 1→2", "Between activities 2→3", "..."],
+  "conclusion": "Encouraging summary message"
+}`;
+
+  return prompt;
+}
+
 export default {
   getBasePrompt,
   getSessionInstructions,
   buildSystemPrompt,
+  buildChunkGenerationPrompt,
+  buildLessonGenerationPrompt,
 };
