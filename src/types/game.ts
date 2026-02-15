@@ -10,6 +10,32 @@
  * - Sun Drop currency system
  * 
  * @see docs/phase-1.1/GAME_DESIGN.md for full specifications
+ * 
+ * ⚠️ PHASE 1.2 NOTE
+ * 
+ * Phase 1.2 introduces significant changes to content and progression:
+ * 
+ * - `vocabulary: string[]` is being replaced by `chunks: LexicalChunk[]`
+ *   See: docs/phase-1.2/task-1-2-2-chunk-content-design.md
+ * 
+ * - Static `SkillPath` with fixed lessons is being replaced by dynamic
+ *   path generation based on learner profile and i+1 difficulty.
+ *   See: docs/phase-1.2/task-1-2-9-dynamic-paths.md
+ * 
+ * - `ActivityConfig` will be updated to use chunk-based content instead
+ *   of isolated vocabulary words.
+ * 
+ * - New types will be added in src/types/pedagogy.ts:
+ *   - LexicalChunk (the new content unit)
+ *   - LearnerProfile (user's learning state)
+ *   - UserChunk (SRS status per chunk)
+ *   - Topic (content organization)
+ * 
+ * These Phase 1.1 types will remain compatible during the transition.
+ * The gamification layer (trees, SunDrops, garden) is preserved.
+ * 
+ * @see PEDAGOGY.md for the pedagogical foundation
+ * @see docs/phase-1.2/phase-1.2-overview.md for Phase 1.2 architecture
  */
 
 // ============================================================================

@@ -1,569 +1,305 @@
 # LingoFriends Roadmap
 
-## Phase 1: MVP — "Kids Can Learn and Compete"
+## Overview
 
-**Goal:** Working app where kids can have AI conversations, earn XP, and see friends on a leaderboard.
+LingoFriends is a kid-friendly language learning app built on a solid pedagogical foundation. The project is organized into phases, each building on the previous.
 
-**Timeline:** 3-4 weeks
-**Estimated Cost:** $200-400 in API tokens
-
----
-
-### Task 1: Project Foundation
-
-**Objective:** Clean up existing code, set up new architecture, configure environment.
-
-#### 1.1 Code Audit & Cleanup
-- [ ] Review existing LingoLoft code from Google AI Studio
-- [ ] Identify reusable components vs. needs rewrite
-- [ ] Remove Gemini-specific code
-- [ ] Document current state in LEARNINGS.md
-
-#### 1.2 Environment Setup
-- [ ] Create .env.example with all required variables
-- [ ] Set up Vite environment variable handling
-- [ ] Configure TypeScript strict mode
-- [ ] Set up ESLint + Prettier
-
-#### 1.3 Project Structure
-- [ ] Reorganize src/ folder structure
-- [ ] Create service layer architecture
-- [ ] Set up barrel exports (index.ts files)
+**Current Phase:** Phase 1.1 (Gamification) → Transitioning to Phase 1.2 (Pedagogy Engine)
 
 ---
 
-### Task 2: Pocketbase Integration
+## Phase 1.0: Foundation (COMPLETE)
 
-**Objective:** Replace localStorage with Pocketbase for persistence and auth.
+**Goal:** Working app with authentication, AI chat, and basic persistence.
 
-#### 2.1 Schema Setup Script ✅
-- [x] Create scripts/setup-pocketbase.cjs
-- [x] Define all collections (profiles, sessions, friendships, friend_codes, daily_progress, vocabulary)
-- [x] Set up collection rules (permissions)
-- [x] Test script against remote Pocketbase instance
+**Status:** ✅ Complete
 
-#### 2.2 Authentication Flow ✅
-- [x] Create pocketbaseService.ts
-- [x] Implement signup (username + password)
-- [x] Implement login
-- [x] Implement session persistence (remember me via Pocketbase auth store)
-- [x] Create auth context for React (useAuth hook)
-- [x] Build login/signup UI components (AuthScreen)
-
-#### 2.3 Profile Sync ✅
-- [x] Migrate UserProfile type to match Pocketbase schema
-- [x] Implement profile CRUD operations (updateProfile in useAuth)
-- [x] Sync profile on app load (via useAuth context)
-- [x] Add XP with daily cap enforcement (addXP method)
-- [ ] Handle offline gracefully (deferred - basic error handling in place)
-
-#### 2.4 Session Persistence ✅
-- [x] Create useSessions hook for session management
-- [x] Migrate App.tsx from localStorage to Pocketbase sessions
-- [x] Implement session save/load via hook methods
-- [x] Handle lesson interruption (auto-save on blur/close via debounce + visibilitychange)
-- [x] Implement session resume on app reopen (sessions load from Pocketbase)
+### Completed Tasks
+- [x] Pocketbase integration (auth, profiles, sessions)
+- [x] Groq AI service (Llama 3.3)
+- [x] Voice services (Google TTS, Groq Whisper)
+- [x] Basic chat interface
+- [x] Design system and UI components
+- [x] Onboarding flow
+- [x] Profile management
 
 ---
 
-### Task 3: AI Service Swap ✅
+## Phase 1.1: Gamification (IN PROGRESS)
 
-**Objective:** Replace Gemini with Groq (Llama 3.3) for main AI, keep option for Haiku on complex tasks.
+**Goal:** Add the "Garden" game layer with trees, SunDrops, awards, and visual progress.
 
-#### 3.1 Groq Client Setup ✅
-- [x] Create groqService.ts
-- [x] Implement chat completion with streaming
-- [x] Handle rate limiting gracefully
-- [x] Add retry logic with exponential backoff
+**Timeline:** See `docs/phase-1.1/phase-1.1-overview.md`
 
-#### 3.2 System Prompt Overhaul ✅
-- [x] Rewrite system prompt for kid-appropriate persona
-- [x] Implement lexical/communicative/coaching pedagogy
-- [x] Add age-appropriate content filtering
-- [x] Create separate prompts for Main Hall vs. Lesson modes
-- [ ] Test extensively with various age groups in mind (ongoing)
+### Status
 
-#### 3.3 Action Parsing ✅
-- [x] Port JSON action extraction from Gemini service
-- [x] Validate action schema before processing
-- [x] Handle malformed responses gracefully
-- [x] Add logging for debugging
+| Task | Description | Status |
+|------|-------------|--------|
+| 1.1.1 | Types & SunDrop Currency | ✅ Complete |
+| 1.1.2 | Activity Components | ✅ Complete |
+| 1.1.3 | Lesson View | ✅ Complete |
+| 1.1.4 | Path View | ✅ Complete |
+| 1.1.5 | Garden World (Basic) | ✅ Complete |
+| 1.1.6 | App Navigation | ✅ Complete |
+| 1.1.7 | Pocketbase Schema | ✅ Complete |
+| 1.1.8 | Garden State Persistence | ✅ Complete |
+| 1.1.9 | AI Lesson Generator | ⚠️ Needs overhaul for Phase 1.2 |
+| 1.1.10 | Tree Health & Decay | ✅ Complete |
+| 1.1.11 | Gift System | 🔲 Not started |
+| 1.1.12 | Decoration System | 🔲 Not started |
+| 1.1.13 | Seed Earning | 🔲 Not started |
+| 1.1.14 | Mobile Polish | 🔲 Not started |
+| 1.1.15 | Pixi Migration | 🔲 Deferred |
+| 1.1.16 | Tutorial & Testing | 🔲 Not started |
+| 1.1.17 | OSS Assets | 🔲 Not started |
 
-#### 3.4 Model Router (Deferred)
-- [ ] Create modelRouter.ts for multi-model support (Phase 2)
-- [ ] Route simple tasks to Llama 3.3
-- [ ] Route complex reasoning to Haiku
-- [ ] Add configuration for model selection
+### Important Note
 
----
+**Phase 1.1 uses static skill paths and vocabulary-based lessons.** These are being replaced in Phase 1.2 with:
+- Dynamic, personalized paths
+- Lexical chunk-based content
+- i+1 difficulty calibration
+- Affective filter monitoring
 
-### Task 4: Voice Services ✅
-
-**Objective:** Implement reliable voice input/output for kids who can't type well.
-
-#### 4.1 Google TTS Integration ✅
-- [x] Create ttsService.ts
-- [x] Implement Google Cloud TTS API calls
-- [x] Handle multilingual voices (French, English)
-- [x] Implement audio playback with HTML5 Audio
-- [x] Add loading states and error handling
-
-#### 4.2 Groq Whisper STT Integration ✅
-- [x] Create sttService.ts
-- [x] Implement audio recording (MediaRecorder API)
-- [x] Send audio to Groq Whisper endpoint
-- [x] Handle transcription response
-- [x] Implement tap-to-toggle UI
-
-#### 4.3 Voice UI Components ✅
-- [x] Create VoiceButton component (record/stop)
-- [x] Add visual feedback during recording
-- [x] Handle microphone permissions gracefully
-- [ ] Show transcription preview before sending (deferred to Phase 2)
+See `PEDAGOGY.md` for the full pedagogical foundation.
 
 ---
 
-# Phase 1 - Updated Roadmap Section
+## Phase 1.2: Pedagogy Engine (PLANNING COMPLETE)
 
-**Add this section to ROADMAP.md after Task 3**
+**Goal:** Replace static paths and vocabulary with a dynamic, research-based learning system.
 
----
+**Timeline:** 6-8 weeks after Phase 1.1 core is complete
 
-### Task 4: Design System & Style Overhaul
+**Documentation:** `docs/phase-1.2/phase-1.2-overview.md`
 
-**Objective:** Create comprehensive design system and transform app into kid-friendly, gamified experience.
+### Overview
 
-#### 4.1 Design System Documentation
-- [ ] Create `docs/design-system.md` with complete guidelines
-- [ ] Define color palette (Duolingo-inspired)
-- [ ] Define typography scale and font usage
-- [ ] Define spacing system (4px or 8px base unit)
-- [ ] Document component patterns (buttons, cards, inputs, badges)
-- [ ] Define animations and transitions
-- [ ] Specify accessibility requirements (touch targets, contrast)
+Phase 1.2 implements four key pedagogical frameworks:
+1. **Lexical Approach** (Michael Lewis) — Teaching language in chunks
+2. **Input Hypothesis** (Stephen Krashen) — i+1 difficulty calibration
+3. **Affective Filter** (Stephen Krashen) — Emotional monitoring and adaptation
+4. **Language Coaching** — Learner-centered, goal-oriented teaching
 
-#### 4.2 Tailwind Configuration
-- [ ] Update `tailwind.config.js` with custom design tokens
-- [ ] Add custom colors to theme
-- [ ] Add custom spacing values
-- [ ] Add custom animations
-- [ ] Add custom font families
+### Tasks
 
-#### 4.3 Reusable UI Components
-- [ ] Create `components/ui/Button.tsx` - All button variants
-- [ ] Create `components/ui/Card.tsx` - Container component
-- [ ] Create `components/ui/Badge.tsx` - Labels and tags
-- [ ] Create `components/ui/Input.tsx` - Form inputs
-- [ ] Create `components/ui/ProgressBar.tsx` - XP and loading bars
-- [ ] Create `components/ui/Avatar.tsx` - User avatars
-- [ ] Create `components/ui/Modal.tsx` - Overlay dialogs
+| Task | Description | Dependencies | Est. Time |
+|------|-------------|--------------|-----------|
+| 1.2.1 | Learner Model Schema | None | 3-4 hours |
+| 1.2.2 | Chunk Content Design | 1.2.1 | 4-6 hours |
+| 1.2.3 | Chunk Seeding Service | 1.2.1, 1.2.2 | 3-4 hours |
+| 1.2.4 | Learner Profile Service | 1.2.1 | 3-4 hours |
+| 1.2.5 | Pedagogy Engine Core | 1.2.1, 1.2.4 | 6-8 hours |
+| 1.2.6 | i+1 Difficulty Calibration | 1.2.5 | 4-5 hours |
+| 1.2.7 | Affective Filter Monitoring | 1.2.5 | 4-5 hours |
+| 1.2.8 | AI Lesson Generator v2 | 1.2.5, 1.2.6, 1.2.7 | 6-8 hours |
+| 1.2.9 | Dynamic Path Generation | 1.2.5, 1.2.8 | 4-5 hours |
+| 1.2.10 | Chunk SRS System | 1.2.1 | 4-5 hours |
+| 1.2.11 | System Prompts Update | 1.2.8 | 3-4 hours |
+| 1.2.12 | Integration Testing | All 1.2 tasks | 6-8 hours |
 
-#### 4.4 Apply Styles to Existing Components
-- [ ] Restyle `AuthScreen.tsx`
-- [ ] Restyle `App.tsx` (sidebar, layout)
-- [ ] Restyle `ChatInterface.tsx`
-- [ ] Restyle `VoiceButton.tsx`
-- [ ] Replace all hard-coded colors with design tokens
-- [ ] Apply consistent spacing throughout
+### What Changes from Phase 1.1
 
-#### 4.5 Asset Preparation
-- [ ] Source/create character illustrations
-- [ ] Design achievement badges
-- [ ] Create subject/theme icons
-- [ ] Design celebration animations
-- [ ] Create loading spinners with personality
+| Component | Phase 1.1 | Phase 1.2 |
+|-----------|-----------|-----------|
+| Content unit | `vocabulary: string[]` | `chunks: LexicalChunk[]` |
+| Paths | Static skill_paths | Dynamic, personalized |
+| Difficulty | Fixed (beginner/intermediate/advanced) | Dynamic i+1 |
+| Adaptation | None | Affective filter monitoring |
+| SRS | Basic tree health | Full chunk SRS with 4 states |
+| Progress | XP and tree levels | Chunk acquisition + CEFR levels |
 
----
+### Migration Path
 
-### Task 5: Database Schema Updates
-
-**Objective:** Update Pocketbase schema to support onboarding and personalization features.
-
-#### 5.1 Update Profiles Collection ✅
-- [ ] Add `subject_type` field (language/maths/coding)
-- [ ] Add `target_subject` field (English/German/Maths/Scratch)
-- [ ] Add `selected_interests` field (JSON array)
-- [ ] Update setup script with new fields
-- [ ] Run script against remote Pocketbase
-
-#### 5.2 Create AI Profile Fields Collection
-- [ ] Define `ai_profile_fields` collection schema
-- [ ] Set up collection rules (user-owned access)
-- [ ] Add to setup script
-- [ ] Test collection creation
-
-#### 5.3 Update TypeScript Types
-- [ ] Add `SubjectType` type
-- [ ] Add `TargetSubject` type
-- [ ] Add `UserInterest` type
-- [ ] Add `AIProfileField` interface
-- [ ] Update `UserProfile` interface with new fields
-- [ ] Verify all types compile
-
-#### 5.4 Update Pocketbase Service
-- [ ] Add `getAIProfileFields()` method
-- [ ] Add `upsertAIProfileField()` method
-- [ ] Add `deleteAIProfileField()` method
-- [ ] Update existing profile methods to handle new fields
-- [ ] Add error handling
-
-#### 5.5 Migration & Testing
-- [ ] Test schema changes on dev instance
-- [ ] Verify backward compatibility
-- [ ] Test with existing users
-- [ ] Test with new users
-- [ ] Document migration notes
+1. **Schema Migration** — Run `migrate-pedagogy-schema.cjs` to add new collections
+2. **Content Seeding** — Populate `chunk_library` and `topics` collections
+3. **Code Update** — Replace skill_paths with dynamic path generation
+4. **UI Update** — PathView uses chunk-based lessons
+5. **Testing** — Full regression test with new pedagogy
 
 ---
 
-### Task 6: Onboarding Screens
+## Phase 2: Social Features
 
-**Objective:** Create multi-step onboarding flow for new users to select language, subject, and interests.
+**Goal:** Add friends, messaging, and leaderboards.
 
-#### 6.1 Component Architecture
-- [ ] Create `components/onboarding/` directory
-- [ ] Create `OnboardingContainer.tsx` (flow manager)
-- [ ] Create `StepIndicator.tsx` (progress visualization)
-- [ ] Set up shared types and state management
+**Status:** 🔲 Not started
 
-#### 6.2 Step 1: Native Language Selection
-- [ ] Create `Step1Language.tsx`
-- [ ] Build language grid UI
-- [ ] Add available languages (French, English)
-- [ ] Add coming soon languages (grayed out)
-- [ ] Implement selection logic
-- [ ] Update UI language on selection
-
-#### 6.3 Step 2: Subject Selection
-- [ ] Create `Step2Subject.tsx`
-- [ ] Build subject cards UI
-- [ ] Add available subjects (English, German)
-- [ ] Add coming soon subjects (Maths, Scratch with badges)
-- [ ] Implement selection logic
-- [ ] Handle conditional availability (e.g., English not available if native is English)
-
-#### 6.4 Step 3: Interests Selection
-- [ ] Create `Step3Interests.tsx`
-- [ ] Create `interests-data.ts` with categorized interests
-- [ ] Build categorized chip/pill UI
-- [ ] Implement multi-select toggle logic
-- [ ] Add skip option
-- [ ] Handle empty selections gracefully
-
-#### 6.5 Flow Integration
-- [ ] Implement navigation (next/back)
-- [ ] Add step transitions (animations)
-- [ ] Handle form state persistence across steps
-- [ ] Implement data submission to Pocketbase
-- [ ] Create success screen
-- [ ] Integrate with AuthScreen (post-signup redirect)
-
-#### 6.6 Testing & Polish
-- [ ] Test full flow on mobile and desktop
-- [ ] Test back navigation preserves selections
-- [ ] Test error handling (network failures)
-- [ ] Verify translations for multi-language support
-- [ ] Get user testing feedback from kids
+### Planned Features
+- Friend code system
+- Friend requests and management
+- Leaderboard (friends only)
+- Gift sending
+- Encouragement messages
 
 ---
 
-### Task 7: Main Interface Updates
+## Phase 3: Content Expansion
 
-**Objective:** Remove language picker and add guided learning launcher with AI conversation flow.
+**Goal:** Expand content and add multi-language support.
 
-#### 7.1 Remove Language Picker
-- [ ] Remove language switcher from sidebar in `App.tsx`
-- [ ] Remove related state and handlers
-- [ ] Update UI to reflect subject is set in profile
+**Status:** 🔲 Not started
 
-#### 7.2 Create Learning Launcher Component
-- [ ] Create `components/LearningLauncher.tsx`
-- [ ] Build subject dropdown (disabled, shows current)
-- [ ] Build theme dropdown (from user interests)
-- [ ] Build "Start Learning" button
-- [ ] Handle empty interests case ("General" option)
-- [ ] Add "Add interests" link for empty state
-
-#### 7.3 AI Conversation Starter Service
-- [ ] Create `services/lessonStarterService.ts`
-- [ ] Define system prompt for lesson starters
-- [ ] Implement `generateLessonStarter()` function
-- [ ] Handle different subject/theme combinations
-- [ ] Add context from AI profile fields
-- [ ] Test variety of generated openings
-
-#### 7.4 Integrate with Main App
-- [ ] Add Learning Launcher to App.tsx
-- [ ] Implement show/hide logic
-- [ ] Connect "Start" button to AI generation
-- [ ] Add opening message to main session
-- [ ] Transition to chat interface
-- [ ] Add "Change Topic" option to return to launcher
-
-#### 7.5 Update AI System Prompts
-- [ ] Update main hall prompt with subject/theme context
-- [ ] Add native language handling
-- [ ] Add profile field extraction logic
-- [ ] Add lesson suggestion capabilities
-- [ ] Test conversations in both languages
-
-#### 7.6 Testing & Iteration
-- [ ] Test with different subject/theme combinations
-- [ ] Verify AI questions are contextual
-- [ ] Test profile field extraction
-- [ ] Verify conversation stays on-topic
-- [ ] Get feedback from kids on engagement
+### Planned Features
+- Multiple target languages (Spanish, German)
+- Native language variants
+- Advanced topics
+- Dictée module (French spelling)
+- Possible maths module
 
 ---
 
-### Task 8: Profile Management & Settings
+## Phase 4: Production
 
-**Objective:** Enable users to edit their profile settings and return to onboarding screens as needed.
+**Goal:** Production-ready with parent features.
 
-#### 8.1 Create Profile Settings Component
-- [ ] Create `components/ProfileSettings.tsx`
-- [ ] Build settings layout (form-based)
-- [ ] Add native language dropdown
-- [ ] Add learning subject dropdown (with confirmation)
-- [ ] Add interests editing trigger
-- [ ] Add display name editing
-- [ ] Add progress stats display (read-only)
+**Status:** 🔲 Not started
 
-#### 8.2 Update Onboarding Components for Reuse
-- [ ] Add props to `Step1Language.tsx` for edit mode
-- [ ] Add props to `Step2Subject.tsx` for edit mode
-- [ ] Add props to `Step3Interests.tsx` for edit mode
-- [ ] Update button text based on mode
-- [ ] Handle callbacks instead of navigation
-
-#### 8.3 Interests Editing Modal
-- [ ] Create modal wrapper for interests picker
-- [ ] Reuse `Step3Interests` component
-- [ ] Pre-fill current selections
-- [ ] Handle save/cancel actions
-- [ ] Update profile on save
-
-#### 8.4 Confirmation Dialogs
-- [ ] Create `components/ConfirmDialog.tsx`
-- [ ] Implement subject change confirmation
-- [ ] Add warning messages for language changes
-- [ ] Style consistently with design system
-
-#### 8.5 Profile Settings Integration
-- [ ] Add settings button to sidebar in `App.tsx`
-- [ ] Implement show/hide state for settings
-- [ ] Handle save changes flow
-- [ ] Implement validation
-- [ ] Add success/error messages
-- [ ] Test changes persist after reload
-
-#### 8.6 Testing & Polish
-- [ ] Test all field editing
-- [ ] Test confirmation flows
-- [ ] Test validation errors
-- [ ] Test settings close/cancel
-- [ ] Verify changes save to Pocketbase
-- [ ] Test on mobile and desktop
+### Planned Features
+- Parent dashboard
+- Progress reports
+- Time limits
+- Analytics
+- Performance optimization
 
 ---
 
-## Phase 1 Summary - Current Status
+## Architecture Overview
 
-**Completed:**
-- ✅ Task 1: Project Foundation
-- ✅ Task 2: Pocketbase Integration
-- ✅ Task 3: AI Service Swap
+### Data Flow (Phase 1.2)
 
-**In Progress:**
-- 📋 Task 4: Design System & Style Overhaul
-- 📋 Task 5: Database Schema Updates
-- 📋 Task 6: Onboarding Screens
-- 📋 Task 7: Main Interface Updates
-- 📋 Task 8: Profile Management
+```
+User Action
+    ↓
+Pedagogy Engine
+    ├── Learner Profile Service (user state)
+    ├── Chunk Manager (content library)
+    ├── Difficulty Calibration (i+1)
+    ├── Affective Filter Monitor (emotional state)
+    └── SRS Service (spaced repetition)
+    ↓
+Lesson Generator v2
+    ├── Select chunks (new + review + context)
+    ├── Generate activities
+    └── Personalize to learner
+    ↓
+Activity Components (UI)
+    ↓
+Record Encounter
+    ├── Update chunk status
+    ├── Update learner profile
+    └── Adjust difficulty/filter
+    ↓
+Garden State (visual progress)
+```
 
-**Total Estimated Time:** 20-30 hours
-**Total Estimated Cost:** $300-500 in API tokens
+### Key Collections
 
----
-
-## Phase Completion Criteria
-
-Phase 1 is complete when:
-- [ ] All Task 4-8 subtasks are checked off
-- [ ] App has cohesive Duolingo-inspired design
-- [ ] New users complete onboarding smoothly
-- [ ] Users can start learning sessions with clear guidance
-- [ ] Users can edit their profile/preferences
-- [ ] Kids enjoy using the app (user testing feedback)
-- [ ] All changes are tested on mobile and desktop
-- [ ] Documentation is updated
-- [ ] Confidence score: 8/10 or higher on all tasks
-
-After Phase 1, we'll move to:
-- **Phase 2:** Friend system, leaderboard, spaced repetition
-
-----
-
-### Task 5: Friends & Leaderboard
-
-**Objective:** Basic social features without becoming a social media app.
-
-#### 5.1 Friend Code System
-- [ ] Generate unique 6-character friend codes
-- [ ] Create friend code display component
-- [ ] Implement code lookup endpoint
-- [ ] Add code expiration (7 days)
-
-#### 5.2 Friend Management
-- [ ] Implement friend request flow
-- [ ] Create friends list component
-- [ ] Handle accept/decline
-- [ ] Show friend online status (optional)
-
-#### 5.3 Leaderboard
-- [ ] Create leaderboard query (friends only)
-- [ ] Build leaderboard UI component
-- [ ] Show rank, XP, streak for each friend
-- [ ] Highlight current user
-- [ ] Add refresh functionality
+| Collection | Purpose |
+|------------|---------|
+| `learner_profiles` | Personal learning data |
+| `user_chunks` | Per-user chunk SRS state |
+| `chunk_library` | All lexical chunks |
+| `topics` | Content organization |
+| `user_trees` | Garden visual state |
+| `sun_drops` | Currency transactions |
 
 ---
 
-### Task 6: Healthy Engagement
+## File Structure
 
-**Objective:** Prevent addiction patterns, encourage healthy learning habits.
+```
+docs/
+├── phase-1.1/          # Gamification tasks
+│   └── task-1-1-*.md
+├── phase-1.2/          # Pedagogy Engine tasks
+│   ├── phase-1.2-overview.md
+│   └── task-1-2-*.md
+├── phase-2/            # Future
+├── phase-3/            # Future
+├── design-system.md
+├── SYSTEM_PROMPTS.md
+└── README.md
 
-#### 6.1 Daily XP Cap
-- [ ] Add daily_xp_today to profile
-- [ ] Reset daily XP at midnight (user timezone)
-- [ ] Show progress toward daily cap
-- [ ] Gentle messaging when cap reached ("Great work today! See you tomorrow!")
+src/
+├── components/
+│   ├── garden/         # Garden UI
+│   ├── lesson/         # Lesson activities
+│   ├── navigation/     # App navigation
+│   └── path/           # Path view
+├── services/
+│   ├── pedagogyEngine.ts         # Phase 1.2
+│   ├── learnerProfileService.ts  # Phase 1.2
+│   ├── difficultyCalibration.ts  # Phase 1.2
+│   ├── affectiveFilterMonitor.ts # Phase 1.2
+│   ├── srsService.ts             # Phase 1.2
+│   ├── lessonGeneratorV2.ts      # Phase 1.2
+│   └── ...
+├── types/
+│   ├── pedagogy.ts     # Phase 1.2 types
+│   └── pocketbase.ts
+└── data/
+    ├── topics.ts       # Topic definitions
+    └── chunks/         # Chunk content by language
 
-#### 6.2 Session Limits
-- [ ] Track session duration
-- [ ] Gentle reminders after 30 mins
-- [ ] Encourage breaks
-- [ ] Save state for easy resume
-
-#### 6.3 Progress Visualization
-- [ ] Simple XP progress bar
-- [ ] Streak counter with celebration
-- [ ] "Come back tomorrow" messaging (not FOMO-inducing)
-
----
-
-### Task 7: Polish & Testing
-
-**Objective:** Make it work reliably for kids.
-
-#### 7.1 Error Handling
-- [ ] Graceful API failure handling
-- [ ] Offline mode messaging
-- [ ] Retry mechanisms with user feedback
-
-#### 7.2 Mobile Responsiveness
-- [ ] Test on various screen sizes
-- [ ] Optimize touch targets for kids
-- [ ] Handle keyboard appearance on mobile
-
-#### 7.3 Accessibility
-- [ ] Keyboard navigation
-- [ ] Screen reader basics
-- [ ] High contrast mode (optional)
-
-#### 7.4 Testing
-- [ ] Unit tests for services
-- [ ] Integration tests for auth flow
-- [ ] Manual testing with actual kids
+scripts/
+├── migrate-pedagogy-schema.cjs  # Phase 1.2 schema
+├── seed-topics.cjs               # Topic seeding
+└── seed-chunks.cjs               # Chunk seeding
+```
 
 ---
 
-## Phase 2: v1.0 — "Social Learning"
+## Key Documents
 
-**Goal:** Add messaging, gifts, and spaced repetition visualization.
-
-### Task 8: Friend Messaging
-- [ ] Simple message system (not a chat app)
-- [ ] Predefined encouragement messages
-- [ ] Optional custom short messages
-- [ ] Notification of new messages
-
-### Task 9: Gift System
-- [ ] Define gift types (hint, skip, XP boost)
-- [ ] Gift sending UI
-- [ ] Gift receiving notification
-- [ ] Gift usage in lessons
-
-### Task 10: Spaced Repetition
-- [ ] Vocabulary tracking per user
-- [ ] Review scheduling algorithm
-- [ ] "Plant growth" visualization (seed → tree)
-- [ ] Daily review prompts
-
-### Task 11: Multiple Languages
-- [ ] Add more target languages
-- [ ] Language selection UI
-- [ ] Per-language progress tracking
+| Document | Purpose |
+|----------|---------|
+| `PEDAGOGY.md` | Full pedagogical foundation |
+| `docs/phase-1.2/phase-1.2-overview.md` | Phase 1.2 architecture |
+| `docs/SYSTEM_PROMPTS.md` | AI prompt documentation |
+| `.clinerules` | Project coding standards |
+| `LEARNINGS.md` | Project history and lessons |
 
 ---
 
-## Phase 3: Curriculum Expansion
+## Current Status
 
-**Goal:** Teach more than just language.
+**Phase:** Transitioning from 1.1 to 1.2
 
-### Task 12: French Curriculum Research
-- [ ] Document French school curriculum requirements
-- [ ] Identify AI-teachable subjects
-- [ ] Scope Scratch integration possibilities
-- [ ] Scope maths tutoring approach
-- [ ] Document in FUTURE_CURRICULUM.md
+**Blocking:**
+- Phase 1.1 core gamification is functional
+- Phase 1.2 documentation is complete
+- Ready to begin Phase 1.2 implementation
 
-### Task 13: Dictée Module
-- [ ] Audio playback of French text
-- [ ] User transcription input
-- [ ] AI correction and feedback
-- [ ] Progress tracking
-
-### Task 14: Maths Module
-- [ ] Equation rendering (MathJax/KaTeX)
-- [ ] Step-by-step problem solving
-- [ ] Grade-appropriate problem generation
-- [ ] Visual explanations
+**Next Steps:**
+1. Review Phase 1.2 task documents
+2. Begin with task 1.2.1 (Learner Model Schema)
+3. Run migration scripts
+4. Update existing components
 
 ---
 
-## Phase 4: Production Features
+## Confidence Scoring
 
-**Goal:** Ready for wider release.
-
-### Task 15: Parent Dashboard
-- [ ] Progress reports
-- [ ] Time limit settings
-- [ ] Content filtering options
-- [ ] Friend approval system
-
-### Task 16: Analytics
-- [ ] Learning progress metrics
-- [ ] Engagement patterns
-- [ ] Anonymized aggregate stats
-
-### Task 17: Scalability
-- [ ] Rate limiting
-- [ ] Caching strategy
-- [ ] CDN for assets
-- [ ] Load testing
+Each task should achieve a confidence score of 8/10 or higher before being considered complete. See `.clinerules` for scoring criteria.
 
 ---
 
-## Deferred / Maybe Never
+## Cost Estimates
 
-- Real-time multiplayer activities
-- Voice chat with friends
-- User-generated content
-- Monetization (keep it free!)
+| Phase | API Costs | Time |
+|-------|-----------|------|
+| 1.0 (Complete) | ~$50 | 4 weeks |
+| 1.1 (In Progress) | ~$100 | 4 weeks |
+| 1.2 (Planning) | ~$200 | 6-8 weeks |
+| 2.0 (Future) | ~$150 | 3-4 weeks |
+
+**Total MVP + Pedagogy:** ~$350-500 in API tokens
 
 ---
 
-**Current Phase:** Phase 1 (MVP)
-**Current Task:** Task 5 (Friends & Leaderboard) — Next up
-**Last Completed:** Task 4 (Voice Services - Google TTS + Groq Whisper)
+## Notes
+
+- Phase 1.1's static paths and vocabulary approach will be deprecated before Phase 1.2
+- The gamification layer (garden, trees, SunDrops) will be preserved and enhanced
+- All new pedagogy work should follow the principles in `PEDAGOGY.md`

@@ -1,9 +1,28 @@
 # Task 1.1.9: AI Lesson Generator
 
-**Status:** Not Started
+**Status:** ⚠️ Deprecated — See Phase 1.2
 **Phase:** B (Growth & Decay)
 **Dependencies:** Task 1.1.1 (Type Definitions)
 **Estimated Time:** 4-5 hours
+
+---
+
+> **⚠️ DEPRECATION NOTICE**
+>
+> This task document describes the **Phase 1.1** approach to lesson generation using static skill paths and vocabulary-based content.
+>
+> **This approach is being replaced by Phase 1.2's Pedagogy Engine**, which uses:
+> - **Lexical chunks** instead of isolated vocabulary
+> - **Dynamic i+1 difficulty calibration** instead of fixed beginner/intermediate/advanced
+> - **Affective filter monitoring** for learner adaptation
+> - **Personalized learning paths** instead of static skill paths
+>
+> **See instead:**
+> - `docs/phase-1.2/task-1.2-8-lesson-generator-v2.md` — New lesson generator
+> - `docs/phase-1.2/phase-1.2-overview.md` — Full architecture
+> - `PEDAGOGY.md` — Pedagogical foundation
+>
+> This document is preserved for reference during the migration. The vocabulary-based approach may still be used temporarily while Phase 1.2 is being implemented.
 
 ---
 

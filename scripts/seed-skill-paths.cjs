@@ -1,12 +1,27 @@
 /**
  * LingoFriends - Skill Paths Seed Script
  * 
- * Seeds the skill_paths collection with initial learning content.
- * Run after migrate-game-schema.cjs.
+ * ⚠️ DEPRECATION NOTICE - Phase 1.2
  * 
+ * This script seeds STATIC skill paths with vocabulary-based lessons.
+ * This approach is being REPLACED by Phase 1.2's Pedagogy Engine which uses:
+ * - Lexical chunks instead of isolated vocabulary
+ * - Dynamic, personalized paths instead of static paths
+ * - i+1 difficulty calibration instead of fixed beginner/intermediate/advanced
+ * 
+ * This script is preserved for:
+ * - Phase 1.1 compatibility during migration
+ * - Reference during Phase 1.2 implementation
+ * - Fallback if dynamic generation fails
+ * 
+ * NEW: Use scripts/seed-chunks.cjs for Phase 1.2 content seeding
+ * 
+ * Run after migrate-game-schema.cjs (Phase 1.1)
  * Run with: node scripts/seed-skill-paths.cjs
  * 
  * @see docs/phase-1.1/task-1-1-7-pocketbase-schema.md
+ * @see docs/phase-1.2/task-1-2-3-chunk-seeding.md (Phase 1.2 replacement)
+ * @see PEDAGOGY.md (Pedagogical foundation)
  */
 
 const PB_URL = process.env.PB_URL || 'https://pocketbase-story.digitalbricks.io';
