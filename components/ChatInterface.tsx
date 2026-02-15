@@ -1,4 +1,13 @@
 
+/**
+ * @deprecated This component is replaced by LessonView in Phase 1.1.
+ * Chat-based learning has been replaced with structured lessons.
+ * See: src/components/lesson/LessonView.tsx
+ * 
+ * This file is kept for reference and potential rollback.
+ * It will be removed in Phase 1.2 after full testing.
+ */
+
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Message, Sender, ActivityType, SessionType, LessonDraft, TranslationPair, TargetLanguage, NativeLanguage } from '../types';

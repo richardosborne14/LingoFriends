@@ -2,6 +2,13 @@
  * Sidebar Component
  * Navigation panel with session list, profile stats, traits, and settings
  * Restyled with the new design system components
+ * 
+ * @deprecated This component is replaced by AppHeader + TabBar navigation in Phase 1.1.
+ * The sidebar navigation pattern has been replaced with garden-first navigation.
+ * See: src/components/navigation/AppHeader.tsx and src/components/navigation/TabBar.tsx
+ * 
+ * This file is kept for reference and potential rollback.
+ * It will be removed in Phase 1.2 after full testing.
  */
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';

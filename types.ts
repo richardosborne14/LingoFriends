@@ -184,3 +184,60 @@ export interface CompletedLessonSummary {
   objectives: string[];
   completedAt: number;
 }
+
+// ============================================================================
+// PHASE 1.1: GAME TYPES RE-EXPORT
+// ============================================================================
+
+/**
+ * Re-export game types from src/types/game.ts for backward compatibility.
+ * New code should import directly from '@/types/game' or '../../src/types/game'.
+ * 
+ * @see src/types/game.ts for full type definitions
+ */
+export {
+  // Enums
+  GameActivityType,
+  LessonStatus,
+  TreeStatus,
+  GiftType,
+  // Interfaces
+  type ActivityConfig,
+  type LessonStep,
+  type LessonPlan,
+  type SkillPath,
+  type SkillPathLesson,
+  type UserTree,
+  type GiftItem,
+  type GardenDecoration,
+  type PlayerAvatar,
+  type SunDropResult,
+  type ActivityResult,
+  // Constants
+  ACTIVITY_TYPE_MAP,
+} from './src/types/game';
+
+// Re-export sunDropService types and functions
+export {
+  // Types
+  type HealthCategory,
+  type HealthIndicator,
+  // Core calculations
+  calculateEarned,
+  calculatePenalty,
+  calculateTreeHealth,
+  daysUntilNextDecay,
+  calculateStars,
+  // Daily cap
+  isDailyCapReached,
+  remainingDailyAllowance,
+  getDailyCap,
+  // Tree growth
+  calculateTreeGrowth,
+  // Health UI helpers
+  getHealthCategory,
+  getHealthIndicator,
+  daysSinceLastRefresh,
+  treeNeedsAttention,
+  getHealthDescription,
+} from './src/services/sunDropService';
