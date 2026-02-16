@@ -32,22 +32,31 @@ import { GiftType } from '../types/game';
 
 /**
  * Create a mock tree for testing.
+ * Updated for per-tree SunDrops architecture (Task 1.1.19).
  */
 function createMockTree(overrides: Partial<UserTree> = {}): UserTree {
   return {
     id: 'tree-1',
+    userId: 'test-user-123',
     skillPathId: 'spanish-greetings',
     name: 'Spanish Greetings',
     icon: '🇪🇸',
     status: 'growing' as any,
     health: 100,
+    bufferDays: 0,
     lastRefreshDate: new Date().toISOString(),
+    lastLessonDate: new Date().toISOString(),
+    sunDropsEarned: 50,
     sunDropsTotal: 50,
+    growthStage: 3,
+    gridPosition: { gx: 2, gz: 4 },
+    position: { x: 100, y: 200 },
     lessonsCompleted: 3,
     lessonsTotal: 10,
-    position: { x: 100, y: 200 },
     decorations: [],
     giftsReceived: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     ...overrides,
   };
 }
@@ -162,10 +171,40 @@ describe('calculateHealth', () => {
   });
 
   describe('gift buffers', () => {
-    it('water_drop provides 10 days of buffer', () => {
-      // 10 days since refresh, but with water_drop gift = effective 0 days = 100%
-      const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString();
+    it('water_drop provides 1 day of buffer (rebalanced)', () => {
+      // 1 day since refresh, with water_drop = effective 0 days = 100%
+      const oneDayAgo = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString();
       const gift = createMockGift({ type: GiftType.WATER_DROP, appliedDate: undefined });
+      const tree = createMockTree({
+        lastRefreshDate: oneDayAgo,
+        giftsReceived: [gift],
+      });
+      expect(calculateHealth(tree)).toBe(100);
+    });
+
+    it('sparkle provides 3 days of buffer (rebalanced)', () => {
+      // 3 days since refresh, with sparkle = effective 0 days = 100%
+      const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
+      const gift = createMockGift({ type: GiftType.SPARKLE, appliedDate: undefined });
+      const tree = createMockTree({
+        lastRefreshDate: threeDaysAgo,
+        giftsReceived: [gift],
+      });
+      expect(calculateHealth(tree)).toBe(100);
+
+      // 4 days since refresh, with sparkle = effective 1 day = still 100%
+      const fourDaysAgo = new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString();
+      const tree2 = createMockTree({
+        lastRefreshDate: fourDaysAgo,
+        giftsReceived: [gift],
+      });
+      expect(calculateHealth(tree2)).toBe(100);
+    });
+
+    it('golden_flower provides 10 days of buffer (rebalanced)', () => {
+      // 10 days since refresh, with golden_flower = effective 0 days = 100%
+      const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString();
+      const gift = createMockGift({ type: GiftType.GOLDEN_FLOWER, appliedDate: undefined });
       const tree = createMockTree({
         lastRefreshDate: tenDaysAgo,
         giftsReceived: [gift],
@@ -173,31 +212,12 @@ describe('calculateHealth', () => {
       expect(calculateHealth(tree)).toBe(100);
     });
 
-    it('sparkle provides 5 days of buffer', () => {
-      // 5 days since refresh, with sparkle = effective 0 days = 100%
+    it('decoration provides 5 days of buffer (shop item)', () => {
+      // 5 days since refresh, with decoration = effective 0 days = 100%
       const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString();
-      const gift = createMockGift({ type: GiftType.SPARKLE, appliedDate: undefined });
+      const gift = createMockGift({ type: GiftType.DECORATION, appliedDate: undefined });
       const tree = createMockTree({
         lastRefreshDate: fiveDaysAgo,
-        giftsReceived: [gift],
-      });
-      expect(calculateHealth(tree)).toBe(100);
-
-      // 6 days since refresh, with sparkle = effective 1 day = still 100%
-      const sixDaysAgo = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString();
-      const tree2 = createMockTree({
-        lastRefreshDate: sixDaysAgo,
-        giftsReceived: [gift],
-      });
-      expect(calculateHealth(tree2)).toBe(100);
-    });
-
-    it('golden_flower provides 15 days of buffer', () => {
-      // 15 days since refresh, with golden_flower = effective 0 days = 100%
-      const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString();
-      const gift = createMockGift({ type: GiftType.GOLDEN_FLOWER, appliedDate: undefined });
-      const tree = createMockTree({
-        lastRefreshDate: fifteenDaysAgo,
         giftsReceived: [gift],
       });
       expect(calculateHealth(tree)).toBe(100);
@@ -214,26 +234,26 @@ describe('calculateHealth', () => {
       expect(calculateHealth(tree)).toBe(85);
     });
 
-    it('ribbon provides 0 buffer days (decoration only)', () => {
-      // 5 days since refresh, with ribbon = still 5 days = 85%
+    it('decoration type items have 5 days buffer', () => {
+      // Decoration provides 5 days buffer
       const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString();
-      const gift = createMockGift({ type: GiftType.RIBBON, appliedDate: undefined });
+      const gift = createMockGift({ type: GiftType.DECORATION, appliedDate: undefined });
       const tree = createMockTree({
         lastRefreshDate: fiveDaysAgo,
         giftsReceived: [gift],
       });
-      expect(calculateHealth(tree)).toBe(85);
+      expect(calculateHealth(tree)).toBe(100); // Protected by decoration
     });
 
-    it('multiple gifts stack', () => {
-      // 20 days since refresh, with 2 water_drops = 20 buffer = effective 0 days = 100%
-      const twentyDaysAgo = new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString();
+    it('multiple gifts stack (rebalanced)', () => {
+      // 5 days since refresh, with 1 decoration (5 days) + 1 water_drop (1 day) = 6 buffer = effective 0 days = 100%
+      const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString();
       const gifts = [
-        createMockGift({ id: 'gift-1', type: GiftType.WATER_DROP, appliedDate: undefined }),
+        createMockGift({ id: 'gift-1', type: GiftType.DECORATION, appliedDate: undefined }),
         createMockGift({ id: 'gift-2', type: GiftType.WATER_DROP, appliedDate: undefined }),
       ];
       const tree = createMockTree({
-        lastRefreshDate: twentyDaysAgo,
+        lastRefreshDate: fiveDaysAgo,
         giftsReceived: gifts,
       });
       expect(calculateHealth(tree)).toBe(100);
@@ -253,29 +273,29 @@ describe('calculateHealth', () => {
       expect(calculateHealth(tree)).toBe(60);
     });
 
-    it('mixed applied and unused gifts should only count unused', () => {
-      // 15 days since refresh
-      // 1 applied water_drop (no buffer)
-      // 1 unused water_drop (10 days buffer)
-      // effective days = 15 - 10 = 5 = 85%
-      const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString();
+    it('mixed applied and unused gifts should only count unused (rebalanced)', () => {
+      // 5 days since refresh
+      // 1 applied decoration (no buffer)
+      // 1 unused decoration (5 days buffer)
+      // effective days = 5 - 5 = 0 = 100%
+      const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString();
       const gifts = [
         createMockGift({
           id: 'gift-1',
-          type: GiftType.WATER_DROP,
+          type: GiftType.DECORATION,
           appliedDate: new Date().toISOString(),
         }),
         createMockGift({
           id: 'gift-2',
-          type: GiftType.WATER_DROP,
+          type: GiftType.DECORATION,
           appliedDate: undefined,
         }),
       ];
       const tree = createMockTree({
-        lastRefreshDate: fifteenDaysAgo,
+        lastRefreshDate: fiveDaysAgo,
         giftsReceived: gifts,
       });
-      expect(calculateHealth(tree)).toBe(85);
+      expect(calculateHealth(tree)).toBe(100);
     });
   });
 });
@@ -330,29 +350,28 @@ describe('calculateBufferDays', () => {
     expect(calculateBufferDays(tree)).toBe(0);
   });
 
-  it('calculate buffer correctly for single gift', () => {
+  it('calculate buffer correctly for single gift (rebalanced)', () => {
     const tree = createMockTree({
       giftsReceived: [createMockGift({ type: GiftType.WATER_DROP, appliedDate: undefined })],
     });
-    expect(calculateBufferDays(tree)).toBe(10);
+    expect(calculateBufferDays(tree)).toBe(1); // Rebalanced: was 10
   });
 
-  it('calculates buffer correctly for multiple gifts', () => {
+  it('calculates buffer correctly for multiple gifts (rebalanced)', () => {
     const tree = createMockTree({
       giftsReceived: [
-        createMockGift({ id: '1', type: GiftType.WATER_DROP, appliedDate: undefined }), // 10
-        createMockGift({ id: '2', type: GiftType.SPARKLE, appliedDate: undefined }),    // 5
-        createMockGift({ id: '3', type: GiftType.GOLDEN_FLOWER, appliedDate: undefined }), // 15
+        createMockGift({ id: '1', type: GiftType.WATER_DROP, appliedDate: undefined }),    // 1
+        createMockGift({ id: '2', type: GiftType.SPARKLE, appliedDate: undefined }),       // 3
+        createMockGift({ id: '3', type: GiftType.GOLDEN_FLOWER, appliedDate: undefined }), // 10
       ],
     });
-    expect(calculateBufferDays(tree)).toBe(30); // 10 + 5 + 15
+    expect(calculateBufferDays(tree)).toBe(14); // 1 + 3 + 10
   });
 
-  it('ignores seed and ribbon (0 buffer)', () => {
+  it('ignores seed (0 buffer)', () => {
     const tree = createMockTree({
       giftsReceived: [
         createMockGift({ id: '1', type: GiftType.SEED, appliedDate: undefined }),
-        createMockGift({ id: '2', type: GiftType.RIBBON, appliedDate: undefined }),
       ],
     });
     expect(calculateBufferDays(tree)).toBe(0);
@@ -427,12 +446,12 @@ describe('getHealthIndicator', () => {
 // ============================================================================
 
 describe('getGiftBufferDays', () => {
-  it('returns correct buffer days for each gift type', () => {
-    expect(getGiftBufferDays(GiftType.WATER_DROP)).toBe(10);
-    expect(getGiftBufferDays(GiftType.SPARKLE)).toBe(5);
-    expect(getGiftBufferDays(GiftType.SEED)).toBe(0);
-    expect(getGiftBufferDays(GiftType.RIBBON)).toBe(0);
-    expect(getGiftBufferDays(GiftType.GOLDEN_FLOWER)).toBe(15);
+  it('returns correct buffer days for each gift type (rebalanced)', () => {
+    expect(getGiftBufferDays(GiftType.WATER_DROP)).toBe(1);   // Rebalanced from 10
+    expect(getGiftBufferDays(GiftType.SPARKLE)).toBe(3);      // Rebalanced from 5
+    expect(getGiftBufferDays(GiftType.DECORATION)).toBe(5);   // New type
+    expect(getGiftBufferDays(GiftType.GOLDEN_FLOWER)).toBe(10); // Rebalanced from 15
+    expect(getGiftBufferDays(GiftType.SEED)).toBe(0);         // No buffer
   });
 });
 
@@ -544,17 +563,17 @@ describe('getHealthDescription', () => {
     expect(desc).toContain('doing well');
   });
 
-  it('mentions gift protection when gifts are available', () => {
-    // 15 days since refresh with 1 water_drop (10 days buffer)
-    // = effective 5 days = 85% health, but with gift protection
-    const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString();
+  it('mentions gift protection when gifts are available (rebalanced)', () => {
+    // 5 days since refresh with 1 water_drop (1 day buffer)
+    // = effective 4 days = 100% health, with gift protection
+    const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString();
     const tree = createMockTree({
-      lastRefreshDate: fifteenDaysAgo,
-      giftsReceived: [createMockGift({ type: GiftType.WATER_DROP, appliedDate: undefined })],
+      lastRefreshDate: fiveDaysAgo,
+      giftsReceived: [createMockGift({ type: GiftType.GOLDEN_FLOWER, appliedDate: undefined })],
     });
     const desc = getHealthDescription(tree);
     expect(desc).toContain('protection');
-    expect(desc).toContain('10');
+    expect(desc).toContain('10'); // Golden flower gives 10 days buffer
   });
 
   it('describes thirsty trees', () => {
@@ -590,9 +609,13 @@ describe('TREE_HEALTH_CONSTANTS', () => {
     expect(TREE_HEALTH_CONSTANTS.DYING_THRESHOLD).toBe(40);
   });
 
-  it('exports gift buffer days', () => {
+  it('exports gift buffer days (rebalanced values)', () => {
     expect(TREE_HEALTH_CONSTANTS.GIFT_BUFFER_DAYS).toBeDefined();
-    expect(TREE_HEALTH_CONSTANTS.GIFT_BUFFER_DAYS[GiftType.WATER_DROP]).toBe(10);
+    expect(TREE_HEALTH_CONSTANTS.GIFT_BUFFER_DAYS[GiftType.WATER_DROP]).toBe(1);
+    expect(TREE_HEALTH_CONSTANTS.GIFT_BUFFER_DAYS[GiftType.SPARKLE]).toBe(3);
+    expect(TREE_HEALTH_CONSTANTS.GIFT_BUFFER_DAYS[GiftType.DECORATION]).toBe(5);
+    expect(TREE_HEALTH_CONSTANTS.GIFT_BUFFER_DAYS[GiftType.GOLDEN_FLOWER]).toBe(10);
+    expect(TREE_HEALTH_CONSTANTS.GIFT_BUFFER_DAYS[GiftType.SEED]).toBe(0);
   });
 
   it('exports health thresholds array', () => {

@@ -398,7 +398,7 @@ export const learnerProfileService: LearnerProfileService = {
     if (updates.averageSessionLength !== undefined) pbUpdates.average_session_length = updates.averageSessionLength;
     if (updates.helpRequestRate !== undefined) pbUpdates.help_request_rate = updates.helpRequestRate;
     if (updates.wrongAnswerRate !== undefined) pbUpdates.wrong_answer_rate = updates.wrongAnswerRate;
-    if (updates.preferredActivityTypes !== undefined) pbUpdates.preferred_activity_types = updates.preferredActivityTypes as unknown as string[];
+    if (updates.preferredActivityTypes !== undefined) pbUpdates.preferred_activity_types = updates.preferredActivityTypes;
     if (updates.preferredSessionLength !== undefined) pbUpdates.preferred_session_length = updates.preferredSessionLength;
     if (updates.lastReflectionPrompt !== undefined) pbUpdates.last_reflection_prompt = updates.lastReflectionPrompt;
     if (updates.coachingNotes !== undefined) pbUpdates.coaching_notes = updates.coachingNotes;
@@ -555,7 +555,7 @@ export const learnerProfileService: LearnerProfileService = {
       }
     }
     
-    return Array.from(combined);
+    return Array.from(combined) as string[];
   },
   
   // === CONFIDENCE ===

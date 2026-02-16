@@ -1,582 +1,175 @@
-t# Task 1.1.11: Gift System
+# Task 1.1.11: Gift System (Rebalanced Reward Economy)
 
-**Status:** ✅ Complete
-**Phase:** C (Social & Rewards)
-**Dependencies:** Task 1.1.7 (Pocketbase Schema), Task 1.1.8 (Garden State)
-**Estimated Time:** 5-6 hours
-**Completed:** 2026-02-15
+## Overview
 
----
+The gift system has been **significantly redesigned** to create a more balanced and motivating reward economy. The key changes are:
 
-## Objective
+1. **Gifts are now primarily from friends**, not automatic lesson rewards
+2. **Gems** are the new earnable currency from lessons and streaks
+3. **Decorations** are purchased with gems in the shop
+4. **Seeds** are earned only from pathway completion (×2 for sharing)
 
-Implement the gift system that allows players to earn and send gifts to friends. Gifts help trees stay healthy and add a social layer to the garden experience.
+## Currencies
 
----
+### SunDrops (Existing)
+- **Purpose**: Tree growth and maintenance currency
+- **Cannot be spent**: Automatically applied to tree health
+- **Earned from**: Lesson completion
+- **Function**: Makes trees grow, maintains tree health
 
-## Deliverables
+### Gems (NEW)
+- **Purpose**: Shop currency for decorations and avatar items
+- **Earned from**: Lesson performance and streaks
+- **Spent in**: Garden Shop
+- **Formula**: `floor(accuracy% / 20)` base gems per lesson
+  - 100% accuracy = 5 gems
+  - 80% accuracy = 4 gems
+  - 60% accuracy = 3 gems
 
-### Files to Create
-- `src/services/giftService.ts` — Gift creation, sending, receiving
-- `src/components/social/GiftUnlock.tsx` — Gift unlock animation
-- `src/components/social/SendGift.tsx` — Gift sending modal
-- `src/components/social/FriendGifts.tsx` — Inbox of received gifts
+#### Streak Multipliers
+| Streak | Multiplier |
+|--------|------------|
+| 3+ days | ×1.5 |
+| 7+ days | ×2 |
+| 14+ days | ×3 |
+| 30+ days | Bonus achievement + Golden Flower chance |
 
----
+#### Streak Achievements
+- **3-day streak**: +5 gems
+- **7-day streak**: +15 gems + Decoration
+- **14-day streak**: +30 gems + Decoration
+- **30-day streak**: +100 gems + Golden Flower
 
-## Gift Types & Effects
+## Gift Types (Rebalanced)
 
-| Gift | Effect | Unlock Condition |
-|------|--------|------------------|
-| 💧 Water Drop | +10 days buffer on tree health | Complete any lesson |
-| ✨ Sparkle | Cosmetic + 5 days buffer | Earn 20+ Sun Drops in lesson |
-| 🌱 Seed | Start a new skill path | Complete all lessons in a path |
-| 🎀 Ribbon | Tree decoration | Complete 3 lessons same day |
-| 🌸 Golden Flower | Rare decoration + 15 days buffer | Get 3 stars on lesson |
+### Friend Gifts (Sent Between Users)
 
----
+| Gift | Buffer Days | How to Get |
+|------|-------------|------------|
+| 💧 Water Drop | 1 day | Friend gift (easy to send) |
+| ✨ Sparkle | 3 days | Friend gift (uncommon) |
 
-## Gift Service
+### Achievement/Shop Rewards
 
-### Interface
+| Gift | Buffer Days | How to Get |
+|------|-------------|------------|
+| 🎀 Decoration | 5 days | Shop purchase (15-30 gems) |
+| 🌸 Golden Flower | 10 days | Rare achievement reward |
+| 🌱 Seed | 0 days | Pathway completion ×2 |
 
-```typescript
-// src/services/giftService.ts
+## Key Changes from Original Design
 
-import type { GiftType, GiftItem } from '@/types/game';
+### What Changed
+1. **Water Drop**: 10 days → **1 day** buffer
+2. **Sparkle**: 5 days → **3 days** buffer
+3. **Ribbon**: **REMOVED** → replaced by **Decoration** (shop item)
+4. **Golden Flower**: 15 days → **10 days** buffer (still rare)
+5. **Gifts no longer auto-unlock from lessons** - earned through achievements or friends
 
-interface GiftService {
-  // Unlock
-  checkGiftUnlock(result: LessonResult): GiftType | null;
-  
-  // Sending
-  sendGift(toUserId: string, giftType: GiftType, treeId?: string): Promise<GiftItem>;
-  getAvailableGifts(userId: string): Promise<GiftItem[]>;
-  
-  // Receiving
-  getPendingGifts(userId: string): Promise<GiftItem[]>;
-  applyGift(giftId: string, treeId: string): Promise<void>;
-  declineGift(giftId: string): Promise<void>;
+### Why the Changes?
+- Original rewards were too generous for easy actions
+- Kids were getting too many days of tree protection passively
+- Want to encourage **social interaction** (sending gifts to friends)
+- Want to create **meaningful choices** (spending gems in shop)
+- Seeds should be **special** - only from completing pathways
+
+## Shop Categories
+
+### Tree Care (Affects Health)
+- **Watering Can**: 🚿 15 gems, +5 days health
+- **Sun Lamp**: 💡 20 gems, +5 days health
+- **Magic Fertilizer**: ✨ 25 gems, +5 days health
+- **Rainbow Pot**: 🌈 30 gems, +5 days health
+
+### Garden Decorations (Cosmetic)
+- **Butterfly**: 🦋 15 gems
+- **Stepping Stone**: 🪨 10 gems
+- **Flower Bed**: 🌷 20 gems
+- **Garden Gnome**: 🗿 25 gems
+- **Birdhouse**: 🏠 30 gems
+- **Garden Pond**: 55 gems
+- **Fountain**: ⛲ 80 gems
+
+### Avatar Items
+- **Party Hat**: 🎉 30 gems
+- **Animal Avatars**: 🦊🐱🦉 50 gems each
+- **Golden Crown**: 👑 100 gems
+
+## Seed Mechanics (Pathway Completion)
+
+### Earning Seeds
+- Complete any learning pathway → **Earn 2 Seeds**
+- Seeds are the only way to start new trees/paths
+- Encourages pathway completion and exploration
+
+### Sharing Seeds
+- Give 1 seed to a friend who needs motivation
+- Seeds become social currency for helping friends
+- Creates positive peer pressure to complete pathways
+
+## Technical Implementation
+
+### Files Created/Modified
+
+#### `src/services/gemService.ts` (NEW)
+- `calculateGemEarning()` - Base gems from accuracy
+- `getStreakMultiplier()` - Streak bonus calculation
+- `getStreakAchievement()` - Achievement rewards
+- `getGemBalance()` - Get user's gem count
+- `addGems()` - Add gems to balance
+- `spendGems()` - Spend gems on purchase
+- `purchaseItem()` - Buy from shop
+- `SHOP_CATALOGUE` - All purchasable items
+
+#### `src/services/giftService.ts` (MODIFIED)
+- Removed automatic gift drops from lessons
+- Updated `GIFT_CONFIGS` with new buffer days
+- Added achievement-based gift unlocking
+- Renamed `ribbon` → `decoration`
+
+#### `src/services/treeHealthService.ts` (MODIFIED)
+- Updated `GIFT_BUFFER_DAYS` with rebalanced values
+- Water Drop: 1, Sparkle: 3, Decoration: 5, Golden Flower: 10
+
+#### `src/types/game.ts` (MODIFIED)
+- Updated `GiftType` enum: removed `RIBBON`, added `DECORATION`
+
+#### `src/types/pocketbase.ts` (MODIFIED)
+- Added `gems: number` to `ProfileRecord`
+- Added `seeds: number` to `ProfileRecord`
+
+## Database Schema Changes
+
+### profiles collection
+```javascript
+{
+  // ... existing fields
+  gems: number,    // Gem currency balance
+  seeds: number,   // Seeds earned from pathways
 }
 ```
-
-### Implementation
-
-```typescript
-// src/services/giftService.ts
-
-import { pocketbaseService } from './pocketbaseService';
-import type { GiftType, GiftItem, LessonResult } from '@/types/game';
-
-/** Gift unlock rules */
-const GIFT_UNLOCK_RULES: Array<{
-  type: GiftType;
-  condition: (result: LessonResult) => boolean;
-}> = [
-  {
-    type: 'golden_flower',
-    condition: (r) => r.stars === 3,
-  },
-  {
-    type: 'sparkle',
-    condition: (r) => r.sunDropsEarned >= 20,
-  },
-  {
-    type: 'ribbon',
-    condition: (r) => true, // Every lesson gives ribbon chance
-  },
-  {
-    type: 'water_drop',
-    condition: (r) => true, // Every lesson gives water drop
-  },
-];
-
-/** Gift effects on tree health */
-export const GIFT_EFFECTS: Record<GiftType, { bufferDays: number; isDecoration: boolean }> = {
-  water_drop: { bufferDays: 10, isDecoration: false },
-  sparkle: { bufferDays: 5, isDecoration: false },
-  seed: { bufferDays: 0, isDecoration: false },
-  ribbon: { bufferDays: 0, isDecoration: true },
-  golden_flower: { bufferDays: 15, isDecoration: true },
-};
-
-/**
- * Check if a lesson result unlocks a gift.
- * Returns the highest-tier gift unlocked.
- */
-export function checkGiftUnlock(result: LessonResult): GiftType | null {
-  for (const rule of GIFT_UNLOCK_RULES) {
-    if (rule.condition(result)) {
-      return rule.type;
-    }
-  }
-  return null;
-}
-
-/**
- * Create a gift in user's inventory.
- */
-export async function createGift(userId: string, type: GiftType): Promise<GiftItem> {
-  const gift = await pocketbaseService.create('gifts', {
-    type,
-    fromUser: userId, // Creator is also initial owner
-    toUser: null,
-    unlockedAt: new Date().toISOString(),
-    sentAt: null,
-    appliedAt: null,
-  });
-  
-  return gift;
-}
-
-/**
- * Send a gift to a friend.
- */
-export async function sendGift(
-  fromUserId: string,
-  toUserId: string,
-  giftId: string,
-  message?: string
-): Promise<GiftItem> {
-  const gift = await pocketbaseService.update('gifts', giftId, {
-    fromUser: fromUserId,
-    toUser: toUserId,
-    sentAt: new Date().toISOString(),
-    message: message || '',
-  });
-  
-  return gift;
-}
-
-/**
- * Get gifts available to send.
- */
-export async function getAvailableGifts(userId: string): Promise<GiftItem[]> {
-  const gifts = await pocketbaseService.getList('gifts', {
-    filter: `fromUser = "${userId}" && sentAt = null`,
-  });
-  
-  return gifts;
-}
-
-/**
- * Get pending gifts received.
- */
-export async function getPendingGifts(userId: string): Promise<GiftItem[]> {
-  const gifts = await pocketbaseService.getList('gifts', {
-    filter: `toUser = "${userId}" && appliedAt = null`,
-  });
-  
-  return gifts;
-}
-
-/**
- * Apply a gift to a tree.
- */
-export async function applyGift(giftId: string, treeId: string): Promise<void> {
-  const gift = await pocketbaseService.get('gifts', giftId);
-  
-  // Update gift
-  await pocketbaseService.update('gifts', giftId, {
-    appliedAt: new Date().toISOString(),
-    toItem: treeId,
-  });
-  
-  // If decoration, add to tree
-  if (GIFT_EFFECTS[gift.type as GiftType]?.isDecoration) {
-    const tree = await pocketbaseService.get('user_trees', treeId);
-    await pocketbaseService.update('user_trees', treeId, {
-      decorations: [...(tree.decorations || []), giftId],
-    });
-  }
-}
-
-/**
- * Decline a gift (delete it).
- */
-export async function declineGift(giftId: string): Promise<void> {
-  await pocketbaseService.delete('gifts', giftId);
-}
-```
-
----
-
-## GiftUnlock Component
-
-```typescript
-// src/components/social/GiftUnlock.tsx
-
-import { motion, AnimatePresence } from 'framer-motion';
-import type { GiftType } from '@/types/game';
-import { GIFT_EFFECTS } from '@/services/giftService';
-
-interface GiftUnlockProps {
-  giftType: GiftType;
-  onDismiss: () => void;
-}
-
-const GIFT_INFO: Record<GiftType, { name: string; description: string; emoji: string }> = {
-  water_drop: {
-    name: 'Water Drop',
-    description: 'Keep a friend\'s tree alive!',
-    emoji: '💧',
-  },
-  sparkle: {
-    name: 'Sparkle',
-    description: 'Add some magic to a tree!',
-    emoji: '✨',
-  },
-  seed: {
-    name: 'Seed',
-    description: 'Start a new skill path!',
-    emoji: '🌱',
-  },
-  ribbon: {
-    name: 'Ribbon',
-    description: 'Decorate your tree!',
-    emoji: '🎀',
-  },
-  golden_flower: {
-    name: 'Golden Flower',
-    description: 'A rare gift for a special friend!',
-    emoji: '🌸',
-  },
-};
-
-export function GiftUnlock({ giftType, onDismiss }: GiftUnlockProps) {
-  const info = GIFT_INFO[giftType];
-  
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="gift-unlock-overlay"
-    >
-      <motion.div
-        initial={{ scale: 0, rotate: -180 }}
-        animate={{ scale: 1, rotate: 0 }}
-        transition={{ type: 'spring', duration: 0.6 }}
-        className="gift-unlock-card"
-      >
-        <div className="gift-unlock-header">
-          🎁 Gift Unlocked!
-        </div>
-        
-        <motion.div
-          animate={{ y: [0, -10, 0] }}
-          transition={{ repeat: Infinity, duration: 2 }}
-          className="gift-unlock-emoji"
-        >
-          {info.emoji}
-        </motion.div>
-        
-        <h2 className="gift-unlock-name">{info.name}</h2>
-        <p className="gift-unlock-description">{info.description}</p>
-        
-        <div className="gift-unlock-actions">
-          <button onClick={onDismiss} className="btn-secondary">
-            Keep for Later
-          </button>
-          <button onClick={onDismiss} className="btn-primary">
-            Send to Friend 💌
-          </button>
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-}
-```
-
----
-
-## SendGift Component
-
-```typescript
-// src/components/social/SendGift.tsx
-
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import type { GiftItem, Friend } from '@/types/game';
-
-interface SendGiftProps {
-  gift: GiftItem;
-  friends: Friend[];
-  onSend: (friendId: string, message?: string) => void;
-  onCancel: () => void;
-}
-
-export function SendGift({ gift, friends, onSend, onCancel }: SendGiftProps) {
-  const [selectedFriend, setSelectedFriend] = useState<string | null>(null);
-  const [message, setMessage] = useState('');
-  
-  return (
-    <div className="send-gift-modal">
-      <h3>Send Gift to Friend</h3>
-      
-      <div className="gift-preview">
-        <span className="gift-emoji">{getGiftEmoji(gift.type)}</span>
-        <span className="gift-name">{getGiftName(gift.type)}</span>
-      </div>
-      
-      <div className="friends-list">
-        {friends.map(friend => (
-          <button
-            key={friend.id}
-            className={`friend-option ${selectedFriend === friend.id ? 'selected' : ''}`}
-            onClick={() => setSelectedFriend(friend.id)}
-          >
-            <span className="friend-avatar">{friend.avatar}</span>
-            <span className="friend-name">{friend.username}</span>
-          </button>
-        ))}
-      </div>
-      
-      <textarea
-        placeholder="Add a message (optional)"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        maxLength={100}
-      />
-      
-      <div className="actions">
-        <button onClick={onCancel} className="btn-secondary">
-          Cancel
-        </button>
-        <button
-          onClick={() => selectedFriend && onSend(selectedFriend, message)}
-          disabled={!selectedFriend}
-          className="btn-primary"
-        >
-          Send Gift 💌
-        </button>
-      </div>
-    </div>
-  );
-}
-```
-
----
-
-## FriendGifts Component
-
-```typescript
-// src/components/social/FriendGifts.tsx
-
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import type { GiftItem, UserTree } from '@/types/game';
-import { applyGift, declineGift } from '@/services/giftService';
-
-interface FriendGiftsProps {
-  gifts: GiftItem[];
-  trees: UserTree[];
-  onRefresh: () => void;
-}
-
-export function FriendGifts({ gifts, trees, onRefresh }: FriendGiftsProps) {
-  const [selectedGift, setSelectedGift] = useState<GiftItem | null>(null);
-  
-  const handleApplyGift = async (treeId: string) => {
-    if (!selectedGift) return;
-    
-    await applyGift(selectedGift.id, treeId);
-    setSelectedGift(null);
-    onRefresh();
-  };
-  
-  if (gifts.length === 0) {
-    return (
-      <div className="no-gifts">
-        <span className="empty-icon">📭</span>
-        <p>No gifts yet. Keep learning to earn gifts for friends!</p>
-      </div>
-    );
-  }
-  
-  return (
-    <div className="friend-gifts">
-      <h3>🎁 Gifts from Friends ({gifts.length})</h3>
-      
-      <div className="gifts-grid">
-        {gifts.map(gift => (
-          <motion.div
-            key={gift.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="gift-card"
-          >
-            <span className="gift-emoji">{getGiftEmoji(gift.type)}</span>
-            <span className="gift-from">From {gift.fromUserName}</span>
-            <span className="gift-date">{formatDate(gift.sentAt)}</span>
-            
-            <div className="gift-actions">
-              <button
-                onClick={() => setSelectedGift(gift)}
-                className="btn-primary btn-small"
-              >
-                Apply
-              </button>
-              <button
-                onClick={() => handleDecline(gift.id)}
-                className="btn-secondary btn-small"
-              >
-                ✕
-              </button>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-      
-      <AnimatePresence>
-        {selectedGift && (
-          <ApplyGiftModal
-            gift={selectedGift}
-            trees={trees}
-            onApply={handleApplyGift}
-            onClose={() => setSelectedGift(null)}
-          />
-        )}
-      </AnimatePresence>
-    </div>
-  );
-  
-  async function handleDecline(giftId: string) {
-    if (confirm('Decline this gift?')) {
-      await declineGift(giftId);
-      onRefresh();
-    }
-  }
-}
-```
-
----
-
-## Integration with Lesson Complete
-
-```typescript
-// In LessonComplete.tsx
-
-import { GiftUnlock } from '@/components/social/GiftUnlock';
-import { checkGiftUnlock, createGift } from '@/services/giftService';
-import type { LessonResult } from '@/types/game';
-
-function LessonComplete({ sunDropsEarned, sunDropsMax, stars, ... }: Props) {
-  const [unlockedGift, setUnlockedGift] = useState<GiftType | null>(null);
-  
-  useEffect(() => {
-    const result: LessonResult = { sunDropsEarned, sunDropsMax, stars };
-    const gift = checkGiftUnlock(result);
-    
-    if (gift) {
-      // Create gift in user's inventory
-      createGift(userId, gift);
-      setUnlockedGift(gift);
-    }
-  }, [sunDropsEarned, sunDropsMax, stars]);
-  
-  return (
-    <div className="lesson-complete">
-      {/* ... existing content ... */}
-      
-      <AnimatePresence>
-        {unlockedGift && (
-          <GiftUnlock
-            giftType={unlockedGift}
-            onDismiss={() => setUnlockedGift(null)}
-          />
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-```
-
----
 
 ## Testing Checklist
 
-### Gift Unlocking
-- [x] Water drop unlocks on any lesson completion
-- [x] Sparkle unlocks on 20+ Sun Drops
-- [x] Ribbon unlocks on 3 lessons same day
-- [x] Golden flower unlocks on 3 stars
-- [x] Seed unlocks on path completion
-- [x] Only highest-tier gift unlocked
+- [ ] Gem earning calculation with accuracy
+- [ ] Streak multiplier applies correctly
+- [ ] Streak achievements trigger at milestones
+- [ ] Shop items can be purchased with gems
+- [ ] Insufficient gems prevents purchase
+- [ ] Gift buffer days are correct (1, 3, 5, 10)
+- [ ] Seeds are awarded ×2 on pathway completion
+- [ ] Seeds can be shared with friends
 
-### Gift Sending
-- [x] Can select friend to send to
-- [x] Can add optional message
-- [x] Gift removed from inventory after sending
-- [x] Gift appears in friend's inbox
+## Future Enhancements (Not in Scope)
 
-### Gift Receiving
-- [x] Pending gifts appear in inbox
-- [x] Can apply gift to tree
-- [x] Applied gift effects tree health
-- [x] Can decline gift
-- [ ] Notifications for new gifts (Phase 2)
+- Gem gambling games (not kid-appropriate)
+- Trading gems between users
+- Limited-time shop items
+- Seasonal decorations
 
-### Dev Test Harness
-- [x] Test harness accessible via 🧪 Dev button or Ctrl+Shift+D
-- [x] All gift unlock scenarios testable
-- [x] GiftUnlock modal animation works
-- [x] LessonComplete gift detection works
+## References
 
----
-
-## Confidence Criteria
-
-| Requirement | Status |
-|-------------|--------|
-| Gifts unlock correctly | ✅ |
-| Sending flow works | ✅ |
-| Receiving flow works | ✅ |
-| Applying gift affects tree | ✅ |
-| UI is kid-friendly | ✅ |
-| Unit tests passing | ✅ (33 tests) |
-| Dev test harness | ✅ |
-
----
-
-## Implementation Summary
-
-### Files Created
-- `src/services/giftService.ts` — Core gift service (400+ lines)
-- `src/services/giftService.test.ts` — Unit tests (33 tests)
-- `src/components/social/GiftUnlock.tsx` — Gift unlock animation modal
-- `src/components/social/SendGift.tsx` — Friend selection for sending
-- `src/components/social/FriendGifts.tsx` — Gift inbox component
-- `src/components/social/index.ts` — Barrel export
-- `src/components/dev/GiftTestHarness.tsx` — Visual testing interface
-- `src/components/dev/index.ts` — Dev components index
-- `docs/phase-1.1/TESTING-CHECKLIST.md` — Manual testing checklist
-
-### Files Modified
-- `src/components/lesson/LessonComplete.tsx` — Integrated gift unlock detection
-- `App.tsx` — Added dev mode toggle (🧪 Dev button + keyboard shortcut)
-- `src/types/game.ts` — GiftType enum already present
-
-### Key Implementation Details
-1. **Gift Detection** — Uses `useMemo` for synchronous gift detection on initial render
-2. **Priority System** — Golden Flower > Seed > Sparkle > Ribbon > Water Drop
-3. **Dev Test Harness** — Press Ctrl+Shift+D or click 🧪 Dev button to test all scenarios
-4. **Pocketbase Integration** — Full CRUD for gifts collection (schema from Task 1.1.7)
-
----
-
-## Reference
-
-- **GAME_DESIGN.md** — Section 10 (Gift System)
-- **CLINE_GAME_IMPLEMENTATION.md** — Step 10 (Gift System)
-- `src/types/game.ts` — GiftType enum
-
----
-
-## Notes for Implementation
-
-1. Add notification when new gift received
-2. Consider gift expiration (30 days?)
-3. Add spam protection for gifts
-4. Track gift statistics for analytics
-5. Consider limiting gifts per day
+- `src/services/gemService.ts` - Gem currency system
+- `src/services/giftService.ts` - Gift sending/receiving
+- `src/services/treeHealthService.ts` - Health calculation with buffer days
+- `docs/phase-1.1/task-1-1-17-garden-shop-ui.md` - Shop UI design

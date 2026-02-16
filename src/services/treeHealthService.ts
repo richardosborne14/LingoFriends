@@ -55,18 +55,19 @@ const MAX_HEALTH = 100;
  * Buffer days provided by each gift type.
  * These delay the start of decay.
  * 
- * - water_drop: Standard 10-day buffer
- * - sparkle: Small 5-day buffer
- * - seed: No buffer (starts new trees, doesn't affect health)
- * - ribbon: No buffer (decoration only)
- * - golden_flower: Premium 15-day buffer
+ * Updated in Phase 1.1.11 for rebalanced economy:
+ * - water_drop: 1 day buffer (friend gift)
+ * - sparkle: 3 days buffer (friend gift)
+ * - decoration: 5 days buffer (shop purchase with gems)
+ * - golden_flower: 10 days buffer (rare achievement)
+ * - seed: No buffer (starts new trees)
  */
 const GIFT_BUFFER_DAYS: Record<GiftType, number> = {
-  [GiftTypeEnum.WATER_DROP]: 10,
-  [GiftTypeEnum.SPARKLE]: 5,
+  [GiftTypeEnum.WATER_DROP]: 1,
+  [GiftTypeEnum.SPARKLE]: 3,
+  [GiftTypeEnum.DECORATION]: 5,
+  [GiftTypeEnum.GOLDEN_FLOWER]: 10,
   [GiftTypeEnum.SEED]: 0,
-  [GiftTypeEnum.RIBBON]: 0,
-  [GiftTypeEnum.GOLDEN_FLOWER]: 15,
 };
 
 /** Health threshold for "needing refresh" notification */
@@ -482,29 +483,56 @@ export async function getUserTrees(userId: string): Promise<UserTree[]> {
 
 /**
  * Convert Pocketbase record to UserTree type.
+ * Handles migration from old schema to new schema with per-tree SunDrops.
  * 
  * @param pb - Pocketbase tree record
  * @returns UserTree object
  */
 function pbTreeToUserTree(pb: PBUserTree): UserTree {
+  // Calculate growth stage from sunDropsEarned (or sunDropsTotal for migration)
+  const sunDropsEarned = (pb as any).sunDropsEarned ?? pb.sunDropsTotal ?? 0;
+  const growthStage = calculateGrowthStageFromDrops(sunDropsEarned);
+  
   return {
     id: pb.id,
+    userId: pb.user,
     skillPathId: pb.skillPathId,
     name: pb.name,
     icon: pb.icon,
     status: pb.status as any, // TreeStatus enum
     health: pb.health,
+    bufferDays: (pb as any).bufferDays ?? 0,
     lastRefreshDate: pb.lastRefreshDate,
+    lastLessonDate: (pb as any).lastLessonDate,
+    sunDropsEarned,
     sunDropsTotal: pb.sunDropsTotal,
+    growthStage,
+    gridPosition: (pb as any).gridPosition ?? { gx: Math.floor(pb.position.x / 50), gz: Math.floor(pb.position.y / 50) },
+    position: pb.position,
     lessonsCompleted: pb.lessonsCompleted,
     lessonsTotal: pb.lessonsTotal,
-    position: pb.position,
     decorations: pb.decorations,
     giftsReceived: pb.giftsReceived.map(g => ({
       ...g,
       type: g.type as GiftType,
     })),
+    createdAt: pb.created,
+    updatedAt: pb.updated,
   };
+}
+
+/**
+ * Calculate growth stage from SunDrops earned.
+ * mirrored from game.ts to avoid circular import.
+ */
+function calculateGrowthStageFromDrops(sunDropsEarned: number): number {
+  const thresholds = [0, 10, 25, 45, 70, 100, 140, 190, 250, 320, 400, 500, 620, 750, 900];
+  for (let stage = thresholds.length - 1; stage >= 0; stage--) {
+    if (sunDropsEarned >= thresholds[stage]) {
+      return stage;
+    }
+  }
+  return 0;
 }
 
 // ============================================================================

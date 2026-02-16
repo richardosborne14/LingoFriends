@@ -20,7 +20,7 @@ import { SunDropCounter } from './SunDropCounter';
 import { LessonComplete } from './LessonComplete';
 import { ActivityRouter, ActivityProps } from './activities/ActivityRouter';
 import { ProgressBar } from '../../../components/ui/ProgressBar';
-import { LessonPlan, LessonStep, GiftType } from '../../types/game';
+import { LessonPlan, LessonStep } from '../../types/game';
 
 // ============================================
 // TYPES
@@ -246,7 +246,6 @@ export const LessonView: React.FC<LessonViewProps> = ({
           sunDropsMax={sunDropsMax}
           onContinue={handleContinue}
           onReplay={handleReplay}
-          giftUnlocked={GiftType.WATER_DROP}
         />
       </div>
     );

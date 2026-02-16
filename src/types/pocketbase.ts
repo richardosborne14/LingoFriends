@@ -113,6 +113,12 @@ export interface ProfileRecord extends RecordModel {
   /** Count of pending gifts awaiting user action */
   giftsReceived: number;
   
+  /** Gem currency balance for shop purchases */
+  gems: number;
+  
+  /** Seeds earned from pathway completion (for sharing) */
+  seeds: number;
+  
   // Timestamps
   created: string;
   updated: string;
@@ -348,11 +354,44 @@ export interface DailyProgressRecord extends RecordModel {
 // ============================================================================
 // SESSION RECORD
 // ============================================================================
+// GARDEN OBJECT RECORD
+// ============================================================================
 
 /**
- * Pocketbase session record structure.
- * Chat sessions for Main Hall and Lessons.
- * (Existing collection, documented here for completeness)
+ * Pocketbase garden_object record structure.
+ * Stores placed decorations in the 3D garden.
+ * 
+ * API Rules:
+ * - Read: Owner only
+ * - Write: Owner only
+ */
+export interface GardenObjectRecord extends RecordModel {
+  /** User who owns this object */
+  user: string;
+  
+  /** Object type identifier (matches ShopItem.id, e.g., "oak", "fountain") */
+  object_id: string;
+  
+  /** Grid X position (0-11) */
+  gx: number;
+  
+  /** Grid Z position (0-11) */
+  gz: number;
+  
+  /** When the object was placed */
+  placed_at: string;
+  
+  // Timestamps
+  created: string;
+  updated: string;
+}
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+/**
+ * Convert Pocketbase UserTreeRecord to domain UserTree type.
  */
 export interface SessionRecord extends RecordModel {
   /** User who owns this session */
@@ -534,23 +573,50 @@ export interface VocabularyRecord extends RecordModel {
 
 /**
  * Convert Pocketbase UserTreeRecord to domain UserTree type.
+ * Updated for per-tree SunDrops architecture (Task 1.1.19).
  */
 export function userTreeRecordToUserTree(record: UserTreeRecord): UserTree {
+  // Handle both old and new schema fields for migration compatibility
+  const sunDropsEarned = (record as unknown as Record<string, unknown>).sunDropsEarned as number ?? record.sunDropsTotal ?? 0;
+  
   return {
     id: record.id,
+    userId: record.user,
     skillPathId: record.skillPath,
     name: '', // Populated by joining with skill_paths
     icon: '', // Populated by joining with skill_paths
     status: record.status,
     health: record.health,
+    bufferDays: (record as unknown as Record<string, unknown>).bufferDays as number ?? 0,
     lastRefreshDate: record.lastRefreshDate || record.created,
+    lastLessonDate: (record as unknown as Record<string, unknown>).lastLessonDate as string | undefined,
+    sunDropsEarned,
     sunDropsTotal: record.sunDropsTotal,
+    growthStage: calculateGrowthStage(sunDropsEarned),
+    gridPosition: (record as unknown as Record<string, unknown>).gridPosition as { gx: number; gz: number } 
+      ?? { gx: Math.floor(record.position.x / 50), gz: Math.floor(record.position.y / 50) },
+    position: record.position,
     lessonsCompleted: record.lessonsCompleted,
     lessonsTotal: record.lessonsTotal,
-    position: record.position,
     decorations: record.decorations || [],
     giftsReceived: [], // Populated by separate query
+    createdAt: record.created,
+    updatedAt: record.updated,
   };
+}
+
+/**
+ * Calculate growth stage from SunDrops earned.
+ * Mirrored from game.ts to avoid circular import.
+ */
+function calculateGrowthStage(sunDropsEarned: number): number {
+  const thresholds = [0, 10, 25, 45, 70, 100, 140, 190, 250, 320, 400, 500, 620, 750, 900];
+  for (let stage = thresholds.length - 1; stage >= 0; stage--) {
+    if (sunDropsEarned >= thresholds[stage]) {
+      return stage;
+    }
+  }
+  return 0;
 }
 
 /**

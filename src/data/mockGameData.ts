@@ -161,52 +161,81 @@ export const MOCK_SKILL_PATHS: SkillPath[] = [
 /**
  * Mock user trees for the garden
  * Each tree represents a skill path the user is learning
+ * 
+ * Updated for per-tree SunDrops architecture (Task 1.1.19):
+ * - userId: The user who owns this tree
+ * - gridPosition: Position on the 12x12 garden grid
+ * - sunDropsEarned: Per-tree SunDrops (causes growth)
+ * - growthStage: 0-14, derived from sunDropsEarned
+ * - bufferDays: Health protection from gifts/care items
  */
 export const MOCK_USER_TREES: UserTree[] = [
   {
     id: 'tree-1',
+    userId: 'mock-user',
     skillPathId: 'spanish-greetings',
     name: 'Spanish Greetings',
     icon: '🇪🇸',
     status: 'growing' as TreeStatus,
     health: 85,
+    bufferDays: 2, // Has some gift protection
     lastRefreshDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
-    sunDropsTotal: 20,
+    lastLessonDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    sunDropsEarned: 20, // Per-tree SunDrops
+    sunDropsTotal: 20, // Deprecated but kept for compatibility
+    growthStage: 2, // Stage 2 = 25+ SunDrops
+    gridPosition: { gx: 3, gz: 3 }, // 12x12 grid position
+    position: { x: 180, y: 150 },
     lessonsCompleted: 2,
     lessonsTotal: 4,
-    position: { x: 180, y: 150 },
     decorations: [],
     giftsReceived: [],
+    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
+    updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
   },
   {
     id: 'tree-2',
+    userId: 'mock-user',
     skillPathId: 'spanish-numbers',
     name: 'Numbers 1-10',
     icon: '🔢',
     status: 'seed' as TreeStatus,
     health: 100,
+    bufferDays: 0,
     lastRefreshDate: new Date().toISOString(),
+    sunDropsEarned: 0,
     sunDropsTotal: 0,
+    growthStage: 0, // Seed stage
+    gridPosition: { gx: 9, gz: 4 },
+    position: { x: 450, y: 200 },
     lessonsCompleted: 0,
     lessonsTotal: 3,
-    position: { x: 450, y: 200 },
     decorations: [],
     giftsReceived: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
     id: 'tree-3',
+    userId: 'mock-user',
     skillPathId: 'spanish-colors',
     name: 'Colors',
     icon: '🎨',
     status: 'seed' as TreeStatus,
     health: 100,
+    bufferDays: 0,
     lastRefreshDate: new Date().toISOString(),
+    sunDropsEarned: 0,
     sunDropsTotal: 0,
+    growthStage: 0, // Seed stage
+    gridPosition: { gx: 6, gz: 6 },
+    position: { x: 300, y: 320 },
     lessonsCompleted: 0,
     lessonsTotal: 2,
-    position: { x: 300, y: 320 },
     decorations: [],
     giftsReceived: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
 ];
 

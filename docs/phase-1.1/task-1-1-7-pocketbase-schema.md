@@ -130,6 +130,50 @@ Update the Pocketbase database schema to support the game-based learning system.
 
 ---
 
+### garden_objects (Placed Decorations)
+
+**Note:** This collection replaces `decorations` for the Three.js renderer. Each object is placed individually in the isometric garden.
+
+```javascript
+{
+  id: string;
+  user: relation;            // → profiles
+  objectType: string;        // Object type ID (see GARDEN_THREE_IMPLEMENTATION.md)
+  // Examples: "hedge_short", "hedge_tall", "bench", "lantern", 
+  //           "flower_blue", "flower_pink", "rock_small", "pond"
+  gridX: number;             // Grid column (0-15)
+  gridY: number;             // Grid row (0-12)
+  rotation: number;          // Rotation in degrees (0, 90, 180, 270)
+  variant: number;           // Visual variant (for random flowers, etc.)
+  created: datetime;
+  updated: datetime;
+}
+```
+
+**Object Types (from GARDEN_THREE_IMPLEMENTATION.md):**
+
+| Category | Types | Cost |
+|----------|-------|------|
+| Hedges | `hedge_short`, `hedge_tall`, `hedge_round` | 10-20 seeds |
+| Flowers | `flower_blue`, `flower_pink`, `flower_yellow`, `flower_white` | 5 seeds |
+| Trees | `tree_apple`, `tree_orange` | 50 seeds |
+| Furniture | `bench`, `table`, `umbrella` | 30-40 seeds |
+| Water | `pond`, `fountain` | 100 seeds |
+| Lights | `lantern`, `lamp_post` | 25 seeds |
+| Rocks | `rock_small`, `rock_large` | 5 seeds |
+| Paths | `path_stone`, `path_gravel` | 3 seeds |
+
+**Indexes:**
+- `user` (for fetching user's garden)
+- `user` + `gridX` + `gridY` (unique constraint per grid cell)
+
+**Grid System:**
+- 16 columns × 12 rows
+- Each cell is 64×64 pixels in isometric space
+- Trees use 2×2 cells, ponds use 3×2 cells
+
+---
+
 ### daily_progress (Sun Drop Caps)
 
 ```javascript
@@ -299,6 +343,18 @@ export interface DailyProgressRecord {
   created: string;
   updated: string;
 }
+
+export interface GardenObjectRecord {
+  id: string;
+  user: string;
+  objectType: string;
+  gridX: number;
+  gridY: number;
+  rotation: number;
+  variant: number;
+  created: string;
+  updated: string;
+}
 ```
 
 ---
@@ -325,6 +381,11 @@ export interface DailyProgressRecord {
 ### daily_progress
 - **Read:** Owner only
 - **Write:** Owner only
+
+### garden_objects
+- **Read:** Owner only
+- **Write:** Owner only
+- **Note:** One object per grid cell (unique constraint on user + gridX + gridY)
 
 ---
 

@@ -4,25 +4,32 @@
  * Displays when a lesson is finished, showing:
  * - Trophy animation
  * - Sun Drops earned vs maximum
+ * - Gems earned (NEW - based on accuracy and streak)
  * - Star rating (1-3)
- * - Gift unlocked card with send functionality
+ * - Streak achievement (if milestone reached)
+ * - Pathway completion seeds (if path finished)
  * - Navigation buttons
+ * 
+ * Updated in Phase 1.1.11 for new reward economy:
+ * - Gifts are no longer auto-unlocked from lessons
+ * - Gems are earned based on accuracy and streaks
+ * - Seeds are awarded for pathway completion (×2)
+ * - Achievements can trigger special rewards
  * 
  * @module LessonComplete
  * @see docs/phase-1.1/task-1-1-11-gift-system.md
  */
 
-import React, { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React from 'react';
+import { motion } from 'framer-motion';
 import { SunDropIcon } from '../shared/SunDropIcon';
 import { calculateStars } from '../../services/sunDropService';
 import { 
-  checkGiftUnlock, 
-  getGiftConfig,
-  type LessonResult 
-} from '../../services/giftService';
-import { GiftUnlock } from '../social/GiftUnlock';
-import type { GiftType } from '../../types/game';
+  calculateGemEarning,
+  getStreakAchievement,
+  formatGems,
+  type GemAchievement 
+} from '../../services/gemService';
 
 // ============================================
 // TYPES
@@ -40,14 +47,12 @@ export interface LessonCompleteProps {
   onContinue: () => void;
   /** Callback when user replays the lesson */
   onReplay: () => void;
-  /** Optional: Override auto-detected gift type */
-  giftUnlocked?: GiftType | null;
-  /** Number of lessons completed today (for ribbon gift logic) */
-  lessonsCompletedToday?: number;
-  /** Whether this completes the skill path (for seed gift logic) */
+  /** Current streak in days (for gem multiplier) */
+  currentStreak?: number;
+  /** Whether this completes the skill path (for seed reward) */
   pathComplete?: boolean;
-  /** User ID for gift sending */
-  userId?: string;
+  /** Callback when user wants to share seeds (after path complete) */
+  onShareSeeds?: () => void;
 }
 
 // ============================================
@@ -84,14 +89,31 @@ const trophyVariants = {
 };
 
 /**
- * Gift card animation.
+ * Reward card animation.
  */
-const giftVariants = {
+const rewardVariants = {
   initial: { opacity: 0, y: 15 },
   animate: { 
     opacity: 1, 
     y: 0,
     transition: { delay: 0.4 }
+  },
+};
+
+/**
+ * Achievement pop animation.
+ */
+const achievementVariants = {
+  initial: { opacity: 0, scale: 0.5 },
+  animate: { 
+    opacity: 1, 
+    scale: 1,
+    transition: { 
+      type: 'spring' as const, 
+      stiffness: 500, 
+      damping: 20,
+      delay: 0.6 
+    }
   },
 };
 
@@ -105,14 +127,17 @@ const giftVariants = {
  * Shows the results of a completed lesson including:
  * - Trophy animation
  * - Sun Drops earned / total
+ * - Gems earned (with streak multiplier)
  * - Star rating (1-3 based on percentage)
- * - Optional gift unlocked
+ * - Streak achievement celebration (if milestone)
+ * - Seeds earned (if path complete)
  * - Navigation options
  * 
  * @example
  * <LessonComplete
  *   sunDropsEarned={18}
  *   sunDropsMax={22}
+ *   currentStreak={5}
  *   onContinue={() => navigate('/path')}
  *   onReplay={() => resetLesson()}
  * />
@@ -122,37 +147,23 @@ export const LessonComplete: React.FC<LessonCompleteProps> = ({
   sunDropsMax,
   onContinue,
   onReplay,
-  giftUnlocked,
-  lessonsCompletedToday = 1,
+  currentStreak = 0,
   pathComplete = false,
-  userId,
+  onShareSeeds,
 }) => {
   // Calculate star rating based on performance
   const stars = calculateStars(sunDropsEarned, sunDropsMax);
   
-  // Auto-detect gift type synchronously using useMemo
-  const effectiveGiftType = useMemo(() => {
-    // Use provided gift if available
-    if (giftUnlocked !== undefined) {
-      return giftUnlocked;
-    }
-    
-    // Otherwise detect based on lesson result
-    const result: LessonResult = {
-      sunDropsEarned,
-      sunDropsMax,
-      stars,
-      lessonsCompletedToday,
-      pathComplete,
-    };
-    return checkGiftUnlock(result);
-  }, [giftUnlocked, sunDropsEarned, sunDropsMax, stars, lessonsCompletedToday, pathComplete]);
+  // Calculate gems earned
+  const gemResult = calculateGemEarning(sunDropsEarned, sunDropsMax, currentStreak);
   
-  // Get gift config if a gift was unlocked
-  const gift = effectiveGiftType ? getGiftConfig(effectiveGiftType) : null;
+  // Check for streak achievement
+  const streakAchievement = getStreakAchievement(currentStreak);
   
-  // State for gift unlock modal
-  const [showGiftUnlock, setShowGiftUnlock] = useState(false);
+  // Calculate accuracy percentage
+  const accuracyPercent = sunDropsMax > 0 
+    ? Math.round((sunDropsEarned / sunDropsMax) * 100) 
+    : 0;
 
   return (
     <motion.div
@@ -181,16 +192,41 @@ export const LessonComplete: React.FC<LessonCompleteProps> = ({
       </h2>
 
       {/* Sun Drops earned */}
-      <div 
-        className="flex items-center justify-center gap-2 mb-4 font-extrabold text-xl"
+      <motion.div
+        variants={rewardVariants}
+        className="flex items-center justify-center gap-2 mb-2 font-extrabold text-xl"
         style={{ color: '#B45309' }} // amber-700
       >
         <SunDropIcon size={24} glow />
         <span>{sunDropsEarned}/{sunDropsMax} Sun Drops</span>
-      </div>
+      </motion.div>
+
+      {/* Gems earned */}
+      <motion.div
+        variants={rewardVariants}
+        className="flex items-center justify-center gap-2 mb-4 font-extrabold text-xl"
+        style={{ color: '#7C3AED' }} // purple-600
+      >
+        <span className="text-2xl">💎</span>
+        <span>+{gemResult.totalGems} Gems</span>
+      </motion.div>
+
+      {/* Streak multiplier indicator */}
+      {gemResult.streakMultiplier > 1 && (
+        <motion.div
+          variants={rewardVariants}
+          className="text-sm mb-2 px-3 py-1 rounded-full inline-block"
+          style={{
+            background: 'linear-gradient(135deg, #FCD34D, #F59E0B)', // yellow-300 to amber-500
+            color: '#78350F', // amber-900
+          }}
+        >
+          🔥 {currentStreak}-day streak! ×{gemResult.streakMultiplier} bonus!
+        </motion.div>
+      )}
 
       {/* Star rating */}
-      <div className="text-2xl mb-6">
+      <div className="text-2xl mb-4">
         {[1, 2, 3].map((star) => (
           <span 
             key={star} 
@@ -201,71 +237,99 @@ export const LessonComplete: React.FC<LessonCompleteProps> = ({
         ))}
       </div>
 
-      {/* Gift unlocked card */}
-      {gift && (
+      {/* Accuracy display */}
+      <div 
+        className="text-sm mb-4"
+        style={{ color: '#64748B' }} // slate-500
+      >
+        Accuracy: {accuracyPercent}%
+      </div>
+
+      {/* Streak achievement celebration */}
+      {streakAchievement && (
         <motion.div
-          variants={giftVariants}
-          className="mx-auto max-w-[260px] rounded-2xl p-4 mb-6 border-2"
+          variants={achievementVariants}
+          className="mx-auto max-w-[260px] rounded-2xl p-4 mb-4 border-2"
           style={{
-            background: 'linear-gradient(135deg, #FDF2F8, #F0F9FF)', // pink-50 to sky-50
-            borderColor: '#FBCFE8', // pink-200
+            background: 'linear-gradient(135deg, #FEF3C7, #FCD34D)', // amber-50 to yellow-300
+            borderColor: '#F59E0B', // amber-500
           }}
         >
           <p 
-            className="font-bold text-sm mb-1"
-            style={{ color: '#EC4899' }} // pink-500
+            className="font-bold text-lg mb-2"
+            style={{ color: '#B45309' }} // amber-700
           >
-            🎁 Gift unlocked!
-          </p>
-          <div className="text-3xl mb-2">
-            {gift.emoji}
-          </div>
-          <p 
-            className="font-bold text-sm mb-1"
-            style={{ color: '#334155' }} // slate-700
-          >
-            {gift.name}
+            🎉 {currentStreak} Day Streak!
           </p>
           <p 
-            className="text-xs"
-            style={{ color: '#64748B' }} // slate-500
+            className="text-sm mb-2"
+            style={{ color: '#78350F' }} // amber-900
           >
-            {gift.description}
+            +{streakAchievement.bonusGems} bonus gems!
           </p>
+          {streakAchievement.giftType && (
+            <p className="text-2xl">
+              {streakAchievement.giftType === 'golden_flower' ? '🌸' : '🎀'}
+            </p>
+          )}
         </motion.div>
       )}
 
-      {/* Send to friend button */}
-      {gift && effectiveGiftType && (
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          className="w-full max-w-[260px] mx-auto mb-4 py-3 px-6 rounded-lg font-bold text-sm"
+      {/* Pathway completion - Seeds awarded */}
+      {pathComplete && (
+        <motion.div
+          variants={achievementVariants}
+          className="mx-auto max-w-[260px] rounded-2xl p-4 mb-4 border-2"
           style={{
-            background: 'linear-gradient(135deg, #F472B6, #EC4899)', // pink-400 to pink-500
-            color: '#fff',
-            boxShadow: '0 4px 0 #BE185D', // pink-700
+            background: 'linear-gradient(135deg, #D1FAE5, #6EE7B7)', // green-100 to green-300
+            borderColor: '#10B981', // green-500
           }}
-          onClick={() => setShowGiftUnlock(true)}
         >
-          Send to Friend 💌
-        </motion.button>
+          <p 
+            className="font-bold text-lg mb-2"
+            style={{ color: '#047857' }} // green-700
+          >
+            🌱 Pathway Complete!
+          </p>
+          <p 
+            className="text-sm mb-2"
+            style={{ color: '#065F46' } // green-800
+          }
+          >
+            You earned 2 seeds!
+          </p>
+          <p 
+            className="text-xs"
+            style={{ color: '#064E3B' }} // green-900
+          >
+            Plant one and share one with a friend!
+          </p>
+          {onShareSeeds && (
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              className="mt-3 px-4 py-2 rounded-lg font-bold text-sm"
+              style={{
+                background: 'linear-gradient(135deg, #34D399, #10B981)',
+                color: '#fff',
+                boxShadow: '0 2px 0 #047857',
+              }}
+              onClick={onShareSeeds}
+            >
+              Share Seed 💌
+            </motion.button>
+          )}
+        </motion.div>
       )}
 
-      {/* Gift unlock modal */}
-      <AnimatePresence>
-        {showGiftUnlock && effectiveGiftType && (
-          <GiftUnlock
-            giftType={effectiveGiftType}
-            onDismiss={() => setShowGiftUnlock(false)}
-            onSend={() => {
-              setShowGiftUnlock(false);
-              // Could navigate to friend selection or show send modal
-              console.log('Send gift flow - to be connected with SendGift component');
-            }}
-            canSend={!!userId}
-          />
-        )}
-      </AnimatePresence>
+      {/* Gem breakdown (collapsible in future) */}
+      <motion.div
+        variants={rewardVariants}
+        className="text-xs mb-4"
+        style={{ color: '#94A3B8' }} // slate-400
+      >
+        {gemResult.baseGems} base gems
+        {gemResult.streakMultiplier > 1 && ` × ${gemResult.streakMultiplier} streak bonus`}
+      </motion.div>
 
       {/* Action buttons */}
       <div className="flex gap-3 justify-center">

@@ -14,3 +14,7 @@ export type { SunDropIconProps } from './SunDropIcon';
 // MiniTree - small tree visualization for health display
 export { MiniTree } from './MiniTree';
 export type { MiniTreeProps } from './MiniTree';
+
+// SeedInventory - seed count display and planting UI
+export { SeedInventory } from './SeedInventory';
+export type { SeedInventoryProps } from './SeedInventory';

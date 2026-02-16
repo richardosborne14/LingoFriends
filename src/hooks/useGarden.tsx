@@ -32,7 +32,7 @@ import type {
   GiftItem,
   GiftType,
 } from '../types/game';
-import { TreeStatus as TreeStatusEnum } from '../types/game';
+import { TreeStatus as TreeStatusEnum, calculateGrowthStage } from '../types/game';
 import { MOCK_SKILL_PATHS, MOCK_USER_TREES } from '../data/mockGameData';
 
 // ============================================
@@ -322,18 +322,25 @@ export function useGarden(): UseGardenReturn {
 
     const newTree: UserTree = {
       id: `tree-${Date.now()}`, // Will be replaced by DB ID
+      userId: userId || '',
       skillPathId,
       name: skillPath.name,
       icon: skillPath.icon,
       status: TreeStatusEnum.SEED,
       health: 100,
+      bufferDays: 0,
       lastRefreshDate: new Date().toISOString(),
-      sunDropsTotal: 0,
+      sunDropsEarned: 0,
+      sunDropsTotal: 0, // Deprecated, kept for compatibility
+      growthStage: 0,
+      gridPosition: { gx: Math.floor(position.x / 50), gz: Math.floor(position.y / 50) },
+      position,
       lessonsCompleted: 0,
       lessonsTotal: skillPath.lessons.length,
-      position,
       decorations: [],
       giftsReceived: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
     if (USE_MOCK_DATA) {
@@ -488,27 +495,40 @@ export function useGarden(): UseGardenReturn {
 // ============================================
 
 /**
- * Convert Pocketbase tree record to UserTree type
+ * Convert Pocketbase tree record to UserTree type.
+ * Handles migration from old schema to new schema with per-tree SunDrops.
  */
 function pbTreeToUserTree(pb: PBUserTree): UserTree {
+  // Calculate growth stage from sunDropsEarned (or sunDropsTotal for migration)
+  const sunDropsEarned = (pb as unknown as Record<string, unknown>).sunDropsEarned as number ?? pb.sunDropsTotal ?? 0;
+  const growthStage = calculateGrowthStage(sunDropsEarned);
+  
   return {
     id: pb.id,
+    userId: pb.user,
     skillPathId: pb.skillPathId,
     name: pb.name,
     icon: pb.icon,
     status: pb.status,
     health: pb.health,
+    bufferDays: (pb as unknown as Record<string, unknown>).bufferDays as number ?? 0,
     lastRefreshDate: pb.lastRefreshDate,
+    sunDropsEarned,
     sunDropsTotal: pb.sunDropsTotal,
+    growthStage,
+    gridPosition: (pb as unknown as Record<string, unknown>).gridPosition as { gx: number; gz: number } 
+      ?? { gx: Math.floor(pb.position.x / 50), gz: Math.floor(pb.position.y / 50) },
+    position: pb.position,
     lessonsCompleted: pb.lessonsCompleted,
     lessonsTotal: pb.lessonsTotal,
-    position: pb.position,
     decorations: pb.decorations,
     // Convert GiftItemRecord[] to GiftItem[] by casting the type field
     giftsReceived: pb.giftsReceived.map(g => ({
       ...g,
       type: g.type as GiftType,
     })),
+    createdAt: pb.created,
+    updatedAt: pb.updated,
   };
 }
 

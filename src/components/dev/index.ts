@@ -6,3 +6,5 @@
  */
 
 export { GiftTestHarness } from './GiftTestHarness';
+export { ShopTestHarness } from './ShopTestHarness';
+export { DevTestHarness } from './DevTestHarness';

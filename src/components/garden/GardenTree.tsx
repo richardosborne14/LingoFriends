@@ -203,7 +203,8 @@ export const GardenTree: React.FC<GardenTreeProps> = ({
                   {gift.type === 'water_drop' ? '💧' : 
                    gift.type === 'sparkle' ? '✨' :
                    gift.type === 'seed' ? '🌱' :
-                   gift.type === 'ribbon' ? '🎀' : '🎁'}
+                   gift.type === 'decoration' ? '🎀' :
+                   gift.type === 'golden_flower' ? '🌸' : '🎁'}
                 </span>
               ))}
               {tree.giftsReceived.length > 3 && (

@@ -153,7 +153,7 @@ describe('Gift Unlocks', () => {
     expect(GiftType.WATER_DROP).toBe('water_drop');
     expect(GiftType.SPARKLE).toBe('sparkle');
     expect(GiftType.SEED).toBe('seed');
-    expect(GiftType.RIBBON).toBe('ribbon');
+    expect(GiftType.DECORATION).toBe('decoration');
     expect(GiftType.GOLDEN_FLOWER).toBe('golden_flower');
   });
 

@@ -91,7 +91,9 @@ describe('checkGiftUnlock', () => {
     expect(gift).toBe('sparkle');
   });
   
-  it('should return ribbon for 3+ lessons completed today', () => {
+  // Note: Ribbon was replaced with Decoration (purchased with gems in shop)
+  // Lessons completed today no longer awards a gift automatically
+  it('should return water_drop for lessons with no special conditions', () => {
     const result: LessonResult = {
       sunDropsEarned: 15,
       sunDropsMax: 20,
@@ -100,19 +102,8 @@ describe('checkGiftUnlock', () => {
     };
     
     const gift = checkGiftUnlock(result);
-    expect(gift).toBe('ribbon');
-  });
-  
-  it('should return ribbon for more than 3 lessons completed today', () => {
-    const result: LessonResult = {
-      sunDropsEarned: 10,
-      sunDropsMax: 20,
-      stars: 1,
-      lessonsCompletedToday: 5,
-    };
-    
-    const gift = checkGiftUnlock(result);
-    expect(gift).toBe('ribbon');
+    // Water drop is not auto-awarded anymore (friend gifts only)
+    expect(gift).toBeNull();
   });
   
   it('should return golden_flower for 3 stars (highest priority)', () => {
@@ -205,12 +196,12 @@ describe('getGiftConfig', () => {
     expect(config.rarity).toBe('rare');
   });
   
-  it('should return config for ribbon', () => {
-    const config = getGiftConfig(GiftType.RIBBON);
+  it('should return config for decoration', () => {
+    const config = getGiftConfig(GiftType.DECORATION);
     
-    expect(config.name).toBe('Ribbon');
+    expect(config.name).toBe('Tree Decoration');
     expect(config.emoji).toBe('🎀');
-    expect(config.bufferDays).toBe(0);
+    expect(config.bufferDays).toBe(5);
     expect(config.isDecoration).toBe(true);
     expect(config.rarity).toBe('uncommon');
   });
@@ -231,7 +222,7 @@ describe('getGiftEmoji', () => {
     expect(getGiftEmoji(GiftType.WATER_DROP)).toBe('💧');
     expect(getGiftEmoji(GiftType.SPARKLE)).toBe('✨');
     expect(getGiftEmoji(GiftType.SEED)).toBe('🌱');
-    expect(getGiftEmoji(GiftType.RIBBON)).toBe('🎀');
+    expect(getGiftEmoji(GiftType.DECORATION)).toBe('🎀');
     expect(getGiftEmoji(GiftType.GOLDEN_FLOWER)).toBe('🌸');
   });
 });
@@ -241,7 +232,7 @@ describe('getGiftName', () => {
     expect(getGiftName(GiftType.WATER_DROP)).toBe('Water Drop');
     expect(getGiftName(GiftType.SPARKLE)).toBe('Sparkle');
     expect(getGiftName(GiftType.SEED)).toBe('Seed');
-    expect(getGiftName(GiftType.RIBBON)).toBe('Ribbon');
+    expect(getGiftName(GiftType.DECORATION)).toBe('Tree Decoration');
     expect(getGiftName(GiftType.GOLDEN_FLOWER)).toBe('Golden Flower');
   });
 });
@@ -252,7 +243,7 @@ describe('getGiftName', () => {
 
 describe('GIFT_CONFIGS', () => {
   it('should have all gift types defined', () => {
-    const giftTypes: GiftType[] = [GiftType.WATER_DROP, GiftType.SPARKLE, GiftType.SEED, GiftType.RIBBON, GiftType.GOLDEN_FLOWER];
+    const giftTypes: GiftType[] = [GiftType.WATER_DROP, GiftType.SPARKLE, GiftType.SEED, GiftType.DECORATION, GiftType.GOLDEN_FLOWER];
     
     giftTypes.forEach(type => {
       expect(GIFT_CONFIGS[type]).toBeDefined();
@@ -265,24 +256,24 @@ describe('GIFT_CONFIGS', () => {
   it('should have correct rarity levels', () => {
     expect(GIFT_CONFIGS.water_drop.rarity).toBe('common');
     expect(GIFT_CONFIGS.sparkle.rarity).toBe('uncommon');
-    expect(GIFT_CONFIGS.ribbon.rarity).toBe('uncommon');
+    expect(GIFT_CONFIGS.decoration.rarity).toBe('uncommon');
     expect(GIFT_CONFIGS.seed.rarity).toBe('rare');
     expect(GIFT_CONFIGS.golden_flower.rarity).toBe('legendary');
   });
   
   it('should have correct buffer days for health-boosting gifts', () => {
-    // Gifts that add buffer days
-    expect(GIFT_CONFIGS.water_drop.bufferDays).toBe(10);
-    expect(GIFT_CONFIGS.sparkle.bufferDays).toBe(5);
-    expect(GIFT_CONFIGS.golden_flower.bufferDays).toBe(15);
+    // Gifts that add buffer days (updated for rebalanced economy)
+    expect(GIFT_CONFIGS.water_drop.bufferDays).toBe(1);
+    expect(GIFT_CONFIGS.sparkle.bufferDays).toBe(3);
+    expect(GIFT_CONFIGS.decoration.bufferDays).toBe(5);
+    expect(GIFT_CONFIGS.golden_flower.bufferDays).toBe(10);
     
     // Gifts that don't add buffer days
     expect(GIFT_CONFIGS.seed.bufferDays).toBe(0);
-    expect(GIFT_CONFIGS.ribbon.bufferDays).toBe(0);
   });
   
   it('should correctly identify decorations', () => {
-    expect(GIFT_CONFIGS.ribbon.isDecoration).toBe(true);
+    expect(GIFT_CONFIGS.decoration.isDecoration).toBe(true);
     expect(GIFT_CONFIGS.golden_flower.isDecoration).toBe(true);
     
     expect(GIFT_CONFIGS.water_drop.isDecoration).toBe(false);
@@ -348,8 +339,8 @@ describe('getDefaultGiftMessage', () => {
     expect(getDefaultGiftMessage(GiftType.SEED, senderName)).toContain('Seed');
     expect(getDefaultGiftMessage(GiftType.SEED, senderName)).toContain('🌱');
     
-    expect(getDefaultGiftMessage(GiftType.RIBBON, senderName)).toContain('Ribbon');
-    expect(getDefaultGiftMessage(GiftType.RIBBON, senderName)).toContain('🎀');
+    expect(getDefaultGiftMessage(GiftType.DECORATION, senderName)).toContain('Decoration');
+    expect(getDefaultGiftMessage(GiftType.DECORATION, senderName)).toContain('🎀');
     
     expect(getDefaultGiftMessage(GiftType.GOLDEN_FLOWER, senderName)).toContain('Golden Flower');
     expect(getDefaultGiftMessage(GiftType.GOLDEN_FLOWER, senderName)).toContain('🌸');
@@ -357,7 +348,7 @@ describe('getDefaultGiftMessage', () => {
   });
   
   it('should be kid-friendly (no inappropriate content)', () => {
-    const giftTypes = [GiftType.WATER_DROP, GiftType.SPARKLE, GiftType.SEED, GiftType.RIBBON, GiftType.GOLDEN_FLOWER];
+    const giftTypes = [GiftType.WATER_DROP, GiftType.SPARKLE, GiftType.SEED, GiftType.DECORATION, GiftType.GOLDEN_FLOWER];
     const messages = giftTypes.map(type => 
       getDefaultGiftMessage(type, 'Test')
     );
@@ -414,8 +405,10 @@ describe('Gift Unlock Priority', () => {
     expect(checkGiftUnlock(result)).toBe('sparkle');
   });
   
-  it('should prioritize ribbon over water_drop (priority 1)', () => {
-    // 3+ lessons + <20 drops = ribbon wins
+  // Note: Ribbon/decoration is now purchased with gems, not awarded from lessons
+  // Lessons completed today no longer triggers gift awards
+  it('should return null for lessons completed today (no longer awards decoration)', () => {
+    // 3+ lessons + <20 drops = no gift (ribbon was replaced with shop-purchased decoration)
     const result: LessonResult = {
       sunDropsEarned: 15,
       sunDropsMax: 25,
@@ -423,10 +416,11 @@ describe('Gift Unlock Priority', () => {
       lessonsCompletedToday: 3,
     };
     
-    expect(checkGiftUnlock(result)).toBe('ribbon');
+    // Ribbon removed - decorations now purchased with gems
+    expect(checkGiftUnlock(result)).toBeNull();
   });
   
-  it('should return water_drop as default (priority 0)', () => {
+  it('should return null as default for basic lessons (water_drop is friend-gift only)', () => {
     const result: LessonResult = {
       sunDropsEarned: 10,
       sunDropsMax: 25,
@@ -435,6 +429,7 @@ describe('Gift Unlock Priority', () => {
       pathComplete: false,
     };
     
-    expect(checkGiftUnlock(result)).toBe('water_drop');
+    // Water drop no longer auto-awarded - friend gifts only
+    expect(checkGiftUnlock(result)).toBeNull();
   });
 });

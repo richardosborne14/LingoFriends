@@ -325,7 +325,12 @@ useEffect(() => {
 
 ## Notes for Future Tasks
 
-- PixiJS upgrade replaces CSS/HTML (Task 1.1.14)
-- Decoration system adds user-placed items (Task 1.1.12)
+- Three.js renderer replaces CSS/HTML (Task 1.1.14)
+- Garden shop and decoration placement (Task 1.1.17)
 - Gift indicators from friends (Task 1.1.11)
 - Sound effects for walking (Phase D)
+
+## See Also
+
+- **GARDEN_THREE_IMPLEMENTATION.md** — Complete Three.js implementation guide
+- **GardenV2.jsx** — Working Three.js prototype

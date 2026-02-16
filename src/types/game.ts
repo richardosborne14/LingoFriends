@@ -91,16 +91,51 @@ export enum TreeStatus {
 
 /**
  * Types of gifts players can send to friends.
- * Each gift type has different effects on the recipient's garden.
+ * Each gift type has different effects on tree health.
  * 
- * @see GAME_DESIGN.md Section 7 (Social Features)
+ * Updated in Phase 1.1.11 to rebalance reward economy:
+ * - Water Drop: +1 day buffer (friend gift only)
+ * - Sparkle: +3 days buffer (friend gift only)
+ * - Decoration: +5 days buffer (shop purchase with gems)
+ * - Golden Flower: +10 days buffer (rare achievement reward)
+ * - Seed: Start new skill path (pathway completion reward)
+ * 
+ * @see docs/phase-1.1/task-1-1-11-gift-system.md
  */
 export enum GiftType {
-  WATER_DROP = 'water_drop',       // +10 days buffer on decay
-  SPARKLE = 'sparkle',             // Cosmetic + small health boost
+  WATER_DROP = 'water_drop',       // +1 day tree health buffer
+  SPARKLE = 'sparkle',             // +3 days tree health buffer
+  DECORATION = 'decoration',       // +5 days tree health buffer (shop purchase)
+  GOLDEN_FLOWER = 'golden_flower', // +10 days tree health buffer (rare)
   SEED = 'seed',                   // Start a new skill path
-  RIBBON = 'ribbon',               // Tree decoration
-  GOLDEN_FLOWER = 'golden_flower', // Rare garden decoration
+  // Note: RIBBON removed - replaced by shop-purchased decorations
+}
+
+/**
+ * Achievement types that can unlock special rewards.
+ * Used for granting decorations and bonuses for milestones.
+ */
+export enum AchievementType {
+  STREAK_3_DAYS = 'streak_3_days',       // 3-day learning streak
+  STREAK_7_DAYS = 'streak_7_days',       // 7-day learning streak
+  STREAK_14_DAYS = 'streak_14_days',     // 14-day learning streak
+  STREAK_30_DAYS = 'streak_30_days',     // 30-day learning streak
+  PATHWAY_COMPLETE = 'pathway_complete', // Complete a skill path
+  FIVE_PATHWAYS = 'five_pathways',       // Complete 5 skill paths
+  PERFECT_LESSON = 'perfect_lesson',     // 100% on a lesson (no mistakes)
+  FIRST_FRIEND = 'first_friend',         // Added first friend
+  FIRST_GIFT = 'first_gift',             // Sent first gift
+}
+
+/**
+ * Shop item categories for organizing the garden shop.
+ * Clear separation between tree-helping and cosmetic items.
+ */
+export enum ShopCategory {
+  TREE_CARE = 'tree_care',    // Items that boost tree health
+  GARDEN = 'garden',          // Pure cosmetic garden decorations
+  AVATAR = 'avatar',          // Avatar customization items
+  SPECIAL = 'special',        // Limited-time or special items
 }
 
 // ============================================================================
@@ -273,40 +308,133 @@ export interface SkillPathLesson {
 // ============================================================================
 
 /**
- * User's tree instance in their garden.
+ * User's LEARNING tree instance in their garden.
  * 
- * Each tree represents a skill path the user is learning.
- * Tree health reflects spaced repetition - decays without review.
+ * Each tree represents ONE skill path the user is learning.
+ * These are distinct from DECORATION trees (cosmetic only).
  * 
- * @see sunDropService.ts for health calculation
+ * LEARNING TREES:
+ * - Planted from SEEDS (earned via pathway completion)
+ * - Have per-tree SunDrops that cause GROWTH
+ * - 15 growth stages (0-14) based on SunDrops earned
+ * - Linked to a specific skill pathway
+ * - Health decays without review
+ * - Click opens PathView for lessons
+ * 
+ * DECORATION TREES:
+ * - Bought with GEMS in the shop
+ * - Static appearance, no growth
+ * - No gameplay function
+ * - See DECORATION_CATALOGUE for available items
+ * 
+ * @see docs/phase-1.1/task-1-1-19-garden-architecture-fix.md
+ * @see sunDropService.ts for growth calculations
+ * @see treeHealthService.ts for decay calculations
  */
 export interface UserTree {
   /** Unique identifier */
   id: string;
+  /** User ID (relation to users) */
+  userId: string;
+  
   /** ID of the SkillPath this tree represents */
   skillPathId: string;
-  /** Display name (same as SkillPath name) */
+  /** Display name (e.g., "Spanish Basics", "French Greetings") */
   name: string;
   /** Emoji or icon identifier */
   icon: string;
-  /** Current growth status */
-  status: TreeStatus;
-  /** Health percentage: 0-100 */
+  
+  // ============================================
+  // POSITION IN 3D GARDEN
+  // ============================================
+  
+  /** Grid position in garden (0-11 for both x and z) */
+  gridPosition: { gx: number; gz: number };
+  /** Legacy position field - @deprecated use gridPosition */
+  position: { x: number; y: number };
+  
+  // ============================================
+  // GROWTH SYSTEM (PER-TREE SUNDROPS)
+  // ============================================
+  
+  /**
+   * Total SunDrops earned for THIS TREE ONLY.
+   * NOT global - each learning tree has its own count.
+   * Completing lessons in this pathway adds SunDrops here.
+   */
+  sunDropsEarned: number;
+  
+  /**
+   * Growth stage: 0-14 (15 stages total).
+   * Derived from sunDropsEarned via GROWTH_THRESHOLDS.
+   * Stage 0 = seedling, Stage 14 = fully mature tree.
+   */
+  growthStage: number;
+  
+  /** @deprecated Use sunDropsEarned - kept for migration compatibility */
+  sunDropsTotal: number;
+  
+  // ============================================
+  // HEALTH SYSTEM (SPACED REPETITION)
+  // ============================================
+  
+  /** Health percentage: 0-100. Decays without review. */
   health: number;
+  /** Current status based on growth and health */
+  status: TreeStatus;
+  /** Days of protection from gifts and tree care items */
+  bufferDays: number;
   /** When last reviewed/practiced (ISO date string) */
   lastRefreshDate: string;
-  /** Total Sun Drops earned on this tree */
-  sunDropsTotal: number;
-  /** Number of lessons completed */
+  /** When last lesson was completed (ISO date string) */
+  lastLessonDate?: string;
+  
+  // ============================================
+  // PROGRESS TRACKING
+  // ============================================
+  
+  /** Number of lessons completed in this pathway */
   lessonsCompleted: number;
   /** Total lessons in skill path */
   lessonsTotal: number;
-  /** Position in garden grid */
-  position: { x: number; y: number };
-  /** IDs of decorations applied to this tree */
+  
+  // ============================================
+  // DECORATIONS & GIFTS
+  // ============================================
+  
+  /** IDs of decorations placed on/around this tree */
   decorations: string[];
-  /** Gifts received from friends */
+  /** Gifts received from friends for this tree */
   giftsReceived: GiftItem[];
+  
+  // ============================================
+  // TIMESTAMPS
+  // ============================================
+  
+  /** When the tree was planted (ISO date string) */
+  createdAt?: string;
+  /** When the tree was last updated (ISO date string) */
+  updatedAt?: string;
+}
+
+/**
+ * Growth thresholds for converting sunDropsEarned to growthStage.
+ * Stage 0 = 0 drops, Stage 14 = 900+ drops.
+ */
+export const GROWTH_THRESHOLDS = [0, 10, 25, 45, 70, 100, 140, 190, 250, 320, 400, 500, 620, 750, 900];
+
+/**
+ * Calculate growth stage from SunDrops earned.
+ * @param sunDropsEarned Total SunDrops for this tree
+ * @returns Growth stage 0-14
+ */
+export function calculateGrowthStage(sunDropsEarned: number): number {
+  for (let stage = GROWTH_THRESHOLDS.length - 1; stage >= 0; stage--) {
+    if (sunDropsEarned >= GROWTH_THRESHOLDS[stage]) {
+      return stage;
+    }
+  }
+  return 0;
 }
 
 /**
@@ -388,6 +516,169 @@ export interface ActivityResult {
   attempts: number;
   /** Whether help button was used */
   usedHelp: boolean;
+}
+
+// ============================================================================
+// SHOP CATALOGUES
+// ============================================================================
+
+/**
+ * Decoration item category for shop organization.
+ */
+export type DecorationCategory = 'Trees' | 'Flowers' | 'Plants' | 'Furniture' | 'Features';
+
+/**
+ * Decoration item in the shop catalogue.
+ * These are COSMETIC ONLY - no gameplay function.
+ * Purchased with GEMS (not SunDrops).
+ */
+export interface DecorationItem {
+  /** Unique identifier */
+  id: string;
+  /** Display name */
+  name: string;
+  /** Category for shop filtering */
+  category: DecorationCategory;
+  /** Cost in GEMS */
+  cost: number;
+  /** Emoji icon for UI display */
+  icon: string;
+}
+
+/**
+ * Tree care consumable item.
+ * These provide health buffer to learning trees.
+ * Purchased with GEMS.
+ */
+export interface TreeCareItem {
+  /** Unique identifier */
+  id: string;
+  /** Display name */
+  name: string;
+  /** Cost in GEMS */
+  cost: number;
+  /** Effect type (currently only health_buffer) */
+  effect: 'health_buffer';
+  /** Days of health protection added */
+  bufferDays: number;
+  /** Emoji icon for UI display */
+  icon: string;
+  /** Description for shop display */
+  description: string;
+}
+
+/**
+ * Shop catalogue for GARDEN DECORATIONS.
+ * These are cosmetic items purchased with GEMS.
+ * 
+ * NOTE: Trees in this catalogue are DECORATION TREES only -
+ * they are NOT learning trees. Learning trees come from SEEDS.
+ */
+export const DECORATION_CATALOGUE: DecorationItem[] = [
+  // ============================================
+  // DECORATION TREES (COSMETIC, NOT LEARNING TREES)
+  // These are static decorations - no growth, no health, no pathway link
+  // ============================================
+  { id: 'oak',      name: 'Oak Tree',        category: 'Trees',     cost: 30, icon: '🌳' },
+  { id: 'pine',     name: 'Pine Tree',       category: 'Trees',     cost: 25, icon: '🌲' },
+  { id: 'cherry',   name: 'Cherry Blossom',  category: 'Trees',     cost: 40, icon: '🌸' },
+  { id: 'maple',    name: 'Autumn Maple',    category: 'Trees',     cost: 35, icon: '🍁' },
+  { id: 'willow',   name: 'Weeping Willow',  category: 'Trees',     cost: 45, icon: '🌿' },
+  { id: 'palm',     name: 'Palm Tree',       category: 'Trees',     cost: 38, icon: '🌴' },
+  
+  // ============================================
+  // FLOWERS
+  // ============================================
+  { id: 'rose',     name: 'Rose',            category: 'Flowers',   cost: 15, icon: '🌹' },
+  { id: 'sunflwr',  name: 'Sunflower',       category: 'Flowers',   cost: 12, icon: '🌻' },
+  { id: 'tulip',    name: 'Tulip',           category: 'Flowers',   cost: 10, icon: '🌷' },
+  { id: 'lavender', name: 'Lavender',        category: 'Flowers',   cost: 10, icon: '💜' },
+  { id: 'daisy',    name: 'Daisy',           category: 'Flowers',   cost: 8,  icon: '🌼' },
+  { id: 'poppy',    name: 'Poppy',           category: 'Flowers',   cost: 10, icon: '🌺' },
+  
+  // ============================================
+  // PLANTS
+  // ============================================
+  { id: 'hedge',    name: 'Hedge Bush',      category: 'Plants',    cost: 18, icon: '🌿' },
+  { id: 'mushroom', name: 'Mushroom',        category: 'Plants',    cost: 8,  icon: '🍄' },
+  
+  // ============================================
+  // FURNITURE
+  // ============================================
+  { id: 'bench',    name: 'Bench',           category: 'Furniture', cost: 45, icon: '🪑' },
+  { id: 'lantern',  name: 'Lantern',         category: 'Furniture', cost: 35, icon: '🏮' },
+  { id: 'sign',     name: 'Sign Post',       category: 'Furniture', cost: 20, icon: '🪧' },
+  
+  // ============================================
+  // FEATURES
+  // ============================================
+  { id: 'fountain', name: 'Fountain',        category: 'Features',  cost: 80, icon: '⛲' },
+  { id: 'pond',     name: 'Pond',            category: 'Features',  cost: 55, icon: '💧' },
+];
+
+/**
+ * Shop catalogue for TREE CARE ITEMS.
+ * These are consumables that protect learning trees from health decay.
+ * Purchased with GEMS.
+ */
+export const TREE_CARE_ITEMS: TreeCareItem[] = [
+  { 
+    id: 'watering_can', 
+    name: 'Watering Can', 
+    cost: 15, 
+    effect: 'health_buffer', 
+    bufferDays: 5, 
+    icon: '🚿',
+    description: 'Adds 5 days of health protection to a learning tree.'
+  },
+  { 
+    id: 'sun_lamp', 
+    name: 'Sun Lamp', 
+    cost: 20, 
+    effect: 'health_buffer', 
+    bufferDays: 5, 
+    icon: '💡',
+    description: 'Adds 5 days of health protection to a learning tree.'
+  },
+  { 
+    id: 'fertilizer', 
+    name: 'Magic Fertilizer', 
+    cost: 25, 
+    effect: 'health_buffer', 
+    bufferDays: 5, 
+    icon: '✨',
+    description: 'Adds 5 days of health protection to a learning tree.'
+  },
+  { 
+    id: 'rainbow_pot', 
+    name: 'Rainbow Pot', 
+    cost: 30, 
+    effect: 'health_buffer', 
+    bufferDays: 5, 
+    icon: '🌈',
+    description: 'Adds 5 days of health protection to a learning tree.'
+  },
+];
+
+/**
+ * Get a decoration item by ID.
+ */
+export function getDecorationById(id: string): DecorationItem | undefined {
+  return DECORATION_CATALOGUE.find(item => item.id === id);
+}
+
+/**
+ * Get decorations by category.
+ */
+export function getDecorationsByCategory(category: DecorationCategory): DecorationItem[] {
+  return DECORATION_CATALOGUE.filter(item => item.category === category);
+}
+
+/**
+ * Get a tree care item by ID.
+ */
+export function getTreeCareItemById(id: string): TreeCareItem | undefined {
+  return TREE_CARE_ITEMS.find(item => item.id === id);
 }
 
 // ============================================================================

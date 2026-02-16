@@ -84,12 +84,55 @@ Phase 1.1 transforms LingoFriends from a chat-first application into a **garden-
 
 | Task | Name | Dependencies | Time |
 |------|------|--------------|------|
-| 1.1.14 | PixiJS Upgrade & Assets | 1.1.5 | 6-8h |
-| 1.1.17 | OSS Asset Integration (Kenney.nl) | 1.1.14 | 4-6h |
+| 1.1.14 | Three.js Isometric Garden Renderer | 1.1.5 | 10-14h |
 | 1.1.15 | Mobile Controls & Polish | 1.1.14 | 4-5h |
 | 1.1.16 | Tutorial Flow & Testing | All | 4-5h |
+| 1.1.17 | Garden Shop & Decoration Placement | 1.1.14 | 4-5h |
+| 1.1.18 | Avatar Customization | 1.1.14 | 3-4h |
+| 1.1.19 | **Garden Architecture Correction** | All | 6-8h |
 
-**Milestone:** Kid-tested, polished experience
+**Milestone:** Kid-tested, polished 3D garden experience
+
+**Note:** Task 1.1.12 (Decoration System) has been merged into Task 1.1.17 (Garden Shop).
+
+---
+
+### Phase E: Tree/Path 3D Integration (Follow-up)
+**Goal:** Connect learning trees and paths to the 3D renderer
+
+| Task | Name | Dependencies | Time |
+|------|------|--------------|------|
+| 1.1.20 | Tree-to-Renderer Integration | 1.1.14, 1.1.19 | 6-8h |
+| 1.1.21 | Path Node 3D Visualization | 1.1.20 | 4-6h |
+| 1.1.22 | Garden Dev Sandbox Mode | 1.1.20 | 4-5h |
+
+**Milestone:** Complete 3D garden with learning trees and paths visible
+
+**Why this phase is needed:** After completing Phase D, a gap was discovered: the 3D renderer (`GardenWorld3D`) only displays decorative objects, not the learning trees linked to skill paths. This phase bridges the `UserTree` domain model with the `GardenRenderer` visualization.
+
+---
+
+## ⚠️ Critical Architecture Fix (Task 1.1.19)
+
+---
+
+## ⚠️ Critical Architecture Fix (Task 1.1.19)
+
+A **conceptual confusion** was discovered after completing tasks 1.1.1-1.1.17. Two types of "trees" were incorrectly merged:
+
+| Type | Source | Purpose | Documentation |
+|------|--------|---------|---------------|
+| **Learning Trees** | Seeds (from pathway completion) | Core gameplay, represent learning pathways | task-1-1-19-garden-architecture-fix.md |
+| **Decoration Trees** | Shop (purchased with Gems) | Cosmetic only, no gameplay function | GARDEN_THREE_IMPLEMENTATION.md |
+
+**Key corrections:**
+1. **SunDrops are PER-TREE**, not global — each learning tree has its own SunDrop count
+2. **Gems** (global) are for shop purchases (decorations, tree care items)
+3. **Seeds** are for planting NEW learning trees (earned from pathway completion)
+4. Shop sells decorations only, NOT learning trees
+5. Learning trees have 15 growth stages based on per-tree SunDrops
+
+See `task-1-1-19-garden-architecture-fix.md` for complete details and migration plan.
 
 ---
 
@@ -134,11 +177,13 @@ Phase 1.1 transforms LingoFriends from a chat-first application into a **garden-
 
 | Technology | Purpose |
 |------------|---------|
-| PixiJS | 2D WebGL rendering for garden |
-| @pixi/react | React integration for PixiJS |
+| Three.js | 3D WebGL rendering for isometric garden |
+| @types/three | TypeScript definitions |
 | Framer Motion | UI animations (existing) |
 
-**Asset Sources:** Kenney.nl, OpenGameArt.org (CC0/public domain)
+**Why Three.js?** The garden uses an isometric 3D view with proper depth sorting, lighting, and animated effects (fountain particles, pond ripples, lantern glow). Three.js with an orthographic camera handles all of this automatically, whereas PixiJS would require manual depth sorting and couldn't achieve the same visual quality.
+
+**Asset Approach:** Geometry-only 3D objects (no external textures required for MVP). Trees, flowers, furniture, and avatar are built from primitives. See `GARDEN_THREE_IMPLEMENTATION.md` for the full object catalogue.
 
 ---
 
@@ -164,9 +209,9 @@ Phase 1.1 transforms LingoFriends from a chat-first application into a **garden-
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
-| PixiJS learning curve | Medium | Start with CSS/HTML, upgrade later |
+| Three.js performance | Medium | Start with CSS/SVG, upgrade in Phase D; profile early |
 | Scope creep | High | Strict phase boundaries, defer to Phase 2 |
-| Performance on mobile | Medium | Test early on older devices |
+| Performance on mobile | Medium | Test early on older devices; limit object count |
 | AI lesson quality | High | Iterate on prompts, test with kids |
 | Kids don't understand decay | Medium | Clear visual indicators, tutorial |
 
@@ -225,11 +270,12 @@ src/
 
 ## Notes for Implementation
 
-1. **Reference the prototype:** `prototype-v4-final.jsx` shows exact UX behavior
+1. **Reference the prototype:** `GardenV2.jsx` shows the Three.js renderer implementation
 2. **Phase A comes first:** Core mechanics must work before polish
 3. **Test with kids early:** Get feedback on garden metaphor before investing heavily
-4. **CSS before PixiJS:** Garden can start as HTML/CSS, upgrade to PixiJS in Phase D
+4. **CSS before Three.js:** Garden can start as HTML/SVG, upgrade to Three.js in Phase D
 5. **Deprecate old components:** ChatInterface, ActivityWidget will be replaced
+6. **Three.js implementation guide:** See `GARDEN_THREE_IMPLEMENTATION.md` for complete details
 
 ---
 

@@ -13,11 +13,22 @@
  * @see docs/phase-1.1/task-1-1-8-garden-state.md
  */
 
-import React, { createContext, useContext, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useCallback, useMemo, useState, useEffect } from 'react';
 import { useGarden, UseGardenReturn } from '../hooks/useGarden';
 import { useSunDrops, UseSunDropsReturn } from '../hooks/useSunDrops';
 import { useLesson, UseLessonReturn } from '../hooks/useLesson';
 import type { UserTree, SkillPath, SkillPathLesson } from '../types/game';
+import {
+  getSeedCount,
+  awardSeed,
+  plantSeed as plantSeedService,
+  getAvailableSkillPaths,
+  canPlantTree,
+  checkSeedEarned,
+  type AvailableSkillPath,
+  type PlantSeedResult,
+} from '../services/seedService';
+import { getCurrentUserId } from '../../services/pocketbaseService';
 
 // ============================================
 // TYPES
@@ -76,6 +87,16 @@ export interface GardenContextValue {
   calculateActivityReward: UseSunDropsReturn['calculateActivityReward'];
   calculateStarsFromDrops: UseSunDropsReturn['calculateStarsFromDrops'];
 
+  // Seed state
+  seedCount: number;
+  availableSkillPaths: AvailableSkillPath[];
+  canPlantSeed: boolean;
+
+  // Seed actions
+  refreshSeeds: () => Promise<void>;
+  plantSeed: (skillPathId: string, position: { x: number; y: number }) => Promise<PlantSeedResult>;
+  earnSeedForPathCompletion: (tree: UserTree, stars: number) => Promise<number>;
+
   // Helpers
   completeLessonAndSync: () => Promise<UseLessonReturn['endLesson'] extends () => infer R ? R : never>;
 }
@@ -118,6 +139,95 @@ export function GardenProvider({ children }: GardenProviderProps): React.ReactEl
   const garden = useGarden();
   const sunDrops = useSunDrops();
   const lesson = useLesson();
+
+  // ==========================================
+  // Seed State
+  // ==========================================
+
+  const [seedCount, setSeedCount] = useState(0);
+  const [availableSkillPaths, setAvailableSkillPaths] = useState<AvailableSkillPath[]>([]);
+  const [canPlantSeed, setCanPlantSeed] = useState(false);
+
+  /**
+   * Refresh seed count and available paths
+   */
+  const refreshSeeds = useCallback(async () => {
+    const userId = getCurrentUserId();
+    if (!userId) return;
+
+    try {
+      const [count, paths, canPlant] = await Promise.all([
+        getSeedCount(userId),
+        getAvailableSkillPaths(userId),
+        canPlantTree(userId, 8),
+      ]);
+
+      setSeedCount(count);
+      setAvailableSkillPaths(paths);
+      setCanPlantSeed(canPlant && count > 0);
+    } catch (error) {
+      console.error('[GardenContext] Failed to refresh seeds:', error);
+    }
+  }, []);
+
+  /**
+   * Plant a seed to start a new skill path
+   */
+  const plantSeed = useCallback(async (skillPathId: string, position: { x: number; y: number }) => {
+    const userId = getCurrentUserId();
+    if (!userId) {
+      return {
+        success: false,
+        error: 'You must be logged in to plant seeds',
+        remainingSeeds: 0,
+      };
+    }
+
+    const result = await plantSeedService(userId, skillPathId, position);
+
+    if (result.success) {
+      // Refresh seed state after planting
+      await refreshSeeds();
+      // Also refresh garden to show new tree
+      await garden.refreshGarden();
+    }
+
+    return result;
+  }, [refreshSeeds, garden]);
+
+  /**
+   * Earn seeds when completing a path
+   */
+  const earnSeedForPathCompletion = useCallback(async (tree: UserTree, stars: number) => {
+    const userId = getCurrentUserId();
+    if (!userId) return 0;
+
+    // Check if path is complete
+    const isPathComplete = tree.lessonsCompleted >= tree.lessonsTotal;
+    if (!isPathComplete) return 0;
+
+    // Award seeds for path completion
+    const result = checkSeedEarned(tree, '', stars);
+    
+    if (result.earned) {
+      // Award 2 seeds for path completion
+      const newCount = await awardSeed(userId, 2, result.reason);
+      setSeedCount(newCount);
+      
+      // Check for bonus seed (perfect path - all 3 stars)
+      // Note: This would need lesson history to determine properly
+      // For now, just award the base path completion seeds
+      
+      return newCount;
+    }
+
+    return seedCount;
+  }, [seedCount]);
+
+  // Load seed data on mount
+  useEffect(() => {
+    refreshSeeds();
+  }, [refreshSeeds]);
 
   // ==========================================
   // Combined Actions
@@ -204,6 +314,16 @@ export function GardenProvider({ children }: GardenProviderProps): React.ReactEl
     calculateActivityReward: sunDrops.calculateActivityReward,
     calculateStarsFromDrops: sunDrops.calculateStarsFromDrops,
 
+    // Seed state
+    seedCount,
+    availableSkillPaths,
+    canPlantSeed,
+
+    // Seed actions
+    refreshSeeds,
+    plantSeed,
+    earnSeedForPathCompletion,
+
     // Helpers
     completeLessonAndSync,
   }), [
@@ -212,6 +332,12 @@ export function GardenProvider({ children }: GardenProviderProps): React.ReactEl
     lesson,
     clearError,
     completeLessonAndSync,
+    seedCount,
+    availableSkillPaths,
+    canPlantSeed,
+    refreshSeeds,
+    plantSeed,
+    earnSeedForPathCompletion,
   ]);
 
   return (

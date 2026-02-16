@@ -1,10 +1,12 @@
 /**
- * GiftTestHarness - Development Tool for Testing Gift System
+ * GiftTestHarness - Development Tool for Testing Reward System
  * 
- * This component provides a visual interface for testing all gift types
- * and the LessonComplete component without needing real lesson data.
+ * This component provides a visual interface for testing the gem system,
+ * streak achievements, and the LessonComplete component without needing real lesson data.
  * 
  * ONLY FOR DEVELOPMENT - Should be removed or gated in production.
+ * 
+ * Updated for Phase 1.1.11 - Now tests gems/streaks instead of automatic gift unlocks.
  * 
  * @module GiftTestHarness
  */
@@ -20,86 +22,105 @@ import { GiftType } from '../../types/game';
 // ============================================
 
 type TestScenario = 
-  | 'basic-water'
-  | 'sparkle-20sd'
-  | 'ribbon-3lessons'
-  | 'golden-3stars'
-  | 'seed-pathcomplete'
-  | 'perfect-all';
+  | 'low-accuracy'
+  | 'medium-accuracy'
+  | 'high-accuracy'
+  | 'perfect-lesson'
+  | 'streak-3'
+  | 'streak-7'
+  | 'streak-14'
+  | 'path-complete';
 
 // ============================================
 // CONSTANTS
 // ============================================
 
+/**
+ * Test scenarios for LessonComplete screen.
+ * Updated for gem-based rewards instead of gift unlocks.
+ */
 const TEST_SCENARIOS: Record<TestScenario, {
   label: string;
   description: string;
   sunDropsEarned: number;
   sunDropsMax: number;
-  stars: number;
-  lessonsCompletedToday: number;
+  currentStreak: number;
   pathComplete: boolean;
 }> = {
-  'basic-water': {
-    label: '💧 Water Drop',
-    description: 'Basic lesson (10/20 SD, 1 star)',
+  'low-accuracy': {
+    label: '😰 Low Accuracy',
+    description: 'Poor lesson (10/25 SD, 40%, no streak)',
     sunDropsEarned: 10,
-    sunDropsMax: 20,
-    stars: 1,
-    lessonsCompletedToday: 1,
+    sunDropsMax: 25,
+    currentStreak: 0,
     pathComplete: false,
   },
-  'sparkle-20sd': {
-    label: '✨ Sparkle',
-    description: 'High Sun Drops (22/25 SD, 2 stars)',
+  'medium-accuracy': {
+    label: '😊 Medium Accuracy',
+    description: 'Decent lesson (18/25 SD, 72%, 2-day streak)',
+    sunDropsEarned: 18,
+    sunDropsMax: 25,
+    currentStreak: 2,
+    pathComplete: false,
+  },
+  'high-accuracy': {
+    label: '🌟 High Accuracy',
+    description: 'Great lesson (23/25 SD, 92%, 5-day streak)',
+    sunDropsEarned: 23,
+    sunDropsMax: 25,
+    currentStreak: 5,
+    pathComplete: false,
+  },
+  'perfect-lesson': {
+    label: '🏆 Perfect Lesson',
+    description: 'Flawless (25/25 SD, 100%, 1-day streak)',
+    sunDropsEarned: 25,
+    sunDropsMax: 25,
+    currentStreak: 1,
+    pathComplete: false,
+  },
+  'streak-3': {
+    label: '🔥 3-Day Streak!',
+    description: 'Streak achievement (20/25 SD, 3-day streak)',
+    sunDropsEarned: 20,
+    sunDropsMax: 25,
+    currentStreak: 3,
+    pathComplete: false,
+  },
+  'streak-7': {
+    label: '🔥🔥 7-Day Streak!',
+    description: 'Streak achievement + decoration (22/25 SD, 7-day)',
     sunDropsEarned: 22,
     sunDropsMax: 25,
-    stars: 2,
-    lessonsCompletedToday: 2,
+    currentStreak: 7,
     pathComplete: false,
   },
-  'ribbon-3lessons': {
-    label: '🎀 Ribbon',
-    description: '3 lessons today (15/20 SD, 2 stars)',
-    sunDropsEarned: 15,
-    sunDropsMax: 20,
-    stars: 2,
-    lessonsCompletedToday: 3,
-    pathComplete: false,
-  },
-  'golden-3stars': {
-    label: '🌸 Golden Flower',
-    description: 'Perfect stars (25/25 SD, 3 stars)',
-    sunDropsEarned: 25,
+  'streak-14': {
+    label: '🔥🔥🔥 14-Day Streak!',
+    description: 'Big streak bonus (20/25 SD, 14-day)',
+    sunDropsEarned: 20,
     sunDropsMax: 25,
-    stars: 3,
-    lessonsCompletedToday: 1,
+    currentStreak: 14,
     pathComplete: false,
   },
-  'seed-pathcomplete': {
-    label: '🌱 Seed',
-    description: 'Path complete (18/22 SD, 2 stars)',
-    sunDropsEarned: 18,
-    sunDropsMax: 22,
-    stars: 2,
-    lessonsCompletedToday: 2,
-    pathComplete: true,
-  },
-  'perfect-all': {
-    label: '🏆 Perfect Lesson',
-    description: 'All conditions met (25/25 SD, 3 stars, 3 lessons, path done)',
-    sunDropsEarned: 25,
+  'path-complete': {
+    label: '🌱 Pathway Complete',
+    description: 'Finished pathway! Earn 2 seeds! (22/25 SD)',
+    sunDropsEarned: 22,
     sunDropsMax: 25,
-    stars: 3,
-    lessonsCompletedToday: 3,
+    currentStreak: 4,
     pathComplete: true,
   },
 };
 
+/**
+ * Gift types for manual testing.
+ * Updated: RIBBON replaced with DECORATION (shop purchase).
+ */
 const ALL_GIFT_TYPES: GiftType[] = [
   GiftType.WATER_DROP,
   GiftType.SPARKLE,
-  GiftType.RIBBON,
+  GiftType.DECORATION,
   GiftType.SEED,
   GiftType.GOLDEN_FLOWER,
 ];
@@ -109,11 +130,11 @@ const ALL_GIFT_TYPES: GiftType[] = [
 // ============================================
 
 /**
- * GiftTestHarness - Visual testing interface for gift system.
+ * GiftTestHarness - Visual testing interface for reward system.
  */
 export const GiftTestHarness: React.FC = () => {
   const [activeView, setActiveView] = useState<'menu' | 'lesson-complete' | 'gift-unlock'>('menu');
-  const [selectedScenario, setSelectedScenario] = useState<TestScenario>('basic-water');
+  const [selectedScenario, setSelectedScenario] = useState<TestScenario>('medium-accuracy');
   const [selectedGiftType, setSelectedGiftType] = useState<GiftType>(GiftType.WATER_DROP);
   const [showGiftModal, setShowGiftModal] = useState(false);
 
@@ -126,10 +147,10 @@ export const GiftTestHarness: React.FC = () => {
             className="text-2xl font-bold text-center mb-2"
             style={{ fontFamily: "'Lilita One', sans-serif", color: '#047857' }}
           >
-            🎁 Gift System Test Harness
+            💎 Reward System Test Harness
           </h1>
           <p className="text-center text-gray-600 mb-6 text-sm">
-            Test gift unlocks and LessonComplete screen
+            Test gem earning, streak achievements, and LessonComplete screen
           </p>
 
           {/* LessonComplete Test */}
@@ -138,7 +159,7 @@ export const GiftTestHarness: React.FC = () => {
               📚 Test LessonComplete Screen
             </h2>
             <p className="text-sm text-gray-600 mb-3">
-              Select a scenario to see the LessonComplete screen with different gift outcomes.
+              Select a scenario to see gems earned and streak achievements.
             </p>
             <div className="space-y-2">
               {(Object.keys(TEST_SCENARIOS) as TestScenario[]).map((scenario) => (
@@ -160,10 +181,10 @@ export const GiftTestHarness: React.FC = () => {
           {/* GiftUnlock Test */}
           <div className="bg-white rounded-2xl p-4 shadow-md">
             <h2 className="font-bold text-lg mb-3 text-gray-800">
-              🎉 Test GiftUnlock Modal
+              🎁 Test Gift Types
             </h2>
             <p className="text-sm text-gray-600 mb-3">
-              View each gift type's unlock animation directly.
+              View each gift type's unlock animation (for friend gifts / achievements).
             </p>
             <div className="grid grid-cols-5 gap-2">
               {ALL_GIFT_TYPES.map((type) => (
@@ -178,12 +199,15 @@ export const GiftTestHarness: React.FC = () => {
                 >
                   {type === 'water_drop' && '💧'}
                   {type === 'sparkle' && '✨'}
-                  {type === 'ribbon' && '🎀'}
+                  {type === 'decoration' && '🎀'}
                   {type === 'seed' && '🌱'}
                   {type === 'golden_flower' && '🌸'}
                 </button>
               ))}
             </div>
+            <p className="text-xs text-gray-400 mt-2">
+              Note: Gifts are now earned via friends or achievements, not lessons.
+            </p>
           </div>
 
           {/* GiftUnlock Modal */}
@@ -231,6 +255,8 @@ export const GiftTestHarness: React.FC = () => {
           <LessonComplete
             sunDropsEarned={scenario.sunDropsEarned}
             sunDropsMax={scenario.sunDropsMax}
+            currentStreak={scenario.currentStreak}
+            pathComplete={scenario.pathComplete}
             onContinue={() => {
               console.log('Continue clicked');
               setActiveView('menu');
@@ -238,9 +264,9 @@ export const GiftTestHarness: React.FC = () => {
             onReplay={() => {
               console.log('Replay clicked');
             }}
-            lessonsCompletedToday={scenario.lessonsCompletedToday}
-            pathComplete={scenario.pathComplete}
-            userId="test-user-123"
+            onShareSeeds={scenario.pathComplete ? () => {
+              console.log('Share seeds clicked');
+            } : undefined}
           />
         </div>
       </div>

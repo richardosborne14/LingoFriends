@@ -23,11 +23,12 @@ import { Logo } from './components/ui';
 import { useAuth } from './src/hooks/useAuth';
 import { useNavigation } from './src/hooks/useNavigation';
 import { AppHeader, TabBar } from './src/components/navigation';
-import { GardenWorld } from './src/components/garden';
+import { GardenWorld3D } from './src/components/garden';
+import { DEFAULT_AVATAR } from './src/renderer';
 import { PathView } from './src/components/path';
 import { LessonView } from './src/components/lesson';
 import { generateLessonPlan } from './src/services/lessonPlanService';
-import { GiftTestHarness } from './src/components/dev';
+import { DevTestHarness } from './src/components/dev';
 import {
   MOCK_USER_TREES,
   MOCK_SKILL_PATHS,
@@ -269,13 +270,25 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
               transition={{ duration: 0.2 }}
               className="h-full"
             >
-              <GardenWorld
-                trees={trees}
-                avatar={avatar}
-                onOpenPath={handleOpenPath}
-                onDecorate={(tree) => console.log('[GameApp] Decorate tree:', tree.name)}
-                onGift={(tree) => console.log('[GameApp] Gift tree:', tree.name)}
+              {/* 
+                TODO: GardenWorld3D needs to be integrated with the tree/skill path system.
+                Currently it's a standalone 3D renderer that doesn't render UserTree objects.
+                See docs/phase-1.1/GARDEN_THREE_IMPLEMENTATION.md for the planned architecture.
+                For now, we display a placeholder message.
+              */}
+              <GardenWorld3D
+                className="h-[calc(100vh-180px)]"
+                avatarOptions={DEFAULT_AVATAR}
+                onAvatarMove={(gx, gz) => {
+                  console.log('[GameApp] Avatar moved to', gx, gz);
+                }}
               />
+              {/*
+                Note: The trees are not currently rendered in 3D. This is a known gap.
+                The original GardenWorld accepted: trees, avatar, onOpenPath, onDecorate, onGift
+                But GardenWorld3D uses: avatarOptions, initialObjects, placementModeItem, etc.
+                Integration of trees/paths with the 3D renderer is a pending task.
+              */}
             </motion.div>
           )}
 
@@ -407,7 +420,7 @@ function App() {
   if (showDevHarness) {
     return (
       <>
-        <GiftTestHarness />
+        <DevTestHarness />
         <button
           onClick={() => setShowDevHarness(false)}
           className="fixed bottom-4 right-4 px-4 py-2 bg-gray-800 text-white rounded-lg shadow-lg text-sm z-50"

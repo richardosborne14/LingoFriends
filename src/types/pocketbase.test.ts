@@ -224,10 +224,10 @@ describe('giftRecordToGiftItem', () => {
       expect(result.type).toBe('seed');
     });
 
-    it('handles ribbon type', () => {
-      const record = createMockGiftRecord({ type: GiftType.RIBBON });
+    it('handles decoration type', () => {
+      const record = createMockGiftRecord({ type: GiftType.DECORATION });
       const result = giftRecordToGiftItem(record);
-      expect(result.type).toBe('ribbon');
+      expect(result.type).toBe('decoration');
     });
 
     it('handles golden_flower type', () => {

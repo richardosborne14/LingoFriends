@@ -1,16 +1,34 @@
 # Task 1.1.8: Garden State Management
 
-**Status:** ✅ Complete
+**Status:** ⚠️ Needs Update - Per-Tree SunDrops
 **Phase:** B (Growth & Decay)
 **Dependencies:** Task 1.1.7 (Pocketbase Schema Updates)
 **Estimated Time:** 4-5 hours
-**Completed:** 2026-02-15
+**Completed:** 2026-02-15 (needs revision for per-tree SunDrops)
+**Updated:** 2026-02-16
+
+---
+
+## ⚠️ CRITICAL: Per-Tree SunDrops
+
+This task was completed with **global SunDrops**, but per `task-1-1-19-garden-architecture-fix.md`:
+
+**SunDrops are PER-TREE, not global.**
+
+Each learning tree has its own SunDrop count that causes THAT tree to grow. This is a fundamental game mechanic:
+
+- Completing lessons in Spanish pathway → SunDrops go to Spanish tree
+- Spanish tree grows, French tree does NOT
+- Each tree has 15 growth stages based on its own SunDrop total
+- Global Gems are for shop purchases (decorations, tree care)
+
+The `useSunDrops` hook needs to be refactored to work per-tree.
 
 ---
 
 ## Objective
 
-Create the React context and hooks for managing the entire garden state. This includes fetching/syncing trees, handling Sun Drop transactions, and providing real-time updates to all components.
+Create the React context and hooks for managing the entire garden state. This includes fetching/syncing trees, handling **per-tree** Sun Drop transactions, and providing real-time updates to all components.
 
 ---
 

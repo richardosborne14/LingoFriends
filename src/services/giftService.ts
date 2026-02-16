@@ -2,19 +2,30 @@
  * Gift Service
  * 
  * Manages the gift system for LingoFriends social features.
- * Players earn gifts from lessons and send them to friends.
- * Gifts help trees stay healthy by adding buffer days to decay.
+ * Players can send gifts to friends to help their trees stay healthy.
  * 
- * Gift Types & Effects:
- * - 💧 Water Drop: +10 days buffer (any lesson)
- * - ✨ Sparkle: +5 days buffer (20+ Sun Drops)
- * - 🎀 Ribbon: Decoration only (3+ lessons/day)
- * - 🌸 Golden Flower: +15 days buffer (3 stars)
- * - 🌱 Seed: Start new path (all lessons in path)
+ * Updated in Phase 1.1.11 for rebalanced reward economy:
+ * 
+ * Gift Types & Effects (NEW):
+ * - 💧 Water Drop: +1 day tree health buffer (friend gift only)
+ * - ✨ Sparkle: +3 days tree health buffer (friend gift only)
+ * - 🎀 Decoration: +5 days tree health buffer (shop purchase with gems)
+ * - 🌸 Golden Flower: +10 days tree health buffer (rare achievement)
+ * - 🌱 Seed: Start new skill path (pathway completion ×2, shareable)
+ * 
+ * Gems (NEW):
+ * - Earned from lessons based on accuracy: floor(accuracy% × 5)
+ * - Streak multiplier: 3-day = ×1.5, 7-day = ×2, 14-day = ×3
+ * - Used to purchase decorations in the garden shop
+ * 
+ * Key Changes:
+ * - Removed automatic gift drops from lessons
+ * - Gifts are now primarily from friends or achievements
+ * - Seeds are awarded 2 per pathway completion for sharing
+ * - Decorations are now purchased with gems in the shop
  * 
  * @module giftService
  * @see docs/phase-1.1/task-1-1-11-gift-system.md
- * @see docs/phase-1.1/GAME_DESIGN.md Section 10 (Gift System)
  */
 
 import { pb, getCurrentUserId } from '../../services/pocketbaseService';
@@ -92,23 +103,46 @@ export interface GiftWithSender extends GiftItem {
 
 /**
  * Gift configurations with all display and effect data.
+ * 
+ * Updated in Phase 1.1.11 for rebalanced economy:
+ * - Water Drop: +1 day (friend gift, common)
+ * - Sparkle: +3 days (friend gift, uncommon)  
+ * - Decoration: +5 days (shop purchase with gems)
+ * - Golden Flower: +10 days (rare achievement, legendary)
+ * - Seed: No buffer (pathway completion reward)
  */
 export const GIFT_CONFIGS: Record<GiftType, GiftConfig> = {
   water_drop: {
     name: 'Water Drop',
     emoji: '💧',
-    description: 'Keep a friend\'s tree healthy!',
-    bufferDays: 10,
+    description: 'Keep a friend\'s tree healthy for 1 day!',
+    bufferDays: 1,
     isDecoration: false,
     rarity: 'common',
   },
   sparkle: {
     name: 'Sparkle',
     emoji: '✨',
-    description: 'Add some magic to a tree!',
-    bufferDays: 5,
+    description: 'Add some magic to a tree for 3 days!',
+    bufferDays: 3,
     isDecoration: false,
     rarity: 'uncommon',
+  },
+  decoration: {
+    name: 'Tree Decoration',
+    emoji: '🎀',
+    description: 'Keeps your tree healthy for 5 days!',
+    bufferDays: 5,
+    isDecoration: true,
+    rarity: 'uncommon',
+  },
+  golden_flower: {
+    name: 'Golden Flower',
+    emoji: '🌸',
+    description: 'A rare gift that keeps trees healthy for 10 days!',
+    bufferDays: 10,
+    isDecoration: true,
+    rarity: 'legendary',
   },
   seed: {
     name: 'Seed',
@@ -118,27 +152,18 @@ export const GIFT_CONFIGS: Record<GiftType, GiftConfig> = {
     isDecoration: false,
     rarity: 'rare',
   },
-  ribbon: {
-    name: 'Ribbon',
-    emoji: '🎀',
-    description: 'Decorate a special tree!',
-    bufferDays: 0,
-    isDecoration: true,
-    rarity: 'uncommon',
-  },
-  golden_flower: {
-    name: 'Golden Flower',
-    emoji: '🌸',
-    description: 'A rare gift for a special friend!',
-    bufferDays: 15,
-    isDecoration: true,
-    rarity: 'legendary',
-  },
 };
 
 /**
- * Gift unlock rules ordered by priority (highest tier first).
- * The first matching rule determines the gift.
+ * Gift unlock rules for achievements (not lessons anymore).
+ * 
+ * Updated in Phase 1.1.11:
+ * - Gifts are no longer automatically awarded after every lesson
+ * - Instead, achievements unlock special gifts
+ * - Seeds are awarded for pathway completion (handled separately, gives 2 seeds)
+ * - Golden Flower is now a rare achievement reward
+ * 
+ * @see checkAchievementGift for achievement-based unlocking
  */
 const GIFT_UNLOCK_RULES: Array<{
   type: GiftType;
@@ -146,28 +171,22 @@ const GIFT_UNLOCK_RULES: Array<{
   priority: number;
 }> = [
   {
+    // Perfect lessons now have a chance at golden flower (rare)
     type: GiftTypeEnum.GOLDEN_FLOWER,
-    condition: (r) => r.stars === 3,
-    priority: 4,
-  },
-  {
-    type: GiftTypeEnum.SEED,
-    condition: (r) => r.pathComplete === true,
+    condition: (r) => r.stars === 3 && r.sunDropsEarned === r.sunDropsMax,
     priority: 3,
   },
   {
-    type: GiftTypeEnum.SPARKLE,
-    condition: (r) => r.sunDropsEarned >= 20,
+    // Pathway completion gives seed (but this is handled separately now)
+    type: GiftTypeEnum.SEED,
+    condition: (r) => r.pathComplete === true,
     priority: 2,
   },
   {
-    type: GiftTypeEnum.RIBBON,
-    condition: (r) => (r.lessonsCompletedToday || 0) >= 3,
-    priority: 1,
-  },
-  {
+    // No longer auto-giving water drop after every lesson
+    // Water drops are friend gifts only
     type: GiftTypeEnum.WATER_DROP,
-    condition: () => true, // Default gift for any lesson
+    condition: () => false, // Disabled - friend gifts only
     priority: 0,
   },
 ];
@@ -657,14 +676,12 @@ export async function getPendingGiftCount(userId: string): Promise<number> {
  * @returns A kid-friendly message
  */
 export function getDefaultGiftMessage(giftType: GiftType, senderName: string): string {
-  const config = GIFT_CONFIGS[giftType];
-  
   const messages: Record<GiftType, string> = {
-    water_drop: `${senderName} sent you a Water Drop! Your trees will stay healthy longer! 💧`,
-    sparkle: `${senderName} sent you a Sparkle! It's glowing with magic! ✨`,
-    seed: `${senderName} sent you a Seed! Plant it to grow something new! 🌱`,
-    ribbon: `${senderName} sent you a Ribbon! It looks so pretty on your tree! 🎀`,
-    golden_flower: `Wow! ${senderName} sent you a Golden Flower! That's super rare! 🌸`,
+    water_drop: `${senderName} sent you a Water Drop! Your tree will stay healthy for 1 extra day! 💧`,
+    sparkle: `${senderName} sent you a Sparkle! Your tree will stay healthy for 3 extra days! ✨`,
+    decoration: `${senderName} sent you a Decoration! It will keep your tree healthy for 5 days! 🎀`,
+    golden_flower: `Wow! ${senderName} sent you a Golden Flower! That's super rare! Your tree stays healthy for 10 days! 🌸`,
+    seed: `${senderName} sent you a Seed! Plant it to start a new learning adventure! 🌱`,
   };
   
   return messages[giftType];
