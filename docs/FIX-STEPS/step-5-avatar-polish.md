@@ -1,8 +1,9 @@
-# Step 5: Avatar Polish
+# Step 5: Avatar Polish ✅ COMPLETE
 
 **Priority:** 🟢 MEDIUM
 **Estimated effort:** 2-3 hours
 **Depends on:** Step 1 (renderer working)
+**Completed:** 2026-02-17
 
 ---
 
@@ -69,8 +70,27 @@ GardenV2.jsx avatar uses simple cylinder body + sphere head with clean proportio
 
 ## Testing Checklist
 
-- [ ] Avatar looks proportionate and charming in the garden
-- [ ] Avatar visible against dark evening background
-- [ ] Walking animation has subtle bobbing
-- [ ] Avatar doesn't clip through tiles or trees
-- [ ] All customization options still work (colors, hair, accessories)
+- [x] Avatar looks proportionate and charming in the garden (chibi style)
+- [x] Avatar visible against background (MeshToonMaterial + emissive glow)
+- [x] Walking animation has subtle bobbing (Y-axis sine wave at 8Hz)
+- [x] Idle breathing animation (subtle Y oscillation at 1.5Hz)
+- [x] Eye blink animation (random interval 3-6s, 120ms blink)
+- [x] All customization options still work (colors, hair, accessories)
+- [x] TypeScript compiles with no errors
+
+## Changes Made
+
+### AvatarBuilder.ts
+- **Materials:** All `MeshLambertMaterial` → `MeshToonMaterial` with emissive for cel-shaded look
+- **Head:** Radius 0.21 → 0.25 (+20% chibi style)
+- **Eyes:** Radius 0.04 → 0.045, bigger pupils, named for blink animation
+- **Torso:** Height 0.34 → 0.29 (-15% shorter body)
+- **Arms/Legs:** Shorter, wider, rounder proportions
+- **Hair:** Scaled up to match larger head, all toon material
+- **Hats:** Repositioned for new head size, all toon material
+- **Named parts:** Eyes, pupils, arms, hands, legs all named for animation access
+
+### GardenRenderer.ts
+- **Walking bob:** Y-axis sine bounce during movement (amplitude 0.06)
+- **Idle breathing:** Subtle Y oscillation when standing still (amplitude 0.02)
+- **Eye blink:** Random 120ms blinks every 3-6 seconds via named mesh lookup

@@ -23,8 +23,8 @@ import { Logo } from './components/ui';
 import { useAuth } from './src/hooks/useAuth';
 import { useNavigation } from './src/hooks/useNavigation';
 import { AppHeader, TabBar } from './src/components/navigation';
-import { GardenWorld3D } from './src/components/garden';
-import { DEFAULT_AVATAR } from './src/renderer';
+import { GardenWorld3D, ShopPanel, shopPanelStyles } from './src/components/garden';
+import { DEFAULT_AVATAR, ShopItem } from './src/renderer';
 import { PathView } from './src/components/path';
 import { LessonView } from './src/components/lesson';
 import { generateLessonPlan } from './src/services/lessonPlanService';
@@ -132,6 +132,10 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
   const [showProfileSettings, setShowProfileSettings] = useState(false);
   const [showFriendsPlaceholder, setShowFriendsPlaceholder] = useState(false);
   
+  // Shop state
+  const [isShopOpen, setIsShopOpen] = useState(false);
+  const [selectedShopItem, setSelectedShopItem] = useState<ShopItem | null>(null);
+  
   // Track when lesson is exiting (for header/tab bar visibility during transition)
   const [isLessonExiting, setIsLessonExiting] = useState(false);
   
@@ -212,10 +216,50 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
     // TODO (Task 1.1.11): Implement friends view
   }, []);
 
+  /**
+   * Handle shop item selection
+   */
+  const handleShopItemSelect = useCallback((item: ShopItem) => {
+    console.log('[GameApp] Shop item selected:', item.name);
+    setSelectedShopItem(item);
+    // TODO: Enter placement mode in GardenWorld3D
+  }, []);
+
+  /**
+   * Handle shop item placement cancel
+   */
+  const handleShopCancel = useCallback(() => {
+    console.log('[GameApp] Shop placement cancelled');
+    setSelectedShopItem(null);
+  }, []);
+
+  /**
+   * Handle tree care application (for consumable items)
+   */
+  const handleApplyTreeCare = useCallback((item: ShopItem, treeId: string) => {
+    console.log('[GameApp] Applying tree care:', item.name, 'to tree:', treeId);
+    // TODO (Task 1.1.7): Apply tree care to specific tree
+    // - Deduct gems
+    // - Update tree health or SunDrops
+    // - Show success feedback
+    setSelectedShopItem(null);
+  }, []);
+
   // Get skill path for selected tree
   const selectedSkillPath = state.selectedTree
     ? getSkillPathById(state.selectedTree.skillPathId)
     : null;
+
+  // Inject shop panel styles
+  useEffect(() => {
+    const styleId = 'shop-panel-styles';
+    if (!document.getElementById(styleId)) {
+      const styleElement = document.createElement('style');
+      styleElement.id = styleId;
+      styleElement.textContent = shopPanelStyles;
+      document.head.appendChild(styleElement);
+    }
+  }, []);
 
   // Track lesson exit for smooth transition (hide header/tab until animation completes)
   useEffect(() => {
@@ -253,6 +297,7 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
           avatarEmoji={avatar.emoji}
           streak={progress.streak}
           sunDrops={progress.sunDrops}
+          gems={progress.gems}
           onSettingsClick={() => setShowProfileSettings(true)}
         />
       )}
@@ -270,25 +315,30 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
               transition={{ duration: 0.2 }}
               className="h-full"
             >
-              {/* 
-                TODO: GardenWorld3D needs to be integrated with the tree/skill path system.
-                Currently it's a standalone 3D renderer that doesn't render UserTree objects.
-                See docs/phase-1.1/GARDEN_THREE_IMPLEMENTATION.md for the planned architecture.
-                For now, we display a placeholder message.
-              */}
+              {/* 3D garden with learning trees — clicking a tree opens its skill path */}
               <GardenWorld3D
                 className="h-[calc(100vh-180px)]"
                 avatarOptions={DEFAULT_AVATAR}
+                userTrees={trees.map((t) => ({
+                  id: t.id,
+                  gridX: t.gridPosition.gx,
+                  gridZ: t.gridPosition.gz,
+                  sunDropsEarned: t.sunDropsEarned,
+                  health: t.health,
+                  skillPathId: t.skillPathId,
+                  status: t.status,
+                }))}
+                onTreeClick={(treeData) => {
+                  // Find the full UserTree from mock data by skillPathId
+                  const tree = trees.find((t) => t.skillPathId === treeData.skillPathId);
+                  if (tree) {
+                    handleOpenPath(tree);
+                  }
+                }}
                 onAvatarMove={(gx, gz) => {
                   console.log('[GameApp] Avatar moved to', gx, gz);
                 }}
               />
-              {/*
-                Note: The trees are not currently rendered in 3D. This is a known gap.
-                The original GardenWorld accepted: trees, avatar, onOpenPath, onDecorate, onGift
-                But GardenWorld3D uses: avatarOptions, initialObjects, placementModeItem, etc.
-                Integration of trees/paths with the 3D renderer is a pending task.
-              */}
             </motion.div>
           )}
 
@@ -382,6 +432,40 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
             </button>
           </motion.div>
         </div>
+      )}
+
+      {/* Floating Shop Button - Only show in garden view */}
+      {state.currentView === 'garden' && !isShopOpen && (
+        <motion.button
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          exit={{ scale: 0 }}
+          onClick={() => setIsShopOpen(true)}
+          className="fixed bottom-24 right-6 w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-200 flex items-center justify-center text-3xl z-30"
+          title="Open Shop"
+        >
+          🛒
+        </motion.button>
+      )}
+
+      {/* Shop Panel - Only show in garden view */}
+      {state.currentView === 'garden' && (
+        <ShopPanel
+          isOpen={isShopOpen}
+          onClose={() => setIsShopOpen(false)}
+          gemBalance={progress.gems}
+          selectedItem={selectedShopItem}
+          onSelectItem={handleShopItemSelect}
+          onCancel={handleShopCancel}
+          userTrees={trees.map((t) => ({
+            id: t.id,
+            name: t.name,
+            icon: '🌳',
+            health: t.health,
+            skillPathId: t.skillPathId,
+          }))}
+          onApplyTreeCare={handleApplyTreeCare}
+        />
       )}
     </div>
   );

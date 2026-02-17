@@ -338,6 +338,35 @@ async function addFieldsToCollection(pb, collectionName, newFields) {
 
 ---
 
+## 2026-02-17: Three.js Avatar Polish — Chibi Proportions & Toon Materials
+
+**Problem:** Procedural Three.js avatar looked "silly" — flat Lambert materials, adult proportions, no idle animation.
+
+**Solution:** 
+1. **MeshToonMaterial** with subtle emissive glow replaces MeshLambertMaterial for cel-shaded cartoon look
+2. **Chibi proportions** — head +20%, body -15%, shorter/rounder limbs
+3. **Named mesh parts** — eyes, pupils, arms, legs all get `.name` for animation access via `getObjectByName()`
+4. **Walking bob** — Y-axis sine wave during movement (8Hz, amplitude 0.06)
+5. **Idle breathing** — subtle Y oscillation when standing (1.5Hz, amplitude 0.02)
+6. **Eye blink** — random 120ms blinks every 3-6s by scaling eye meshes to near-zero
+
+**Key Technique — Named Mesh Lookup:**
+```typescript
+// In AvatarBuilder: name parts during construction
+leftEyeWhite.name = 'eye_left';
+rightPupil.name = 'pupil_right';
+
+// In GardenRenderer animation loop: find by name
+const eyePart = this.state.avatar.getObjectByName('eye_left');
+if (eyePart) eyePart.scale.y = 0.1; // blink!
+```
+
+**Gotcha:** When adjusting one body part (e.g., head size), ALL dependent parts need repositioning — eyes, mouth, hair, hats. Easy to miss one.
+
+**Apply to:** Any procedural Three.js character, animated game objects
+
+---
+
 ## Quick Reference
 
 | Issue | Solution | Entry Date |
@@ -350,3 +379,6 @@ async function addFieldsToCollection(pb, collectionName, newFields) {
 | Multi-state components | Style objects + conditionals | 2026-02-15 |
 | Pocketbase schema migration | Additive with existence checks | 2026-02-15 |
 | Content seed for games | Idempotent upsert with themes | 2026-02-15 |
+| 3D avatar looks flat | MeshToonMaterial + emissive | 2026-02-17 |
+| Avatar proportions for kids | Chibi: head +20%, body -15% | 2026-02-17 |
+| Animate named mesh parts | getObjectByName() in tick loop | 2026-02-17 |

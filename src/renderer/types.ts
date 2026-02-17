@@ -139,55 +139,119 @@ export const AVATAR_COLORS = {
 
 /**
  * Category for shop items and object organization.
+ * TreeCare items are consumables that target learning trees (not placeable).
  */
-export type ObjectCategory = 'Trees' | 'Flowers' | 'Plants' | 'Furniture' | 'Features';
+export type ObjectCategory = 'Trees' | 'Flowers' | 'Plants' | 'Furniture' | 'Features' | 'TreeCare';
 
 /**
  * Shop catalogue item definition.
- * Each item can be purchased with Sun Drops and placed in the garden.
+ * Each item can be purchased with Gems (💎) and placed in the garden.
+ * Gems are the global shop currency, NOT SunDrops.
  */
 export interface ShopItem {
   /** Unique identifier matching object factory function */
   id: string;
   /** Display name for shop UI */
   name: string;
-  /** Cost in Sun Drops */
+  /** Cost in Gems (global shop currency) */
   cost: number;
   /** Emoji icon for shop UI */
   icon: string;
   /** Category for shop filtering */
   category: ObjectCategory;
+  /** 
+   * Whether this is a consumable item (tree care).
+   * Consumables are applied to a learning tree, NOT placed on the grid.
+   */
+  consumable?: boolean;
+  /** Description shown in shop (mainly for consumables) */
+  description?: string;
+  /** Health points restored when applied to a learning tree */
+  healthRestore?: number;
+  /** Bonus SunDrops granted to a learning tree */
+  sunDropBoost?: number;
 }
 
 /**
- * Full shop catalogue with all placeable objects.
- * Prices calibrated so 2-3 lessons = flower, ~10 lessons = fountain.
+ * Full shop catalogue with all purchasable items.
+ * 
+ * Price tiers (in Gems 💎):
+ * - Flowers/Plants: 3-8 gems (cheap, ~1-2 lessons)
+ * - Furniture: 10-20 gems (~3-5 lessons)
+ * - Trees: 15-25 gems (~4-6 lessons)
+ * - Features: 20-35 gems (~5-8 lessons)
+ * - Tree Care consumables: 3-10 gems (affordable upkeep)
+ * 
+ * TreeCare items are consumables — they restore health or boost
+ * SunDrops on a specific learning tree, not placed on the grid.
  */
 export const SHOP_CATALOGUE: ShopItem[] = [
-  // Trees
-  { id: 'oak',      name: 'Oak Tree',       cost: 30, icon: '🌳', category: 'Trees' },
-  { id: 'pine',     name: 'Pine Tree',      cost: 25, icon: '🌲', category: 'Trees' },
-  { id: 'cherry',   name: 'Cherry',         cost: 40, icon: '🌸', category: 'Trees' },
-  { id: 'maple',    name: 'Autumn Maple',   cost: 35, icon: '🍁', category: 'Trees' },
-  { id: 'willow',   name: 'Weeping Willow', cost: 45, icon: '🌿', category: 'Trees' },
-  { id: 'palm',     name: 'Palm Tree',      cost: 38, icon: '🌴', category: 'Trees' },
-  // Flowers
-  { id: 'rose',     name: 'Rose',           cost: 15, icon: '🌹', category: 'Flowers' },
-  { id: 'sunflwr',  name: 'Sunflower',      cost: 12, icon: '🌻', category: 'Flowers' },
-  { id: 'tulip',    name: 'Tulip',          cost: 10, icon: '🌷', category: 'Flowers' },
-  { id: 'lavender', name: 'Lavender',       cost: 10, icon: '💜', category: 'Flowers' },
-  { id: 'daisy',    name: 'Daisy',          cost: 8,  icon: '🌼', category: 'Flowers' },
-  { id: 'poppy',    name: 'Poppy',          cost: 10, icon: '🌺', category: 'Flowers' },
-  // Plants
-  { id: 'hedge',    name: 'Hedge Bush',     cost: 18, icon: '🌿', category: 'Plants' },
-  { id: 'mushroom', name: 'Mushroom',       cost: 8,  icon: '🍄', category: 'Plants' },
-  // Furniture
-  { id: 'bench',    name: 'Bench',          cost: 45, icon: '🪑', category: 'Furniture' },
-  { id: 'lantern',  name: 'Lantern',        cost: 35, icon: '🏮', category: 'Furniture' },
-  { id: 'sign',     name: 'Sign Post',      cost: 20, icon: '🪧', category: 'Furniture' },
-  // Features
-  { id: 'fountain', name: 'Fountain',       cost: 80, icon: '⛲', category: 'Features' },
-  { id: 'pond',     name: 'Pond',           cost: 55, icon: '💧', category: 'Features' },
+  // 🌲 Decoration Trees — cosmetic, NOT learning trees
+  { id: 'oak',      name: 'Oak Tree',       cost: 20, icon: '🌳', category: 'Trees' },
+  { id: 'pine',     name: 'Pine Tree',      cost: 15, icon: '🌲', category: 'Trees' },
+  { id: 'cherry',   name: 'Cherry',         cost: 25, icon: '🌸', category: 'Trees' },
+  { id: 'maple',    name: 'Autumn Maple',   cost: 22, icon: '🍁', category: 'Trees' },
+  { id: 'willow',   name: 'Weeping Willow', cost: 25, icon: '🌿', category: 'Trees' },
+  { id: 'palm',     name: 'Palm Tree',      cost: 20, icon: '🌴', category: 'Trees' },
+  // 🌸 Flowers — cheapest items, ~1-2 lessons each
+  { id: 'rose',     name: 'Rose',           cost: 6,  icon: '🌹', category: 'Flowers' },
+  { id: 'sunflwr',  name: 'Sunflower',      cost: 5,  icon: '🌻', category: 'Flowers' },
+  { id: 'tulip',    name: 'Tulip',          cost: 4,  icon: '🌷', category: 'Flowers' },
+  { id: 'lavender', name: 'Lavender',       cost: 4,  icon: '💜', category: 'Flowers' },
+  { id: 'daisy',    name: 'Daisy',          cost: 3,  icon: '🌼', category: 'Flowers' },
+  { id: 'poppy',    name: 'Poppy',          cost: 4,  icon: '🌺', category: 'Flowers' },
+  // 🌿 Plants
+  { id: 'hedge',    name: 'Hedge Bush',     cost: 8,  icon: '🌿', category: 'Plants' },
+  { id: 'mushroom', name: 'Mushroom',       cost: 3,  icon: '🍄', category: 'Plants' },
+  // 🪑 Furniture — mid-tier
+  { id: 'bench',    name: 'Bench',          cost: 18, icon: '🪑', category: 'Furniture' },
+  { id: 'lantern',  name: 'Lantern',        cost: 12, icon: '🏮', category: 'Furniture' },
+  { id: 'sign',     name: 'Sign Post',      cost: 10, icon: '🪧', category: 'Furniture' },
+  // ⛲ Features — premium decorations
+  { id: 'fountain', name: 'Fountain',       cost: 35, icon: '⛲', category: 'Features' },
+  { id: 'pond',     name: 'Pond',           cost: 25, icon: '💧', category: 'Features' },
+  // 💧 Tree Care — consumables applied to learning trees
+  {
+    id: 'water',
+    name: 'Water',
+    cost: 3,
+    icon: '💧',
+    category: 'TreeCare',
+    consumable: true,
+    description: 'Restore 25 health to a learning tree',
+    healthRestore: 25,
+  },
+  {
+    id: 'fertilizer',
+    name: 'Fertilizer',
+    cost: 8,
+    icon: '🧪',
+    category: 'TreeCare',
+    consumable: true,
+    description: 'Boost a tree with +5 SunDrops',
+    sunDropBoost: 5,
+  },
+  {
+    id: 'sunlamp',
+    name: 'Sun Lamp',
+    cost: 5,
+    icon: '☀️',
+    category: 'TreeCare',
+    consumable: true,
+    description: 'Restore 50 health to a learning tree',
+    healthRestore: 50,
+  },
+  {
+    id: 'superfood',
+    name: 'Super Food',
+    cost: 10,
+    icon: '✨',
+    category: 'TreeCare',
+    consumable: true,
+    description: 'Full health restore + 3 SunDrops',
+    healthRestore: 100,
+    sunDropBoost: 3,
+  },
 ];
 
 /**

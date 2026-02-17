@@ -67,94 +67,111 @@ export function buildAvatar(options: AvatarOptions = DEFAULT_AVATAR): THREE.Grou
     hatColor,
   } = { ...DEFAULT_AVATAR, ...options };
   
-  // Materials
-  const skinMaterial = new THREE.MeshLambertMaterial({ color: skinTone });
-  const shirtMaterial = new THREE.MeshLambertMaterial({ color: shirtColor });
-  const pantsMaterial = new THREE.MeshLambertMaterial({ color: pantsColor });
-  const hairMaterial = new THREE.MeshLambertMaterial({ color: hairColor });
-  const whiteMaterial = new THREE.MeshLambertMaterial({ color: 0xFFFFFF });
-  const blackMaterial = new THREE.MeshLambertMaterial({ color: 0x222222 });
+  // Materials — MeshToonMaterial for cel-shaded cartoon look
+  // Slight emissive so avatar "pops" against garden background
+  const skinMaterial = new THREE.MeshToonMaterial({ color: skinTone, emissive: skinTone, emissiveIntensity: 0.08 });
+  const shirtMaterial = new THREE.MeshToonMaterial({ color: shirtColor, emissive: shirtColor, emissiveIntensity: 0.1 });
+  const pantsMaterial = new THREE.MeshToonMaterial({ color: pantsColor, emissive: pantsColor, emissiveIntensity: 0.06 });
+  const whiteMaterial = new THREE.MeshToonMaterial({ color: 0xFFFFFF });
+  const blackMaterial = new THREE.MeshToonMaterial({ color: 0x222222 });
   
   // ===== HEAD =====
-  const headGeometry = new THREE.SphereGeometry(0.21, 12, 12);
+  // Chibi style: 20% larger head for cute kid-friendly proportions
+  const headGeometry = new THREE.SphereGeometry(0.25, 12, 12);
   const head = new THREE.Mesh(headGeometry, skinMaterial);
-  head.position.y = TH / 2 + 0.92;
+  head.position.y = TH / 2 + 0.86;
+  head.castShadow = true;
   group.add(head);
   
   // ===== Eyes =====
-  const eyeGeometry = new THREE.SphereGeometry(0.04, 6, 6);
+  // Slightly bigger eyes for chibi cuteness, positioned for new head center
+  const eyeGeometry = new THREE.SphereGeometry(0.045, 6, 6);
   
-  // Left eye white
+  // Left eye white — named for blink animation
   const leftEyeWhite = new THREE.Mesh(eyeGeometry, whiteMaterial);
-  leftEyeWhite.position.set(-0.06, TH / 2 + 0.95, 0.19);
+  leftEyeWhite.name = 'eye_left';
+  leftEyeWhite.position.set(-0.08, TH / 2 + 0.89, 0.22);
   group.add(leftEyeWhite);
   
-  // Right eye white
+  // Right eye white — named for blink animation
   const rightEyeWhite = new THREE.Mesh(eyeGeometry, whiteMaterial);
-  rightEyeWhite.position.set(0.06, TH / 2 + 0.95, 0.19);
+  rightEyeWhite.name = 'eye_right';
+  rightEyeWhite.position.set(0.08, TH / 2 + 0.89, 0.22);
   group.add(rightEyeWhite);
   
-  // Pupils
-  const pupilGeometry = new THREE.SphereGeometry(0.018, 5, 5);
+  // Pupils — named for blink animation
+  const pupilGeometry = new THREE.SphereGeometry(0.022, 5, 5);
   
   const leftPupil = new THREE.Mesh(pupilGeometry, blackMaterial);
-  leftPupil.position.set(-0.06, TH / 2 + 0.95, 0.22);
+  leftPupil.name = 'pupil_left';
+  leftPupil.position.set(-0.08, TH / 2 + 0.89, 0.25);
   group.add(leftPupil);
   
   const rightPupil = new THREE.Mesh(pupilGeometry, blackMaterial);
-  rightPupil.position.set(0.06, TH / 2 + 0.95, 0.22);
+  rightPupil.name = 'pupil_right';
+  rightPupil.position.set(0.08, TH / 2 + 0.89, 0.25);
   group.add(rightPupil);
   
-  // ===== Mouth (simple line) =====
-  const mouthGeometry = new THREE.BoxGeometry(0.06, 0.015, 0.01);
+  // ===== Mouth (cute smile arc) =====
+  const mouthGeometry = new THREE.BoxGeometry(0.08, 0.018, 0.01);
   const mouth = new THREE.Mesh(mouthGeometry, blackMaterial);
-  mouth.position.set(0, TH / 2 + 0.82, 0.2);
+  mouth.position.set(0, TH / 2 + 0.76, 0.23);
   group.add(mouth);
   
   // ===== Hair =====
   addHair(group, gender, hairColor, TH);
   
   // ===== Torso =====
-  const torsoGeometry = new THREE.BoxGeometry(0.28, 0.34, 0.15);
+  // Chibi: 15% shorter body, slightly wider for sturdiness
+  const torsoGeometry = new THREE.BoxGeometry(0.30, 0.29, 0.16);
   const torso = new THREE.Mesh(torsoGeometry, shirtMaterial);
-  torso.position.y = TH / 2 + 0.49;
+  torso.position.y = TH / 2 + 0.47;
+  torso.castShadow = true;
   group.add(torso);
   
   // ===== Arms =====
-  const armGeometry = new THREE.BoxGeometry(0.07, 0.28, 0.07);
-  const handGeometry = new THREE.SphereGeometry(0.04, 6, 6);
+  // Chibi: shorter, rounder arms with cute round hands
+  const armGeometry = new THREE.BoxGeometry(0.08, 0.24, 0.08);
+  const handGeometry = new THREE.SphereGeometry(0.045, 6, 6);
   
-  // Left arm
+  // Left arm — named for walk animation
   const leftArm = new THREE.Mesh(armGeometry, shirtMaterial);
-  leftArm.position.set(-0.2, TH / 2 + 0.5, 0);
+  leftArm.name = 'arm_left';
+  leftArm.position.set(-0.21, TH / 2 + 0.48, 0);
   group.add(leftArm);
   
   // Left hand
   const leftHand = new THREE.Mesh(handGeometry, skinMaterial);
-  leftHand.position.set(-0.2, TH / 2 + 0.33, 0);
+  leftHand.name = 'hand_left';
+  leftHand.position.set(-0.21, TH / 2 + 0.33, 0);
   group.add(leftHand);
   
   // Right arm
   const rightArm = new THREE.Mesh(armGeometry, shirtMaterial);
-  rightArm.position.set(0.2, TH / 2 + 0.5, 0);
+  rightArm.name = 'arm_right';
+  rightArm.position.set(0.21, TH / 2 + 0.48, 0);
   group.add(rightArm);
   
   // Right hand
   const rightHand = new THREE.Mesh(handGeometry, skinMaterial);
-  rightHand.position.set(0.2, TH / 2 + 0.33, 0);
+  rightHand.name = 'hand_right';
+  rightHand.position.set(0.21, TH / 2 + 0.33, 0);
   group.add(rightHand);
   
   // ===== Legs =====
-  const legGeometry = new THREE.BoxGeometry(0.1, 0.28, 0.1);
+  // Chibi: shorter, slightly wider legs
+  const legGeometry = new THREE.BoxGeometry(0.11, 0.25, 0.11);
   
-  // Left leg
+  // Left leg — named for walk animation
   const leftLeg = new THREE.Mesh(legGeometry, pantsMaterial);
-  leftLeg.position.set(-0.07, TH / 2 + 0.14, 0);
+  leftLeg.name = 'leg_left';
+  leftLeg.position.set(-0.08, TH / 2 + 0.13, 0);
   group.add(leftLeg);
   
   // Right leg
   const rightLeg = new THREE.Mesh(legGeometry, pantsMaterial);
-  rightLeg.position.set(0.07, TH / 2 + 0.14, 0);
+  rightLeg.name = 'leg_right';
+  rightLeg.position.set(0.08, TH / 2 + 0.13, 0);
   group.add(rightLeg);
   
   // ===== Hat =====
@@ -181,49 +198,50 @@ function addHair(
   hairColor: number,
   th: number
 ): void {
-  const hairMaterial = new THREE.MeshLambertMaterial({ color: hairColor });
+  // Toon material for consistent cel-shaded look
+  const hairMaterial = new THREE.MeshToonMaterial({ color: hairColor, emissive: hairColor, emissiveIntensity: 0.05 });
   
   if (gender === 'boy') {
-    // Boy: short cropped hair covering top of head
-    const topHairGeometry = new THREE.SphereGeometry(0.215, 10, 10, 0, Math.PI * 2, 0, Math.PI / 2.5);
+    // Boy: short cropped hair covering top of larger chibi head
+    const topHairGeometry = new THREE.SphereGeometry(0.26, 10, 10, 0, Math.PI * 2, 0, Math.PI / 2.5);
     const topHair = new THREE.Mesh(topHairGeometry, hairMaterial);
-    topHair.position.y = th / 2 + 0.95;
+    topHair.position.y = th / 2 + 0.89;
     group.add(topHair);
     
     // Side hair (short around ears)
-    const sideHairGeometry = new THREE.BoxGeometry(0.44, 0.08, 0.22);
+    const sideHairGeometry = new THREE.BoxGeometry(0.52, 0.09, 0.26);
     const sideHair = new THREE.Mesh(sideHairGeometry, hairMaterial);
-    sideHair.position.set(0, th / 2 + 0.88, -0.04);
+    sideHair.position.set(0, th / 2 + 0.82, -0.04);
     group.add(sideHair);
   } else {
-    // Girl: long hair with front bangs
+    // Girl: long hair with front bangs (scaled up for chibi head)
     // Back hair (long)
-    const backHairGeometry = new THREE.BoxGeometry(0.34, 0.42, 0.14);
+    const backHairGeometry = new THREE.BoxGeometry(0.40, 0.44, 0.16);
     const backHair = new THREE.Mesh(backHairGeometry, hairMaterial);
-    backHair.position.set(0, th / 2 + 0.78, -0.12);
+    backHair.position.set(0, th / 2 + 0.72, -0.14);
     group.add(backHair);
     
     // Top hair
-    const topHairGeometry = new THREE.SphereGeometry(0.22, 10, 10, 0, Math.PI * 2, 0, Math.PI / 2);
+    const topHairGeometry = new THREE.SphereGeometry(0.26, 10, 10, 0, Math.PI * 2, 0, Math.PI / 2);
     const topHair = new THREE.Mesh(topHairGeometry, hairMaterial);
-    topHair.position.y = th / 2 + 0.96;
+    topHair.position.y = th / 2 + 0.90;
     group.add(topHair);
     
     // Bangs
-    const bangsGeometry = new THREE.BoxGeometry(0.34, 0.1, 0.1);
+    const bangsGeometry = new THREE.BoxGeometry(0.40, 0.1, 0.1);
     const bangs = new THREE.Mesh(bangsGeometry, hairMaterial);
-    bangs.position.set(0, th / 2 + 1.02, 0.14);
+    bangs.position.set(0, th / 2 + 0.96, 0.16);
     group.add(bangs);
     
     // Side strands
-    const strandGeometry = new THREE.BoxGeometry(0.08, 0.32, 0.08);
+    const strandGeometry = new THREE.BoxGeometry(0.09, 0.34, 0.09);
     
     const leftStrand = new THREE.Mesh(strandGeometry, hairMaterial);
-    leftStrand.position.set(-0.18, th / 2 + 0.68, 0);
+    leftStrand.position.set(-0.21, th / 2 + 0.62, 0);
     group.add(leftStrand);
     
     const rightStrand = new THREE.Mesh(strandGeometry, hairMaterial);
-    rightStrand.position.set(0.18, th / 2 + 0.68, 0);
+    rightStrand.position.set(0.21, th / 2 + 0.62, 0);
     group.add(rightStrand);
   }
 }
@@ -241,7 +259,7 @@ function addHat(
   hatColor: number,
   th: number
 ): void {
-  const hatMaterial = new THREE.MeshLambertMaterial({ color: hatColor });
+  const hatMaterial = new THREE.MeshToonMaterial({ color: hatColor, emissive: hatColor, emissiveIntensity: 0.06 });
   
   switch (hat) {
     case 'cap':
@@ -263,16 +281,16 @@ function addHat(
  * Add a baseball cap.
  */
 function addCap(group: THREE.Group, material: THREE.Material, th: number): void {
-  // Cap dome
-  const domeGeometry = new THREE.SphereGeometry(0.23, 10, 10, 0, Math.PI * 2, 0, Math.PI / 2);
+  // Cap dome — positioned for chibi head top (~0.86 + 0.25 = 1.11)
+  const domeGeometry = new THREE.SphereGeometry(0.27, 10, 10, 0, Math.PI * 2, 0, Math.PI / 2);
   const dome = new THREE.Mesh(domeGeometry, material);
-  dome.position.y = th / 2 + 1.12;
+  dome.position.y = th / 2 + 1.08;
   group.add(dome);
   
   // Brim
-  const brimGeometry = new THREE.CylinderGeometry(0.11, 0.2, 0.025, 8, 1, false, 0, Math.PI);
+  const brimGeometry = new THREE.CylinderGeometry(0.13, 0.24, 0.025, 8, 1, false, 0, Math.PI);
   const brim = new THREE.Mesh(brimGeometry, material);
-  brim.position.set(0, th / 2 + 1.12, 0.14);
+  brim.position.set(0, th / 2 + 1.08, 0.16);
   brim.rotation.y = Math.PI;
   group.add(brim);
 }
@@ -281,16 +299,16 @@ function addCap(group: THREE.Group, material: THREE.Material, th: number): void 
  * Add a wizard hat.
  */
 function addWizardHat(group: THREE.Group, material: THREE.Material, th: number): void {
-  // Cone
-  const coneGeometry = new THREE.ConeGeometry(0.22, 0.48, 8);
+  // Cone — positioned for chibi head
+  const coneGeometry = new THREE.ConeGeometry(0.26, 0.48, 8);
   const cone = new THREE.Mesh(coneGeometry, material);
-  cone.position.y = th / 2 + 1.3;
+  cone.position.y = th / 2 + 1.28;
   group.add(cone);
   
   // Brim
-  const brimGeometry = new THREE.TorusGeometry(0.2, 0.04, 6, 12);
+  const brimGeometry = new THREE.TorusGeometry(0.24, 0.04, 6, 12);
   const brim = new THREE.Mesh(brimGeometry, material);
-  brim.position.y = th / 2 + 1.08;
+  brim.position.y = th / 2 + 1.06;
   brim.rotation.x = Math.PI / 2;
   group.add(brim);
 }
@@ -299,10 +317,10 @@ function addWizardHat(group: THREE.Group, material: THREE.Material, th: number):
  * Add a crown.
  */
 function addCrown(group: THREE.Group, material: THREE.Material, th: number): void {
-  // Base ring
-  const baseGeometry = new THREE.TorusGeometry(0.18, 0.04, 6, 12);
+  // Base ring — positioned for chibi head
+  const baseGeometry = new THREE.TorusGeometry(0.22, 0.04, 6, 12);
   const base = new THREE.Mesh(baseGeometry, material);
-  base.position.y = th / 2 + 1.09;
+  base.position.y = th / 2 + 1.06;
   base.rotation.x = Math.PI / 2;
   group.add(base);
   
@@ -313,9 +331,9 @@ function addCrown(group: THREE.Group, material: THREE.Material, th: number): voi
     const pointGeometry = new THREE.ConeGeometry(0.045, 0.14, 4);
     const point = new THREE.Mesh(pointGeometry, material);
     point.position.set(
-      Math.cos(angle) * 0.15,
-      th / 2 + 1.16,
-      Math.sin(angle) * 0.15
+      Math.cos(angle) * 0.18,
+      th / 2 + 1.13,
+      Math.sin(angle) * 0.18
     );
     group.add(point);
   }
@@ -325,11 +343,11 @@ function addCrown(group: THREE.Group, material: THREE.Material, th: number): voi
  * Add a flower accessory.
  */
 function addFlowerHat(group: THREE.Group, material: THREE.Material, th: number): void {
-  // Stem
-  const stemMaterial = new THREE.MeshLambertMaterial({ color: 0x2A7A1A });
+  // Stem — positioned for chibi head
+  const stemMaterial = new THREE.MeshToonMaterial({ color: 0x2A7A1A });
   const stemGeometry = new THREE.CylinderGeometry(0.015, 0.015, 0.12, 5);
   const stem = new THREE.Mesh(stemGeometry, stemMaterial);
-  stem.position.set(0.11, th / 2 + 1.07, 0.09);
+  stem.position.set(0.13, th / 2 + 1.03, 0.10);
   stem.rotation.z = -0.2;
   group.add(stem);
   
@@ -339,9 +357,9 @@ function addFlowerHat(group: THREE.Group, material: THREE.Material, th: number):
     const petalGeometry = new THREE.SphereGeometry(0.042, 5, 5);
     const petal = new THREE.Mesh(petalGeometry, material);
     petal.position.set(
-      0.11 + Math.cos(angle) * 0.07,
-      th / 2 + 1.13,
-      0.09 + Math.sin(angle) * 0.07
+      0.13 + Math.cos(angle) * 0.07,
+      th / 2 + 1.09,
+      0.10 + Math.sin(angle) * 0.07
     );
     petal.scale.set(0.7, 0.3, 1);
     petal.rotation.y = angle;
@@ -349,10 +367,10 @@ function addFlowerHat(group: THREE.Group, material: THREE.Material, th: number):
   }
   
   // Center
-  const centerMaterial = new THREE.MeshLambertMaterial({ color: 0xFFD700 });
+  const centerMaterial = new THREE.MeshToonMaterial({ color: 0xFFD700 });
   const centerGeometry = new THREE.SphereGeometry(0.035, 6, 6);
   const center = new THREE.Mesh(centerGeometry, centerMaterial);
-  center.position.set(0.11, th / 2 + 1.13, 0.09);
+  center.position.set(0.13, th / 2 + 1.09, 0.10);
   group.add(center);
 }
 

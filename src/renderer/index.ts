@@ -27,6 +27,7 @@
 // ============================================================================
 
 export { GardenRenderer } from './GardenRenderer';
+export { AtmosphereBuilder } from './AtmosphereBuilder';
 export { buildAvatar, positionAvatarAtGrid, positionAvatarAtWorld } from './AvatarBuilder';
 
 // ============================================================================

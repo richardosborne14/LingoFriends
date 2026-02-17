@@ -435,8 +435,10 @@ export function getCurrentLesson(skillPath: SkillPath): SkillPathLesson | undefi
  * Should be replaced by real data from useAuth and database
  */
 export const MOCK_USER_PROGRESS = {
-  /** Current SunDrops balance */
+  /** Current SunDrops balance (total across all trees) */
   sunDrops: 127,
+  /** Current Gem balance (global shop currency) */
+  gems: 85,
   /** Current streak in days */
   streak: 5,
   /** Total XP earned */

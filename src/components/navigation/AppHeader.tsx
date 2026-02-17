@@ -31,8 +31,10 @@ export interface AppHeaderProps {
   avatarEmoji?: string;
   /** Current streak in days */
   streak?: number;
-  /** Current SunDrops balance */
+  /** Current SunDrops balance (total across all trees) */
   sunDrops: number;
+  /** Current Gem balance (global shop currency) */
+  gems?: number;
   /** Callback when settings is clicked */
   onSettingsClick?: () => void;
   /** Whether to show the streak (optional, defaults true) */
@@ -121,10 +123,27 @@ const settingsButtonStyles: React.CSSProperties = {
  *   onSettingsClick={() => setShowSettings(true)}
  * />
  */
+/**
+ * Gem counter style — purple to distinguish from SunDrops.
+ */
+const gemStyles: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 4,
+  fontFamily: "'Fredoka', sans-serif",
+  fontWeight: 600,
+  fontSize: 14,
+  color: '#7C3AED', // purple-600
+  background: '#F5F3FF', // purple-50
+  padding: '4px 8px',
+  borderRadius: 12,
+};
+
 export const AppHeader: React.FC<AppHeaderProps> = ({
   avatarEmoji = '🧑',
   streak = 0,
   sunDrops,
+  gems,
   onSettingsClick,
   showStreak = true,
 }) => {
@@ -160,7 +179,20 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           </motion.div>
         )}
 
-        {/* SunDrops counter */}
+        {/* Gem counter (global shop currency) */}
+        {gems !== undefined && (
+          <motion.div
+            style={gemStyles}
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', delay: 0.18 }}
+          >
+            <span>💎</span>
+            <span>{gems}</span>
+          </motion.div>
+        )}
+
+        {/* SunDrops counter (total learning progress across trees) */}
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}

@@ -75,9 +75,36 @@ Fix the three-currency system so it matches the game design. Right now everythin
 
 ## Testing Checklist
 
-- [ ] Shop shows Gem prices (💎) not SunDrop prices
-- [ ] Player's Gem balance shown in shop
-- [ ] Can't buy items if insufficient Gems
-- [ ] SunDrops in header still show correctly (total across trees)
-- [ ] Lesson completion awards SunDrops to the correct tree
-- [ ] Lesson completion awards small Gem bonus
+- [x] Shop shows Gem prices (💎) not SunDrop prices
+- [x] Player's Gem balance shown in shop
+- [x] Can't buy items if insufficient Gems
+- [x] SunDrops in header still show correctly (total across trees)
+- [x] Gem balance shown in header (💎 purple pill)
+- [ ] Lesson completion awards SunDrops to the correct tree (needs real data integration)
+- [ ] Lesson completion awards small Gem bonus (needs real data integration)
+
+## Completed Changes
+
+| File | Change |
+|------|--------|
+| `src/components/garden/ShopPanel.tsx` | `sunDropsBalance` → `gemBalance`, all 💛→💎, purple cost color |
+| `src/renderer/types.ts` | Updated ShopItem docs: cost is in Gems |
+| `src/components/navigation/AppHeader.tsx` | Added `gems` prop with purple 💎 counter |
+| `src/data/mockGameData.ts` | Added `gems: 85` to MOCK_USER_PROGRESS |
+| `App.tsx` | Passes `gems={progress.gems}` to AppHeader |
+| `src/components/dev/ShopTestHarness.tsx` | Switched to gem balance throughout |
+
+### Bonus: Daytime Garden & Walk-to-Tree
+
+Also done during this step for testing and UX improvement:
+
+| File | Change |
+|------|--------|
+| `src/renderer/GardenRenderer.ts` | Background → sky blue (0x87CEEB), bright ambient (0.6), strong sun (1.2), hemisphere light, fog updated |
+| `src/renderer/GardenRenderer.ts` | Walk-to-tree: avatar walks to adjacent tile before opening lesson path. Added `pendingTreeInteraction`, `findAdjacentTile()`, arrival callback |
+| `src/renderer/AtmosphereBuilder.ts` | Added `buildDaytime()` method — white clouds, fence, border (no stars/moon) |
+
+**Walk-to-tree behavior:**
+- Click tree when far away → avatar walks to nearest adjacent tile, then path opens
+- Click tree when already adjacent (≤1 tile) → opens immediately
+- Click a regular tile while walking to tree → cancels pending interaction

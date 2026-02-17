@@ -5,7 +5,7 @@
  * Press Ctrl+Shift+P (or Cmd+Shift+P on Mac) to toggle.
  * 
  * Features:
- * - Test ShopPanel UI with mock Sun Drops balance
+ * - Test ShopPanel UI with mock Gem balance
  * - Test placement mode flow
  * - Test garden object service CRUD operations
  * 
@@ -202,7 +202,7 @@ const styles = `
  */
 export const ShopTestHarness: React.FC = () => {
   // State
-  const [sunDropsBalance, setSunDropsBalance] = useState(100);
+  const [gemBalance, setGemBalance] = useState(100);
   const [isShopOpen, setIsShopOpen] = useState(true);
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
   const [placedObjects, setPlacedObjects] = useState<GardenObject[]>([]);
@@ -225,11 +225,11 @@ export const ShopTestHarness: React.FC = () => {
    * Handle item selection from shop
    */
   const handleItemSelect = useCallback((item: ShopItem) => {
-    if (sunDropsBalance >= item.cost) {
+    if (gemBalance >= item.cost) {
       setSelectedItem(item);
       console.log('[ShopTestHarness] Selected item:', item.name);
     }
-  }, [sunDropsBalance]);
+  }, [gemBalance]);
 
   /**
    * Handle placement cancellation
@@ -257,8 +257,8 @@ export const ShopTestHarness: React.FC = () => {
         placedAt: new Date().toISOString(),
       };
 
-      // Deduct cost
-      setSunDropsBalance(prev => prev - selectedItem.cost);
+      // Deduct gem cost
+      setGemBalance(prev => prev - selectedItem.cost);
       
       // Add to placed objects
       setPlacedObjects(prev => [...prev, newObject]);
@@ -294,14 +294,14 @@ export const ShopTestHarness: React.FC = () => {
    * Adjust balance
    */
   const handleAdjustBalance = useCallback((amount: number) => {
-    setSunDropsBalance(prev => Math.max(0, prev + amount));
+    setGemBalance(prev => Math.max(0, prev + amount));
   }, []);
 
   /**
    * Reset to defaults
    */
   const handleReset = useCallback(() => {
-    setSunDropsBalance(100);
+    setGemBalance(100);
     setPlacedObjects([]);
     setSelectedItem(null);
     setIsShopOpen(true);
@@ -348,10 +348,10 @@ export const ShopTestHarness: React.FC = () => {
         <div className="shop-test-sidebar">
           {/* Balance Section */}
           <div className="shop-test-section">
-            <h3 className="shop-test-section-title">💜 Sun Drops Balance</h3>
+            <h3 className="shop-test-section-title">💎 Gem Balance</h3>
             <div className="shop-test-stat">
               <span className="shop-test-stat-label">Current</span>
-              <span className="shop-test-stat-value">{sunDropsBalance}</span>
+              <span className="shop-test-stat-value">{gemBalance}</span>
             </div>
             <div className="balance-adjust">
               <input
@@ -382,7 +382,7 @@ export const ShopTestHarness: React.FC = () => {
               <div style={{ padding: '0.5rem', background: '#fef3c7', borderRadius: '0.375rem' }}>
                 <div style={{ fontWeight: 600 }}>{selectedItem.icon} {selectedItem.name}</div>
                 <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                  Cost: 💛 {selectedItem.cost}
+                  Cost: 💎 {selectedItem.cost}
                 </div>
                 <button 
                   className="shop-test-btn shop-test-btn-secondary"
@@ -473,7 +473,7 @@ export const ShopTestHarness: React.FC = () => {
             <ShopPanel
               isOpen={isShopOpen}
               onClose={() => setIsShopOpen(false)}
-              sunDropsBalance={sunDropsBalance}
+              gemBalance={gemBalance}
               selectedItem={selectedItem}
               onSelectItem={handleItemSelect}
               onCancel={handleCancelPlacement}
@@ -491,7 +491,7 @@ export const ShopTestHarness: React.FC = () => {
       {/* Placement Preview Modal */}
       {selectedItem && (
         <div className="placement-preview">
-          {selectedItem.icon} Click a tile to place {selectedItem.name} (💛 {selectedItem.cost})
+          {selectedItem.icon} Click a tile to place {selectedItem.name} (💎 {selectedItem.cost})
         </div>
       )}
     </div>

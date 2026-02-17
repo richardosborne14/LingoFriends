@@ -2,17 +2,20 @@
  * ShopPanel Component
  * 
  * Garden shop overlay for purchasing and placing decorations.
- * Connects the Sun Drop economy to the Three.js garden renderer.
+ * Connects the Gem economy to the Three.js garden renderer.
  * 
  * Features:
  * - Category tabs for item filtering
- * - Sun Drop balance display
- * - Item cards with costs
+ * - Gem balance display (💎)
+ * - Item cards with gem costs
  * - Placement mode with ghost preview
  * - Insufficient funds messaging
  * 
+ * Currency model: Shop uses Gems (global currency), NOT SunDrops.
+ * SunDrops are per-tree learning progress and aren't spent in the shop.
+ * 
  * @module components/garden/ShopPanel
- * @see docs/phase-1.1/task-1-1-17-garden-shop-ui.md
+ * @see docs/FIX-STEPS/step-4-currency-fix.md
  */
 
 import React, { useState, useMemo } from 'react';
@@ -23,11 +26,22 @@ import { SHOP_CATALOGUE, ShopItem, ObjectCategory } from '../../renderer';
 // ============================================================================
 
 /**
+ * Learning tree data for tree care items.
+ */
+export interface LearningTreeData {
+  id: string;
+  name: string;
+  icon: string;
+  health: number;
+  skillPathId: string;
+}
+
+/**
  * Props for the ShopPanel component.
  */
 export interface ShopPanelProps {
-  /** Current Sun Drop balance */
-  sunDropsBalance: number;
+  /** Current Gem balance (global shop currency) */
+  gemBalance: number;
   /** Callback when an item is selected for placement */
   onSelectItem: (item: ShopItem) => void;
   /** Callback when placement is cancelled */
@@ -40,6 +54,10 @@ export interface ShopPanelProps {
   onClose: () => void;
   /** Optional CSS class name */
   className?: string;
+  /** User's learning trees for tree care items (optional) */
+  userTrees?: LearningTreeData[];
+  /** Callback when a tree care item is applied to a learning tree */
+  onApplyTreeCare?: (item: ShopItem, treeId: string) => void;
 }
 
 // ============================================================================
@@ -53,10 +71,11 @@ const CATEGORY_INFO: Record<ObjectCategory, { label: string; icon: string }> = {
   Plants: { label: 'Plants', icon: '🌿' },
   Furniture: { label: 'Furniture', icon: '🪑' },
   Features: { label: 'Features', icon: '⛲' },
+  TreeCare: { label: 'Tree Care', icon: '💧' },
 };
 
 /** All categories for the tabs */
-const ALL_CATEGORIES: ObjectCategory[] = ['Trees', 'Flowers', 'Plants', 'Furniture', 'Features'];
+const ALL_CATEGORIES: ObjectCategory[] = ['Trees', 'Flowers', 'Plants', 'Furniture', 'Features', 'TreeCare'];
 
 // ============================================================================
 // COMPONENTS
@@ -116,12 +135,12 @@ function ShopItemCard({
       className={cardClass}
       onClick={onSelect}
       disabled={!canAfford}
-      title={!canAfford ? `You need ${item.cost} Sun Drops` : item.name}
+      title={!canAfford ? `You need ${item.cost} Gems` : item.name}
     >
       <span className="shop-item-icon">{item.icon}</span>
       <span className="shop-item-name">{item.name}</span>
       <span className="shop-item-cost">
-        💛 {item.cost}
+        💎 {item.cost}
       </span>
       {!canAfford && (
         <span className="shop-item-locked">🔒</span>
@@ -146,7 +165,7 @@ function PlacementModal({
         <span className="placement-icon">{item.icon}</span>
         <span className="placement-name">{item.name}</span>
         <span className="placement-hint">Click a grass tile to place</span>
-        <span className="placement-cost">💛 {item.cost}</span>
+        <span className="placement-cost">💎 {item.cost}</span>
         <button
           className="placement-cancel"
           onClick={onCancel}
@@ -154,6 +173,76 @@ function PlacementModal({
         >
           ✕
         </button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * TreePickerModal - Select which learning tree to apply tree care item to.
+ */
+function TreePickerModal({
+  item,
+  trees,
+  onSelectTree,
+  onCancel,
+}: {
+  item: ShopItem;
+  trees: LearningTreeData[];
+  onSelectTree: (treeId: string) => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div className="tree-picker-overlay">
+      <div className="tree-picker-modal">
+        <div className="tree-picker-header">
+          <h3>{item.icon} {item.name}</h3>
+          <p>{item.description}</p>
+          <p className="tree-picker-cost">Cost: 💎 {item.cost}</p>
+        </div>
+        
+        <div className="tree-picker-body">
+          <p className="tree-picker-prompt">Choose a learning tree:</p>
+          {trees.length === 0 ? (
+            <div className="tree-picker-empty">
+              <p>🌱 No learning trees yet!</p>
+              <p style={{ fontSize: '0.85rem', color: '#666' }}>
+                Plant a seed to start your first skill path.
+              </p>
+            </div>
+          ) : (
+            <div className="tree-picker-list">
+              {trees.map((tree) => (
+                <button
+                  key={tree.id}
+                  className="tree-picker-item"
+                  onClick={() => onSelectTree(tree.id)}
+                >
+                  <span className="tree-icon">{tree.icon}</span>
+                  <div className="tree-info">
+                    <span className="tree-name">{tree.name}</span>
+                    <div className="tree-health-bar">
+                      <div 
+                        className="tree-health-fill"
+                        style={{ 
+                          width: `${tree.health}%`,
+                          backgroundColor: tree.health > 50 ? '#4caf50' : tree.health > 20 ? '#ff9800' : '#f44336'
+                        }}
+                      />
+                    </div>
+                    <span className="tree-health-text">{tree.health}% health</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        
+        <div className="tree-picker-footer">
+          <button className="tree-picker-cancel" onClick={onCancel}>
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -171,7 +260,7 @@ function PlacementModal({
  * 
  * @example
  * <ShopPanel
- *   sunDropsBalance={42}
+ *   gemBalance={42}
  *   selectedItem={selectedItem}
  *   onSelectItem={handleSelect}
  *   onCancel={handleCancel}
@@ -180,16 +269,20 @@ function PlacementModal({
  * />
  */
 export function ShopPanel({
-  sunDropsBalance,
+  gemBalance,
   onSelectItem,
   onCancel,
   selectedItem,
   isOpen,
   onClose,
   className = '',
+  userTrees = [],
+  onApplyTreeCare,
 }: ShopPanelProps) {
   // Selected category filter (null = All)
   const [selectedCategory, setSelectedCategory] = useState<ObjectCategory | null>(null);
+  // Tree care item awaiting tree selection
+  const [treeCareItem, setTreeCareItem] = useState<ShopItem | null>(null);
 
   // Filter items by category
   const filteredItems = useMemo(() => {
@@ -197,11 +290,30 @@ export function ShopPanel({
     return SHOP_CATALOGUE.filter((item) => item.category === selectedCategory);
   }, [selectedCategory]);
 
-  // Handle item selection
+  // Handle item selection — checks gem balance and item type
   const handleItemSelect = (item: ShopItem) => {
-    if (sunDropsBalance >= item.cost) {
+    if (gemBalance < item.cost) return;
+    
+    // Tree care items show tree picker instead of placement mode
+    if (item.consumable) {
+      setTreeCareItem(item);
+    } else {
+      // Regular items enter placement mode
       onSelectItem(item);
     }
+  };
+
+  // Handle tree selection for tree care items
+  const handleTreeSelection = (treeId: string) => {
+    if (treeCareItem && onApplyTreeCare) {
+      onApplyTreeCare(treeCareItem, treeId);
+      setTreeCareItem(null);
+    }
+  };
+
+  // Handle cancel tree care
+  const handleCancelTreeCare = () => {
+    setTreeCareItem(null);
   };
 
   // Don't render if not open
@@ -209,13 +321,13 @@ export function ShopPanel({
 
   return (
     <div className={`shop-panel ${className}`}>
-      {/* Header with Sun Drop balance */}
+      {/* Header with Gem balance */}
       <div className="shop-header">
         <h2 className="shop-title">🌿 Garden Shop</h2>
         <div className="shop-balance">
-          <span className="balance-icon">💛</span>
-          <span className="balance-amount">{sunDropsBalance}</span>
-          <span className="balance-label">Sun Drops</span>
+          <span className="balance-icon">💎</span>
+          <span className="balance-amount">{gemBalance}</span>
+          <span className="balance-label">Gems</span>
         </div>
         <button
           className="shop-close"
@@ -238,7 +350,7 @@ export function ShopPanel({
           <ShopItemCard
             key={item.id}
             item={item}
-            canAfford={sunDropsBalance >= item.cost}
+            canAfford={gemBalance >= item.cost}
             isSelected={selectedItem?.id === item.id}
             onSelect={() => handleItemSelect(item)}
           />
@@ -247,14 +359,24 @@ export function ShopPanel({
 
       {/* Footer hint */}
       <div className="shop-footer">
-        Complete lessons to earn more Sun Drops ✨
+        Earn 💎 gems by completing lessons! ✨
       </div>
 
       {/* Placement modal overlay */}
-      {selectedItem && (
+      {selectedItem && !selectedItem.consumable && (
         <PlacementModal
           item={selectedItem}
           onCancel={onCancel}
+        />
+      )}
+
+      {/* Tree picker modal for tree care items */}
+      {treeCareItem && (
+        <TreePickerModal
+          item={treeCareItem}
+          trees={userTrees}
+          onSelectTree={handleTreeSelection}
+          onCancel={handleCancelTreeCare}
         />
       )}
     </div>
@@ -436,7 +558,7 @@ export const shopPanelStyles = `
 .shop-item-cost {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #f9a825;
+  color: #7C3AED;
 }
 
 .shop-item-card.disabled .shop-item-cost {
@@ -496,7 +618,7 @@ export const shopPanelStyles = `
 
 .placement-cost {
   font-weight: 600;
-  color: #f9a825;
+  color: #7C3AED;
 }
 
 .placement-cancel {
@@ -519,6 +641,161 @@ export const shopPanelStyles = `
   background: #d32f2f;
 }
 
+/* Tree Picker Modal */
+.tree-picker-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.tree-picker-modal {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 400px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.tree-picker-header {
+  padding: 20px;
+  border-bottom: 2px solid #e0e0e0;
+  text-align: center;
+}
+
+.tree-picker-header h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.25rem;
+  color: #333;
+}
+
+.tree-picker-header p {
+  margin: 4px 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.tree-picker-cost {
+  font-weight: 600;
+  color: #7C3AED !important;
+  font-size: 1rem !important;
+}
+
+.tree-picker-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.tree-picker-prompt {
+  margin: 0 0 12px 0;
+  font-weight: 600;
+  color: #333;
+}
+
+.tree-picker-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+}
+
+.tree-picker-empty p:first-child {
+  font-size: 2rem;
+  margin: 0 0 8px 0;
+}
+
+.tree-picker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tree-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f9fafb;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.tree-picker-item:hover {
+  background: #f1f8e9;
+  border-color: #4caf50;
+  transform: translateX(4px);
+}
+
+.tree-picker-item .tree-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.tree-picker-item .tree-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tree-picker-item .tree-name {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.tree-health-bar {
+  width: 100%;
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.tree-health-fill {
+  height: 100%;
+  transition: width 0.3s, background-color 0.3s;
+}
+
+.tree-health-text {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.tree-picker-footer {
+  padding: 16px;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: center;
+}
+
+.tree-picker-cancel {
+  padding: 10px 24px;
+  border: none;
+  background: #e0e0e0;
+  color: #666;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.tree-picker-cancel:hover {
+  background: #d0d0d0;
+}
+
 /* Responsive */
 @media (max-width: 480px) {
   .shop-panel {
@@ -532,6 +809,11 @@ export const shopPanelStyles = `
 
   .shop-item-icon {
     font-size: 1.5rem;
+  }
+
+  .tree-picker-modal {
+    width: 95%;
+    max-height: 90vh;
   }
 }
 `;

@@ -32,6 +32,7 @@ import {
 } from './gridUtils';
 import { createObject, updatePlacedObjectAnimations } from './objects/objectFactory';
 import { buildAvatar } from './AvatarBuilder';
+import { AtmosphereBuilder } from './AtmosphereBuilder';
 import { makeLearningTree, calculateGrowthStage, type LearningTreeOptions } from './objects/learningTrees';
 import { TreeStatus } from '../types/game';
 
@@ -80,6 +81,25 @@ export class GardenRenderer {
   private placedObjects: PlacedObject[] = [];
   private learningTrees: Map<string, THREE.Group> = new Map();
   private avatarGridPos: { gx: number; gz: number } = { gx: 6, gz: 6 };
+  
+  /** Next blink time (elapsed seconds). Random interval 3-6s between blinks. */
+  private nextBlinkTime: number = 2 + Math.random() * 3;
+  /** Whether avatar is currently mid-blink */
+  private isBlinking: boolean = false;
+  /** When the current blink started */
+  private blinkStartTime: number = 0;
+  
+  /**
+   * Pending tree interaction — avatar walks to the tree first,
+   * then this callback fires when the avatar arrives adjacent to it.
+   */
+  private pendingTreeInteraction: {
+    gx: number;
+    gz: number;
+    growthStage: number;
+    health: number;
+    skillPathId?: string;
+  } | null = null;
   
   /**
    * Callback for when a learning tree is clicked.
@@ -156,9 +176,10 @@ export class GardenRenderer {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     
-    // Scene
+    // Scene — bright daytime sky for kid-friendly vibe
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x87CEEB); // Sky blue
+    scene.fog = new THREE.Fog(0x87CEEB, 25, 50);
     
     return {
       scene,
@@ -201,37 +222,43 @@ export class GardenRenderer {
   }
 
   /**
-   * Set up the scene with lights and groups.
+   * Set up the scene with lights, atmosphere, and groups.
+   * 
+   * Daytime garden lighting:
+   * - Bright warm ambient
+   * - Strong sunlight with shadows
+   * - Cool fill from opposite side
+   * - Hemisphere light for natural sky/ground bounce
    */
   private setupScene(): void {
-    // Hemisphere light for natural outdoor lighting
-    // Sky color is light blue, ground color is soft green
-    const hemisphereLight = new THREE.HemisphereLight(0x87CEEB, 0x3A5F0B, 0.8);
-    this.state.scene.add(hemisphereLight);
-    
-    // Ambient light for base illumination (bright for kid-friendly look)
-    const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.7);
+    // Warm white ambient — bright daytime feel
+    const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.6);
     this.state.scene.add(ambientLight);
     
-    // Main directional light (sun) for shadows
-    const sunLight = new THREE.DirectionalLight(0xFFFAE6, 1.2);
-    sunLight.position.set(20, 40, 15);
+    // Bright sun with shadows
+    const sunLight = new THREE.DirectionalLight(0xFFF4E0, 1.2);
+    sunLight.position.set(8, 15, 5);
     sunLight.castShadow = true;
-    sunLight.shadow.mapSize.width = 2048;
-    sunLight.shadow.mapSize.height = 2048;
-    sunLight.shadow.camera.near = 1;
-    sunLight.shadow.camera.far = 100;
-    sunLight.shadow.camera.left = -25;
-    sunLight.shadow.camera.right = 25;
-    sunLight.shadow.camera.top = 25;
-    sunLight.shadow.camera.bottom = -25;
-    sunLight.shadow.bias = -0.001;
+    sunLight.shadow.mapSize.width = 1024;
+    sunLight.shadow.mapSize.height = 1024;
+    const sc = sunLight.shadow.camera;
+    sc.left = -14;
+    sc.bottom = -14;
+    sc.right = 14;
+    sc.top = 14;
     this.state.scene.add(sunLight);
     
-    // Soft fill light from opposite direction to reduce harsh shadows
-    const fillLight = new THREE.DirectionalLight(0xB4D4E7, 0.3);
-    fillLight.position.set(-15, 20, -10);
+    // Cool fill from opposite side for depth
+    const fillLight = new THREE.DirectionalLight(0x88AACC, 0.4);
+    fillLight.position.set(-5, 6, -5);
     this.state.scene.add(fillLight);
+    
+    // Sky/ground hemisphere light for natural bounced light
+    const hemiLight = new THREE.HemisphereLight(0x87CEEB, 0x44AA44, 0.3);
+    this.state.scene.add(hemiLight);
+    
+    // Atmosphere: fence, border, clouds (skip stars/moon for daytime)
+    AtmosphereBuilder.buildDaytime(this.state.scene);
     
     // Object layer for placed objects
     this.state.scene.add(this.state.objectLayer);
@@ -242,18 +269,12 @@ export class GardenRenderer {
 
   /**
    * Set up the tile floor.
+   * 
+   * Tiles are full-width boxes (no gaps) matching GardenV2.jsx.
+   * The green border slab is handled by AtmosphereBuilder.
    */
   private setupTiles(): void {
-    // Ground plane below tiles
-    const groundGeometry = new THREE.PlaneGeometry(GRID_SIZE * 2, GRID_SIZE * 2);
-    const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x0A1A0A });
-    const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-    ground.rotation.x = -Math.PI / 2;
-    ground.position.y = -0.05;
-    ground.receiveShadow = true;
-    this.state.scene.add(ground);
-    
-    // Create tiles
+    // Create tiles — full TILE_WIDTH, no gaps (matches GardenV2.jsx)
     for (let gz = 0; gz < GRID_SIZE; gz++) {
       for (let gx = 0; gx < GRID_SIZE; gx++) {
         const { x, z } = gridToWorld(gx, gz);
@@ -261,14 +282,14 @@ export class GardenRenderer {
         const color = getTileColor(gx, gz, isPath);
         
         const tileGeometry = new THREE.BoxGeometry(
-          TILE_WIDTH * 0.98,
+          TILE_WIDTH,
           TILE_HEIGHT,
-          TILE_WIDTH * 0.98
+          TILE_WIDTH,
         );
         const tileMaterial = new THREE.MeshLambertMaterial({ color });
         const tile = new THREE.Mesh(tileGeometry, tileMaterial);
         
-        tile.position.set(x, TILE_HEIGHT / 2, z);
+        tile.position.set(x, 0, z);
         tile.receiveShadow = true;
         tile.userData = { gx, gz, isTile: true };
         
@@ -361,14 +382,30 @@ export class GardenRenderer {
       let obj = treeIntersects[0].object as THREE.Object3D;
       while (obj && obj !== this.state.scene) {
         if (obj.userData?.type === 'learningTree') {
-          // Fire the learning tree click callback
-          this.onLearningTreeClick?.({
-            gx: obj.userData.gx,
-            gz: obj.userData.gz,
-            growthStage: obj.userData.growthStage,
-            health: obj.userData.health,
-            skillPathId: obj.userData.skillPathId,
-          });
+          const treeGx = obj.userData.gx as number;
+          const treeGz = obj.userData.gz as number;
+          const treeData = {
+            gx: treeGx,
+            gz: treeGz,
+            growthStage: obj.userData.growthStage as number,
+            health: obj.userData.health as number,
+            skillPathId: obj.userData.skillPathId as string | undefined,
+          };
+
+          // If avatar is already adjacent (within 1 tile), open immediately
+          const dx = Math.abs(this.avatarGridPos.gx - treeGx);
+          const dz = Math.abs(this.avatarGridPos.gz - treeGz);
+          if (dx <= 1 && dz <= 1) {
+            this.onLearningTreeClick?.(treeData);
+            return;
+          }
+
+          // Otherwise, walk to an adjacent tile first, then open
+          const adj = this.findAdjacentTile(treeGx, treeGz);
+          if (adj) {
+            this.pendingTreeInteraction = treeData;
+            this.state.movementTarget = adj;
+          }
           return; // Don't process tile clicks if we clicked a tree
         }
         obj = obj.parent!;
@@ -388,8 +425,9 @@ export class GardenRenderer {
         return;
       }
       
-      // Otherwise, move avatar
+      // Otherwise, move avatar (and cancel any pending tree interaction)
       if (!isOccupied && isValidCell(gx, gz)) {
+        this.pendingTreeInteraction = null;
         this.state.movementTarget = { gx, gz };
       }
     }
@@ -561,6 +599,37 @@ export class GardenRenderer {
    */
   getAvatarPosition(): { gx: number; gz: number } {
     return { ...this.avatarGridPos };
+  }
+
+  /**
+   * Find the closest walkable tile adjacent to the given grid position.
+   * Used for walk-to-tree: avatar walks to an adjacent tile, not onto the tree.
+   * 
+   * @param treeGx - Tree grid X
+   * @param treeGz - Tree grid Z
+   * @returns Adjacent tile coords, or null if none available
+   */
+  private findAdjacentTile(treeGx: number, treeGz: number): { gx: number; gz: number } | null {
+    // Check 4 cardinal neighbors first, then diagonals
+    const offsets = [
+      [0, -1], [0, 1], [-1, 0], [1, 0],  // cardinal
+      [-1, -1], [1, -1], [-1, 1], [1, 1], // diagonal
+    ];
+
+    // Sort by distance to avatar so we walk to the nearest adjacent tile
+    const candidates = offsets
+      .map(([dx, dz]) => ({ gx: treeGx + dx, gz: treeGz + dz }))
+      .filter(({ gx, gz }) =>
+        isValidCell(gx, gz) &&
+        !this.state.occupiedCells.has(cellKey(gx, gz))
+      )
+      .sort((a, b) => {
+        const distA = Math.abs(a.gx - this.avatarGridPos.gx) + Math.abs(a.gz - this.avatarGridPos.gz);
+        const distB = Math.abs(b.gx - this.avatarGridPos.gx) + Math.abs(b.gz - this.avatarGridPos.gz);
+        return distA - distB;
+      });
+
+    return candidates[0] || null;
   }
 
   /**
@@ -762,6 +831,13 @@ export class GardenRenderer {
       
       // Notify callback
       this.options.onAvatarMove?.(this.avatarGridPos.gx, this.avatarGridPos.gz);
+      
+      // If we were walking to a tree, fire the interaction now that we've arrived
+      if (this.pendingTreeInteraction) {
+        const pending = this.pendingTreeInteraction;
+        this.pendingTreeInteraction = null;
+        this.onLearningTreeClick?.(pending);
+      }
     } else {
       // Move toward target
       direction.normalize();
@@ -783,6 +859,10 @@ export class GardenRenderer {
       // Move avatar
       const moveDistance = Math.min(AVATAR_SPEED * delta, distance);
       this.state.avatar.position.add(direction.clone().multiplyScalar(moveDistance));
+      
+      // Walking bob — subtle Y-axis bounce for lively movement
+      const walkPhase = this.state.clock.getElapsedTime() * 8; // 8 Hz bounce
+      this.state.avatar.position.y = Math.abs(Math.sin(walkPhase)) * 0.06;
       
       // Update grid position
       const worldPos = {
@@ -812,8 +892,45 @@ export class GardenRenderer {
       // Update avatar movement
       this.updateAvatarMovement(delta);
       
-      // Update animated objects
+      // === IDLE BREATHING ===
+      // When not walking, apply a subtle Y-axis sine oscillation
+      if (!this.state.movementTarget) {
+        const breathY = Math.sin(elapsed * 1.5) * 0.02; // slow, tiny bob
+        this.state.avatar.position.y = breathY;
+      }
+      
+      // === EYE BLINK ===
+      // Occasional blink: eyes scale to 0 briefly every 3-6 seconds
+      const blinkDuration = 0.12; // 120ms blink
+      if (!this.isBlinking && elapsed >= this.nextBlinkTime) {
+        // Start a blink
+        this.isBlinking = true;
+        this.blinkStartTime = elapsed;
+      }
+      if (this.isBlinking) {
+        const blinkProgress = elapsed - this.blinkStartTime;
+        // Scale eyes to 0 on Y axis during blink, then restore
+        const eyeScaleY = blinkProgress < blinkDuration ? 0.1 : 1.0;
+        const eyeNames = ['eye_left', 'eye_right', 'pupil_left', 'pupil_right'];
+        for (const name of eyeNames) {
+          const eyePart = this.state.avatar.getObjectByName(name);
+          if (eyePart) {
+            eyePart.scale.y = eyeScaleY;
+          }
+        }
+        // End blink after duration
+        if (blinkProgress >= blinkDuration) {
+          this.isBlinking = false;
+          // Schedule next blink 3-6 seconds from now
+          this.nextBlinkTime = elapsed + 3 + Math.random() * 3;
+        }
+      }
+      
+      // Update animated objects (fountains, ponds)
       updatePlacedObjectAnimations(this.placedObjects, elapsed);
+      
+      // Update lantern flicker effect (candle-like intensity modulation)
+      AtmosphereBuilder.updateLanternFlicker(this.state.objectLayer, elapsed);
       
       // Update ghost preview position
       if (this.state.ghostPreview && this.state.hoverTile.visible) {
