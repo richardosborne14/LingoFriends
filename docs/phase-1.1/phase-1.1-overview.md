@@ -1,7 +1,9 @@
+> 📋 **See `docs/MASTER_PLAN.md` for the authoritative current state and fix plan.** This overview is kept for reference but the Master Plan has the accurate task statuses and remaining work.
+
 # Phase 1.1: Game-Based Learning Redesign
 
-**Status:** Planning
-**Timeline:** 4-5 weeks
+**Status:** 🔶 PARTIALLY COMPLETE — See MASTER_PLAN.md for remaining steps
+**Timeline:** 4-5 weeks (original estimate)
 **Priority:** HIGH - Major UX overhaul
 
 ---

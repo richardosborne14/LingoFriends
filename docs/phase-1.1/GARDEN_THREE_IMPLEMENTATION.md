@@ -1,4 +1,6 @@
-# Garden Renderer: Three.js Implementation Guide (for Cline)
+> ⚠️ **PARTIALLY OUTDATED** — This guide has good reference material but doesn't reflect what's actually been built vs what's still needed. See `docs/MASTER_PLAN.md` for the accurate current state and `docs/FIX-STEPS/` for the step-by-step fix plan.
+
+# Garden Renderer: Three.js Implementation Guide (for Cline) — NEEDS CONTEXT
 
 **Replaces:** `docs/phase-1.1/task-1-1-14-pixi-upgrade.md`  
 **Status:** Ready to implement  

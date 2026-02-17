@@ -1,6 +1,8 @@
+> ⚠️ **DEPRECATED** — This task described the original CSS/HTML garden approach. The garden is now built with Three.js (see `docs/FIX-STEPS/` for current plan). This doc is kept for historical reference only. See `docs/MASTER_PLAN.md` for the current source of truth.
+
 # Task 1.1.5: Garden World (Basic)
 
-**Status:** ✅ Complete
+**Status:** ⚠️ SUPERSEDED by Three.js approach (task 1.1.14)
 **Phase:** A (Core Mechanics)
 **Dependencies:** Task 1.1.4 (Path View)
 **Estimated Time:** 6-8 hours

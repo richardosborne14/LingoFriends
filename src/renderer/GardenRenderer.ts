@@ -32,6 +32,8 @@ import {
 } from './gridUtils';
 import { createObject, updatePlacedObjectAnimations } from './objects/objectFactory';
 import { buildAvatar } from './AvatarBuilder';
+import { makeLearningTree, calculateGrowthStage, type LearningTreeOptions } from './objects/learningTrees';
+import { TreeStatus } from '../types/game';
 
 // ============================================================================
 // CONSTANTS
@@ -76,7 +78,20 @@ export class GardenRenderer {
   private animationFrameId: number | null = null;
   private isRunning: boolean = false;
   private placedObjects: PlacedObject[] = [];
+  private learningTrees: Map<string, THREE.Group> = new Map();
   private avatarGridPos: { gx: number; gz: number } = { gx: 6, gz: 6 };
+  
+  /**
+   * Callback for when a learning tree is clicked.
+   * Fires with tree metadata (gx, gz, growthStage, health, skillPathId).
+   */
+  public onLearningTreeClick?: (treeData: {
+    gx: number;
+    gz: number;
+    growthStage: number;
+    health: number;
+    skillPathId?: string;
+  }) => void;
 
   /**
    * Create a new GardenRenderer.
@@ -328,6 +343,39 @@ export class GardenRenderer {
     this.state.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
     
     this.state.raycaster.setFromCamera(this.state.mouse, this.state.camera);
+    
+    // Check for clicks on learning trees first (they're above the ground)
+    // We need to recursively check all children of learning tree groups
+    const allTreeChildren: THREE.Object3D[] = [];
+    for (const treeGroup of this.learningTrees.values()) {
+      treeGroup.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          allTreeChildren.push(child);
+        }
+      });
+    }
+    
+    const treeIntersects = this.state.raycaster.intersectObjects(allTreeChildren);
+    if (treeIntersects.length > 0) {
+      // Walk up to find the parent tree group
+      let obj = treeIntersects[0].object as THREE.Object3D;
+      while (obj && obj !== this.state.scene) {
+        if (obj.userData?.type === 'learningTree') {
+          // Fire the learning tree click callback
+          this.onLearningTreeClick?.({
+            gx: obj.userData.gx,
+            gz: obj.userData.gz,
+            growthStage: obj.userData.growthStage,
+            health: obj.userData.health,
+            skillPathId: obj.userData.skillPathId,
+          });
+          return; // Don't process tile clicks if we clicked a tree
+        }
+        obj = obj.parent!;
+      }
+    }
+    
+    // Now check tiles for avatar movement or ghost preview placement
     const intersects = this.state.raycaster.intersectObjects(this.state.tiles);
     
     if (intersects.length > 0 && intersects[0].object.userData.isTile) {
@@ -525,6 +573,112 @@ export class GardenRenderer {
     const { x, z } = gridToWorld(gx, gz);
     this.state.avatar.position.set(x, 0, z);
     this.state.movementTarget = null;
+  }
+
+  // ==========================================================================
+  // LEARNING TREE MANAGEMENT
+  // ==========================================================================
+
+  /**
+   * Add or update a learning tree in the scene.
+   * Creates a 3D learning tree from game state data.
+   * 
+   * @param options - Learning tree options (gx, gz, growthStage, health, etc.)
+   */
+  addLearningTree(options: LearningTreeOptions): void {
+    const key = cellKey(options.gx, options.gz);
+    
+    // Remove existing tree at this position if any
+    this.removeLearningTree(options.gx, options.gz);
+    
+    // Create the 3D tree using the procedural generator
+    const treeGroup = makeLearningTree(options);
+    
+    // Add to scene and tracking map
+    this.state.scene.add(treeGroup);
+    this.learningTrees.set(key, treeGroup);
+    
+    // Mark grid cell as occupied (prevents avatar walking into trees)
+    this.state.occupiedCells.add(key);
+  }
+
+  /**
+   * Remove a learning tree from the scene.
+   * Properly disposes of all geometries and materials.
+   * 
+   * @param gx - Grid X position
+   * @param gz - Grid Z position
+   */
+  removeLearningTree(gx: number, gz: number): void {
+    const key = cellKey(gx, gz);
+    const existing = this.learningTrees.get(key);
+    
+    if (existing) {
+      // Remove from scene
+      this.state.scene.remove(existing);
+      
+      // Dispose geometries and materials to prevent memory leaks
+      existing.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          child.geometry.dispose();
+          if (Array.isArray(child.material)) {
+            child.material.forEach(m => m.dispose());
+          } else {
+            child.material.dispose();
+          }
+        }
+      });
+      
+      // Remove from tracking
+      this.learningTrees.delete(key);
+      this.state.occupiedCells.delete(key);
+    }
+  }
+
+  /**
+   * Sync all learning trees from game state.
+   * Call this whenever the UserTree[] array changes.
+   * 
+   * This efficiently updates the 3D scene to match game state:
+   * - Removes trees that no longer exist
+   * - Adds new trees
+   * - Updates existing trees if data changed
+   * 
+   * @param trees - Array of tree data from game state
+   */
+  syncLearningTrees(trees: Array<{
+    gx: number;
+    gz: number;
+    growthStage: number;
+    health: number;
+    skillPathId?: string;
+    status?: TreeStatus;
+    isDead?: boolean;
+  }>): void {
+    // Build set of new positions for efficient lookup
+    const newPositions = new Set(trees.map(t => cellKey(t.gx, t.gz)));
+    
+    // Remove trees that no longer exist in game state
+    for (const [key, group] of this.learningTrees) {
+      if (!newPositions.has(key)) {
+        const { gx, gz } = group.userData;
+        this.removeLearningTree(gx, gz);
+      }
+    }
+    
+    // Add or update all trees from game state
+    for (const tree of trees) {
+      this.addLearningTree(tree);
+    }
+  }
+
+  /**
+   * Get all learning trees currently in the scene.
+   * 
+   * @returns Array of tree groups with metadata
+   */
+  getLearningTrees(): THREE.Group[] {
+    return Array.from(this.learningTrees.values());
   }
 
   // ==========================================================================

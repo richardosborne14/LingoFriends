@@ -1,4 +1,6 @@
-# Task 1.1.20: Tree-to-Renderer Integration
+> ⚠️ **DEPRECATED** — This task was never started. It has been superseded by `docs/FIX-STEPS/step-1-tree-renderer-bridge.md`. See `docs/MASTER_PLAN.md` for the current source of truth.
+
+# Task 1.1.20: Tree-to-Renderer Integration (SUPERSEDED)
 
 **Status:** Not Started
 **Priority:** High

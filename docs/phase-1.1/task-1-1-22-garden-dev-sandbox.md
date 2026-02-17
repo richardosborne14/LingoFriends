@@ -1,4 +1,6 @@
-# Task 1.1.22: Garden Dev Sandbox Mode
+> ⚠️ **DEPRECATED** — The FlowTestHarness already exists and works. This task is superseded. See `docs/MASTER_PLAN.md` for the current source of truth.
+
+# Task 1.1.22: Garden Dev Sandbox Mode (SUPERSEDED)
 
 **Status:** Not Started
 **Priority:** High (for development/testing)

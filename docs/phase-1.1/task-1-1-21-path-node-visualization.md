@@ -1,4 +1,6 @@
-# Task 1.1.21: Path Node 3D Visualization
+> ⚠️ **DEPRECATED** — This task was never started. It has been superseded by `docs/FIX-STEPS/step-1-tree-renderer-bridge.md` and `step-2-game-loop-wiring.md`. See `docs/MASTER_PLAN.md` for the current source of truth.
+
+# Task 1.1.21: Path Node 3D Visualization (SUPERSEDED)
 
 **Status:** Not Started
 **Priority:** Medium

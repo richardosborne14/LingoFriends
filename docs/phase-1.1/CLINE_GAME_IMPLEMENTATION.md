@@ -1,4 +1,6 @@
-# LingoFriends Game Implementation Guide (for Cline)
+> ⚠️ **PARTIALLY OUTDATED** — This guide references PixiJS which has been replaced by Three.js. The game design concepts are still valid but rendering approach is different. See `docs/MASTER_PLAN.md` and `docs/FIX-STEPS/` for current implementation plan.
+
+# LingoFriends Game Implementation Guide (for Cline) — PARTIALLY OUTDATED
 
 **Purpose:** Step-by-step instructions to implement the game mechanics described in `GAME_DESIGN.md`. This replaces the current chat-first UX with a garden-first, activity-driven experience.
 

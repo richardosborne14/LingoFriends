@@ -22,11 +22,26 @@ import {
   DEFAULT_AVATAR,
   SHOP_CATALOGUE,
   ShopItem,
+  calculateGrowthStage,
 } from '../../renderer';
+import { TreeStatus } from '../../types/game';
 
 // ============================================================================
 // TYPES
 // ============================================================================
+
+/**
+ * User tree data from game state.
+ */
+export interface UserTree {
+  id: string;
+  gridX: number;
+  gridZ: number;
+  sunDropsEarned: number;
+  health: number;
+  skillPathId: string;
+  status: TreeStatus;
+}
 
 /**
  * Props for the GardenWorld component.
@@ -38,6 +53,10 @@ export interface GardenWorldProps {
   avatarOptions?: AvatarOptions;
   /** Initial objects to place in the garden */
   initialObjects?: PlacedObject[];
+  /** Learning trees to display (from game state) */
+  userTrees?: UserTree[];
+  /** Called when a learning tree is clicked */
+  onTreeClick?: (treeData: { skillPathId: string; gx: number; gz: number }) => void;
   /** Callback when avatar moves to a new tile */
   onAvatarMove?: (gx: number, gz: number) => void;
   /** Callback when an object is placed */
@@ -103,6 +122,8 @@ export const GardenWorld3D = React.forwardRef<GardenWorldHandle, GardenWorldProp
       className,
       avatarOptions = DEFAULT_AVATAR,
       initialObjects,
+      userTrees,
+      onTreeClick,
       onAvatarMove,
       onObjectPlace,
       onObjectRemove,
@@ -150,6 +171,17 @@ export const GardenWorld3D = React.forwardRef<GardenWorldHandle, GardenWorldProp
         },
       });
 
+      // Wire up learning tree click callback
+      renderer.onLearningTreeClick = (treeData) => {
+        if (onTreeClick && treeData.skillPathId) {
+          onTreeClick({
+            skillPathId: treeData.skillPathId,
+            gx: treeData.gx,
+            gz: treeData.gz,
+          });
+        }
+      };
+
       rendererRef.current = renderer;
       renderer.animate();
       setIsInitialized(true);
@@ -161,6 +193,47 @@ export const GardenWorld3D = React.forwardRef<GardenWorldHandle, GardenWorldProp
         setIsInitialized(false);
       };
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // ==========================================================================
+    // LEARNING TREES SYNC
+    // ==========================================================================
+
+    useEffect(() => {
+      if (!rendererRef.current || !userTrees) return;
+
+      // Convert UserTree[] to LearningTreeOptions[] for the renderer
+      const treeOptions = userTrees.map((tree) => ({
+        gx: tree.gridX,
+        gz: tree.gridZ,
+        growthStage: calculateGrowthStage(tree.sunDropsEarned),
+        health: tree.health,
+        skillPathId: tree.skillPathId,
+        status: tree.status,
+        isDead: tree.health <= 0,
+      }));
+
+      // Sync trees to renderer
+      rendererRef.current.syncLearningTrees(treeOptions);
+    }, [userTrees]);
+
+    // ==========================================================================
+    // TREE CLICK CALLBACK SYNC
+    // ==========================================================================
+
+    useEffect(() => {
+      if (!rendererRef.current) return;
+
+      // Update the click callback when onTreeClick changes
+      rendererRef.current.onLearningTreeClick = (treeData) => {
+        if (onTreeClick && treeData.skillPathId) {
+          onTreeClick({
+            skillPathId: treeData.skillPathId,
+            gx: treeData.gx,
+            gz: treeData.gz,
+          });
+        }
+      };
+    }, [onTreeClick]);
 
     // ==========================================================================
     // AVATAR OPTIONS UPDATE

@@ -1,6 +1,8 @@
+> 📋 **See `docs/MASTER_PLAN.md` for the authoritative current state across all phases.** Tasks 1.2.1-1.2.8 are complete. Tasks 1.2.9-1.2.12 remain.
+
 # Phase 1.2: Pedagogy Engine
 
-**Status:** Planning
+**Status:** 🔶 PARTIALLY COMPLETE (Tasks 1.2.1-1.2.8 done, 1.2.9-1.2.12 remaining)
 **Timeline:** 5-6 weeks
 **Priority:** HIGH - Core learning methodology
 **Dependencies:** Phase 1.1 (UI/Game mechanics)
@@ -477,8 +479,8 @@ interface ActivityGenerationRequest {
 | 1.2.4 | Learner Profile Service | 3-4h | ✅ Complete |
 | 1.2.5 | Pedagogy Engine Core | 6-8h | ✅ Complete |
 | 1.2.6 | i+1 Difficulty Calibration | 4-5h | ✅ Complete |
-| 1.2.7 | Affective Filter Monitoring | 4-5h | Not Started |
-| 1.2.8 | AI Lesson Generator v2 | 6-8h | Not Started |
+| 1.2.7 | Affective Filter Monitoring | 4-5h | ✅ Complete |
+| 1.2.8 | AI Lesson Generator v2 | 6-8h | ✅ Complete |
 | 1.2.9 | Dynamic Path Generation | 4-5h | Not Started |
 | 1.2.10 | Chunk-Based SRS | 3-4h | Not Started |
 | 1.2.11 | System Prompt Overhaul | 3-4h | Not Started |

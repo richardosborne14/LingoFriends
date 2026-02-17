@@ -28,7 +28,7 @@ import { DEFAULT_AVATAR } from './src/renderer';
 import { PathView } from './src/components/path';
 import { LessonView } from './src/components/lesson';
 import { generateLessonPlan } from './src/services/lessonPlanService';
-import { DevTestHarness } from './src/components/dev';
+import { DevTestHarness, FlowTestHarness, TreeRendererTestHarness } from './src/components/dev';
 import {
   MOCK_USER_TREES,
   MOCK_SKILL_PATHS,
@@ -403,6 +403,7 @@ function App() {
   
   // Dev mode for testing components directly
   const [showDevHarness, setShowDevHarness] = useState(false);
+  const [devHarnessTab, setDevHarnessTab] = useState<'dev' | 'flow' | 'trees'>('trees');
   
   // Keyboard shortcut to toggle dev harness (Ctrl/Cmd + Shift + D)
   useEffect(() => {
@@ -420,13 +421,48 @@ function App() {
   if (showDevHarness) {
     return (
       <>
-        <DevTestHarness />
-        <button
-          onClick={() => setShowDevHarness(false)}
-          className="fixed bottom-4 right-4 px-4 py-2 bg-gray-800 text-white rounded-lg shadow-lg text-sm z-50"
-        >
-          Exit Dev Mode
-        </button>
+        {/* Tab switcher */}
+        <div className="fixed top-0 left-0 right-0 z-50 bg-gray-900 text-white flex items-center justify-between px-4 py-2">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setDevHarnessTab('trees')}
+              className={`px-4 py-2 rounded-lg font-medium transition ${
+                devHarnessTab === 'trees' ? 'bg-green-500 text-white' : 'bg-gray-700 hover:bg-gray-600'
+              }`}
+            >
+              🌲 Tree Renderer
+            </button>
+            <button
+              onClick={() => setDevHarnessTab('flow')}
+              className={`px-4 py-2 rounded-lg font-medium transition ${
+                devHarnessTab === 'flow' ? 'bg-green-500 text-white' : 'bg-gray-700 hover:bg-gray-600'
+              }`}
+            >
+              🌳 Flow Test
+            </button>
+            <button
+              onClick={() => setDevHarnessTab('dev')}
+              className={`px-4 py-2 rounded-lg font-medium transition ${
+                devHarnessTab === 'dev' ? 'bg-green-500 text-white' : 'bg-gray-700 hover:bg-gray-600'
+              }`}
+            >
+              🧪 Component Tests
+            </button>
+          </div>
+          <button
+            onClick={() => setShowDevHarness(false)}
+            className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg font-medium transition"
+          >
+            ✕ Exit Dev Mode
+          </button>
+        </div>
+        
+        {/* Harness content */}
+        <div className="pt-12">
+          {devHarnessTab === 'trees' && <TreeRendererTestHarness />}
+          {devHarnessTab === 'flow' && <FlowTestHarness />}
+          {devHarnessTab === 'dev' && <DevTestHarness />}
+        </div>
       </>
     );
   }

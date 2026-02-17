@@ -79,6 +79,22 @@ export { featureFactories, makeFountain, makePond, updateFountainAnimation, upda
 export { plantFactories, makeHedge, makeMushroom } from './objects/plants';
 
 // ============================================================================
+// LEARNING TREES
+// ============================================================================
+
+export {
+  makeLearningTree,
+  calculateGrowthStage,
+  updateLearningTree,
+  getGrowthStageLabel,
+  getSunDropsToNextStage,
+  GROWTH_THRESHOLDS,
+  SKILL_PATH_COLORS,
+} from './objects/learningTrees';
+
+export type { LearningTreeOptions } from './objects/learningTrees';
+
+// ============================================================================
 // GRID UTILITIES
 // ============================================================================
 

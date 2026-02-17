@@ -1,4 +1,6 @@
-# Task 1.1.19: Garden Architecture Correction
+> ⚠️ **DEPRECATED** — The concepts in this doc are correct but the work was never implemented. This has been superseded by `docs/FIX-STEPS/step-1-tree-renderer-bridge.md` through `step-6-shop-fix.md`. See `docs/MASTER_PLAN.md` for the current source of truth.
+
+# Task 1.1.19: Garden Architecture Correction (SUPERSEDED)
 
 **Status:** In Progress
 **Phase:** D (Polish) - Critical Fix
