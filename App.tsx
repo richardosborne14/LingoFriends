@@ -203,7 +203,8 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
         skillPathId: state.selectedTree.skillPathId,
         sunDropsEarned: result.sunDropsEarned ?? 0,
         // starsEarned added to LessonResult in Task E when lesson gen v2 is wired
-        starsEarned: (result as unknown as Record<string, unknown>).starsEarned as number ?? 0,
+        // LessonResult uses `stars` (1-3 rating), not starsEarned
+        starsEarned: result.stars ?? 0,
       }).then(() => {
         // Refresh header stats after save completes
         refreshStats();
