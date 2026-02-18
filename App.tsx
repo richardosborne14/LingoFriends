@@ -14,7 +14,7 @@
  * @module App
  */
 
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AuthScreen } from './components/AuthScreen';
 import { OnboardingContainer } from './components/onboarding';
@@ -38,7 +38,9 @@ import {
 import { learnerProfileService } from './src/services/learnerProfileService';
 import { pedagogyEngine } from './src/services/pedagogyEngine';
 import { lessonGeneratorV2 } from './src/services/lessonGeneratorV2';
+import * as srsService from './src/services/srsService';
 import { getCurrentUserId } from './services/pocketbaseService';
+import type { SessionPlan } from './src/types/pedagogy';
 import { DevTestHarness, FlowTestHarness, TreeRendererTestHarness } from './src/components/dev';
 import { TutorialProvider, TutorialStep } from './src/components/tutorial';
 import {
@@ -153,6 +155,11 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
   // Lesson state (for generating lesson plan when starting)
   const [lessonLoading, setLessonLoading] = useState(false);
 
+  // Holds the SessionPlan produced by the v2 path in handleStartLesson.
+  // Read in handleLessonComplete to identify which chunks to run SRS on.
+  // useRef (not useState) — changing the plan must not trigger re-renders.
+  const activePlanRef = useRef<SessionPlan | null>(null);
+
   // Real game stats from Pocketbase (gems, sunDrops, streak).
   // refreshStats() is called after any mutation so the header updates immediately.
   const { stats, refreshStats } = useGameStats();
@@ -216,6 +223,9 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
           });
 
           lessonPlan = generatedPlan;
+          // Store the plan so handleLessonComplete can run chunk-level SRS.
+          // Cleared to null after lesson completes or if the lesson is exited.
+          activePlanRef.current = sessionPlan;
           console.log('[GameApp] V2 lesson generated successfully');
         } catch (v2Error) {
           // Non-fatal: cold start (no chunks yet) or network failure.
@@ -293,6 +303,37 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
     }).catch(err => {
       console.warn('[GameApp] Learner profile session record failed (non-fatal):', err);
     });
+
+    // Task F: Chunk-level SRS write-back (v2 path only).
+    //
+    // activePlanRef holds the SessionPlan from handleStartLesson — it's null
+    // when the v1 fallback was used (no chunks to update in that case).
+    //
+    // Star rating → encounter signal:
+    //   3★ → correct, no help  (strong recall)
+    //   2★ → correct, with help (partial recall)
+    //   1★ → incorrect         (struggled)
+    if (activePlanRef.current && currentUserId) {
+      const sessionChunks = [
+        ...activePlanRef.current.targetChunks,
+        ...activePlanRef.current.reviewChunks,
+      ];
+      // Clamp to 1|2|3 — LessonResult.stars may be 0 in edge cases
+      const starRating = Math.min(3, Math.max(1, result.stars ?? 1)) as 1 | 2 | 3;
+      srsService.recordBatchEncounters({
+        userId: currentUserId,
+        chunks: sessionChunks,
+        starRating,
+      }).then(summary => {
+        if (summary.graduated.length > 0 || summary.becameFragile.length > 0) {
+          console.log('[GameApp] SRS chunk summary:', summary);
+        }
+      }).catch(err => {
+        console.warn('[GameApp] SRS batch encounters failed (non-fatal):', err);
+      });
+      // Clear so the next lesson starts fresh
+      activePlanRef.current = null;
+    }
 
     // Navigate back immediately (don't wait for PB)
     actions.goBack();
