@@ -31,6 +31,7 @@ import { LessonView } from './src/components/lesson';
 import { generateLessonPlan } from './src/services/lessonPlanService';
 import {
   saveLessonCompletion,
+  postLessonSRSUpdate,
   applyTreeCare as applyTreeCareService,
   savePlacedObject,
 } from './src/services/gameProgressService';
@@ -197,22 +198,27 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
   const handleLessonComplete = useCallback(async (result: LessonResult) => {
     console.log('[GameApp] Lesson complete:', result);
 
-    // Save to Pocketbase in the background
+    // Save to Pocketbase in the background — both calls are fire-and-forget.
+    // The user sees the garden immediately; progress and SRS sync behind the scenes.
     if (state.selectedTree) {
       saveLessonCompletion({
         skillPathId: state.selectedTree.skillPathId,
         sunDropsEarned: result.sunDropsEarned ?? 0,
-        // starsEarned added to LessonResult in Task E when lesson gen v2 is wired
-        // LessonResult uses `stars` (1-3 rating), not starsEarned
+        // LessonResult uses `stars` (1-3 rating) — maps directly to starsEarned
         starsEarned: result.stars ?? 0,
       }).then(() => {
-        // Refresh header stats after save completes
         refreshStats();
       }).catch(err => {
-        // Non-fatal — lesson still "completes" for the user
         console.error('[GameApp] Progress save failed:', err);
       });
     }
+
+    // Task F: SRS write-back — update learner model confidence + chunk stats.
+    // Coarse signal: star rating → correct/incorrect, triggers i+1 recalibration.
+    postLessonSRSUpdate(result.stars ?? 1).catch(err => {
+      // Non-fatal: pedagogy engine degrades gracefully without this update
+      console.warn('[GameApp] SRS update failed (non-fatal):', err);
+    });
 
     // Navigate back immediately (don't wait for PB)
     actions.goBack();

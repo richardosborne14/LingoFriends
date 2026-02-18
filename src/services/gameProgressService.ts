@@ -16,6 +16,7 @@
  */
 
 import { pb, getCurrentUserId } from '../../services/pocketbaseService';
+import { learnerProfileService } from './learnerProfileService';
 import type { ProfileRecord } from '../types/pocketbase';
 
 // ============================================
@@ -348,4 +349,52 @@ function calculateNewStreak(currentStreak: number, lastActivity: string | undefi
   if (diffDays === 0) return currentStreak;      // Same day — keep
   if (diffDays === 1) return currentStreak + 1;  // Yesterday — extend
   return 1;                                       // Gap — reset (today is day 1)
+}
+
+// ============================================
+// WRITE: SRS / LEARNER MODEL UPDATE (Task F)
+// ============================================
+
+/**
+ * Post-lesson SRS (Spaced Repetition System) update.
+ *
+ * Called immediately after lesson completion to update the learner model:
+ *
+ * 1. Confidence signal — derived from star rating.
+ *    Stars ≥ 2 → correct signal (boost confidence, advance SRS intervals).
+ *    Stars < 2 → incorrect signal (decay confidence, schedule earlier review).
+ *
+ * 2. Chunk stats recalculation — triggers learnerProfileService to recount
+ *    acquired/fragile/new chunks from stored exposure data in PocketBase.
+ *    This keeps the i+1 difficulty engine calibrated for the next session.
+ *
+ * NOTE: This is a coarse-grained SRS signal based on the lesson star rating.
+ * Fine-grained per-activity chunk SRS will be added when LessonView surfaces
+ * individual activity results (correct/incorrect per chunk ID) — see Phase 1.3.
+ *
+ * Non-fatal: SRS update failure doesn't block the lesson complete animation.
+ *
+ * @param stars - Lesson star rating (1–3)
+ */
+export async function postLessonSRSUpdate(stars: number): Promise<void> {
+  const userId = getCurrentUserId();
+  if (!userId) return; // Not authenticated — skip silently (dev/test mode)
+
+  try {
+    // Coarse confidence signal: 3⭐ = clearly correct, 2⭐ = borderline correct,
+    // 1⭐ = struggled (treat as incorrect to trigger earlier review)
+    const correct = stars >= 2;
+    const usedHelp = stars < 3; // Inferred: < perfect suggests some difficulty
+
+    await learnerProfileService.updateConfidence(userId, correct, usedHelp);
+
+    // Recount acquired / fragile / new chunks from stored exposure records.
+    // This recalibrates the i+1 difficulty for the next prepareSession() call.
+    await learnerProfileService.updateChunkStats(userId);
+
+    console.log(`[gameProgressService] SRS updated: stars=${stars}, correct=${correct}, usedHelp=${usedHelp}`);
+  } catch (err) {
+    // Non-fatal — learner model degrades gracefully without SRS update
+    console.warn('[gameProgressService] SRS update failed (non-fatal):', err);
+  }
 }
