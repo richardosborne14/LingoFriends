@@ -421,6 +421,23 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
     setSelectedShopItem(null);
   }, [trees, refreshStats]);
 
+  // ── On app open: decay any SRS chunks whose interval has lapsed ──────────
+  // Fire-and-forget — runs once when the user session starts. Moves overdue
+  // chunks back to "due" status so they surface in the next lesson plan.
+  // Non-blocking: if PocketBase is offline, srsService handles the error quietly.
+  // Uses getCurrentUserId() (not profile.id) because UserProfile does not
+  // expose the PocketBase record id directly.
+  useEffect(() => {
+    const userId = getCurrentUserId();
+    if (!userId) return;
+    srsService.decayOverdueChunks(userId).then((count) => {
+      if (count > 0) {
+        console.log(`[App] SRS decay on open: ${count} chunk(s) moved to due`);
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run once on mount — userId is stable for the lifetime of this component
+
   // Inject shop panel styles
   useEffect(() => {
     const styleId = 'shop-panel-styles';
@@ -474,7 +491,16 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
       )}
 
       {/* Main content area */}
-      <main className={`flex-1 ${state.currentView !== 'lesson' ? 'pb-20' : ''}`}>
+      {/* pb must exceed the fixed tab bar height including iOS home indicator.
+          Tab bar base ≈ 56px; home-indicator safe area ≈ 34px on iPhone 14 Pro.
+          max(5rem, 3.5rem + safe-area) → max(80, 90) = 90px on newer iPhones,
+          stays at 80px on Android/desktop where safe-area-inset-bottom = 0px. */}
+      <main
+        className="flex-1"
+        style={state.currentView !== 'lesson' ? {
+          paddingBottom: 'max(5rem, calc(3.5rem + env(safe-area-inset-bottom, 0px)))',
+        } : undefined}
+      >
         <AnimatePresence mode="wait">
           {/* Garden View */}
           {state.currentView === 'garden' && (
@@ -517,6 +543,35 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
                   >
                     ✕
                   </button>
+                </motion.div>
+              )}
+
+              {/* Empty garden fallback (Task J) — edge case where createInitialTree failed
+                  silently on onboarding completion (network blip, PB cold start, etc.).
+                  Most new users never see this because createInitialTree runs during the
+                  "Start Learning" button press, before they arrive here.
+                  The 0.5s animation delay prevents a flash on fast-loading sessions where
+                  PB returns trees within one render cycle. */}
+              {trees.length === 0 && !gardenLoading && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none"
+                >
+                  <div className="bg-white/90 rounded-2xl px-6 py-5 shadow-lg text-center pointer-events-auto max-w-xs mx-4">
+                    <div className="text-4xl mb-3">🌱</div>
+                    <p className="font-semibold text-gray-800 mb-1">Your garden is ready!</p>
+                    <p className="text-sm text-gray-500 mb-4">
+                      Your first tree is being planted...
+                    </p>
+                    <button
+                      onClick={() => window.location.reload()}
+                      className="px-5 py-2 bg-green-500 text-white rounded-full text-sm font-medium hover:bg-green-600 transition"
+                    >
+                      Refresh Garden 🌳
+                    </button>
+                  </div>
                 </motion.div>
               )}
 
@@ -664,14 +719,18 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
         </div>
       )}
 
-      {/* Floating Shop Button - Only show in garden view */}
+      {/* Floating Shop Button - Only show in garden view.
+          Uses inline style so the button clears the fixed tab bar even on
+          iPhones with a large home-indicator safe area. The tab bar grows
+          by env(safe-area-inset-bottom) so we add the same amount here. */}
       {state.currentView === 'garden' && !isShopOpen && (
         <motion.button
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           exit={{ scale: 0 }}
           onClick={() => setIsShopOpen(true)}
-          className="fixed bottom-24 right-6 w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-200 flex items-center justify-center text-3xl z-30"
+          className="fixed right-6 w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-200 flex items-center justify-center text-3xl z-30"
+          style={{ bottom: 'calc(6rem + env(safe-area-inset-bottom, 0px))' }}
           title="Open Shop"
         >
           🛒

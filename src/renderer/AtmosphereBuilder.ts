@@ -78,7 +78,11 @@ export class AtmosphereBuilder {
   /**
    * Add daytime atmosphere elements (no stars/moon, white clouds).
    * Used for bright kid-friendly garden during daytime testing.
-   * 
+   *
+   * On mobile (viewport < 768px) we render 4 clouds instead of 5.
+   * The GPU budget saved is small but meaningful on mid-range Android:
+   * each cloud is 5 spheres × draw call, so we save ~5 draw calls per frame.
+   *
    * @param scene - The Three.js scene to decorate
    */
   static buildDaytime(scene: THREE.Scene): void {
@@ -201,9 +205,16 @@ export class AtmosphereBuilder {
   /**
    * Add bright white fluffy clouds for daytime sky.
    * Same positions as night clouds but with white material.
+   *
+   * Mobile perf: cap at 4 clouds on small viewports (< 768px).
+   * Each cloud is 5 sphere draw calls, so skipping one saves ~5 draw calls/frame.
    */
   private static addDaytimeClouds(scene: THREE.Scene): void {
-    CLOUD_CONFIGS.forEach(([x, y, z, s]) => {
+    // Inline mobile check — avoids importing React ecosystem into a Three.js module
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    const configs = isMobile ? CLOUD_CONFIGS.slice(0, 4) : CLOUD_CONFIGS;
+
+    configs.forEach(([x, y, z, s]) => {
       const group = new THREE.Group();
       const material = new THREE.MeshLambertMaterial({ color: 0xFFFFFF });
 

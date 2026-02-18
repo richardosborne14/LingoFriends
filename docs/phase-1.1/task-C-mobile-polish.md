@@ -1,153 +1,92 @@
-# Task C: Mobile Controls & Polish
+# Task C — Mobile Polish
 
-**Status:** ✅ COMPLETE (2026-02-18)
-**Roadmap Group:** 1 — Finish the Baseline Experience
-**Based on:** task-1-1-15-mobile-polish.md (updated for Three.js stack)
-**Estimated Time:** 4-5h
-**Actual Time:** ~1.5h
+**Status:** ✅ Complete  
+**Phase:** 1.1  
+**Depends on:** Task A (shop categories), Task B (Pocketbase wiring)
 
 ---
 
-## Objective
+## Goal
 
-Make the app feel native and smooth on phones and tablets. Core focus:
-- Touch avatar controls for the 3D garden
-- Swipe/tap gesture detection for lessons
-- Proper viewport setup (safe areas, notch)
-- Responsive utilities for adaptive layouts
-
----
-
-## Files Created
-
-### `src/hooks/useTouchGestures.ts`
-Universal gesture hook. Detects: single tap, double tap, long press, pinch, pan, swipe X/Y.
-
-**Design choices:**
-- Returns props to spread directly onto a React element (`<div {...touch}>`)
-- Thresholds tuned for kids: 12px movement threshold (forgiving), 600ms long-press (not too sensitive)
-- `onTouchCancel` handler prevents ghost-presses (e.g. when a phone call interrupts)
-- Swipe requires both distance (50px) AND velocity (0.3 px/ms) — prevents accidental swipes from slow drags
-
-**Usage example:**
-```tsx
-const touch = useTouchGestures({
-  onSwipeX: (dir) => dir === 'left' ? nextActivity() : prevActivity(),
-});
-<div {...touch}>...</div>
-```
-
-### `src/utils/responsive.ts`
-Viewport utilities and a reactive `useResponsive<T>` hook.
-
-Key exports:
-- `isMobile()` / `isTablet()` / `isDesktop()` — one-shot checks
-- `useIsMobile()` — reactive, updates on resize
-- `isTouchDevice` — module-level constant (fast repeated reads)
-- `isPointerDevice` — hover:hover + pointer:fine (true mouse users)
-- `useResponsive<T>(values)` — mobile-first value resolver
-- `getCanvasScale()` — Three.js canvas resolution multiplier
-- `getTouchTargetSize()` — 44px min per Apple/Google guidelines
-
-### `src/components/garden/GardenDPad.tsx`
-Touch D-pad overlay for avatar movement. Positioned bottom-left of the garden.
-
-**Key design decisions:**
-- **Synthetic keyboard events**: dispatches `KeyboardEvent('keydown'/'keyup')` on `document`, so `GardenRenderer` picks them up without any renderer changes
-- **`onPointerDown`/`onPointerUp`** (not `onTouchStart`): `setPointerCapture()` ensures we receive `pointerup` even if the finger slides off the button — critical for "hold to move"
-- **`Set<Direction>` tracking**: prevents double-firing keydown when finger holds the button
-- **`isTouchDevice` gate**: renders `null` on desktop — no visual clutter for keyboard users
-- **`forceVisible` prop**: lets dev harness show D-pad on desktop for testing
+Ensure LingoFriends renders correctly on real iOS and Android devices:
+- No content hidden behind notch / Dynamic Island / home indicator
+- D-pad visible above the tab bar
+- Garden canvas survives orientation change without a black flash
+- Floating shop button clears the tab bar safe area
+- Reasonable draw call budget on mid-range Android
 
 ---
 
-## Files Modified
+## What Was Done
 
-### `index.html`
-Added:
-- `viewport-fit=cover` — content extends into iPhone notch/Dynamic Island
-- PWA meta: `apple-mobile-web-app-capable`, title, status bar style
-- **Touch CSS block:**
-  - `-webkit-touch-callout: none` — suppresses iOS long-press menu on buttons
-  - `-webkit-text-size-adjust: 100%` — prevents iOS font scaling on rotation
-  - `overscroll-behavior: none` — stops white-flash bounce at page edges
-  - `env(safe-area-inset-*)` padding on `#root` — content clears notch & home bar
-  - `min-height: 44px; min-width: 44px` on `button, [role="button"]` — touch targets
+### 1. `index.html` (already complete before this task)
+- `viewport-fit=cover` + `user-scalable=no` + `overscroll-behavior: none`
+- `#root { padding: env(safe-area-inset-top) … env(safe-area-inset-bottom) }`
+- Global `button { min-height: 44px; min-width: 44px }` — all tap targets 44 × 44 px
 
-### `src/components/garden/index.ts`
-Added `GardenDPad` export.
+### 2. `GardenRenderer.ts`
+- Replaced `window.addEventListener('resize', …)` with **ResizeObserver** on the canvas element
+- ResizeObserver fires on orientation changes and browser-chrome show/hide (e.g. iOS address bar) — `window.resize` does not
+- Private field `resizeObserver: ResizeObserver | null = null` added
+- `dispose()` disconnects the observer before freeing the WebGL context
 
-### `App.tsx`
-- Imported `GardenDPad` from garden index
-- Garden view wrapper: added `relative` class (needed for absolute D-pad positioning)
-- Added `<GardenDPad />` inside garden view wrapper
+### 3. `GardenWorld3D.tsx` (CSS)
+- Added `min-height: 300px` to `.garden-world` to prevent the canvas collapsing below 300 px in landscape on small iPhones (SE, mini)
 
----
+### 4. `GardenDPad.tsx`
+- Removed `bottom-6` Tailwind class
+- Added inline style:
+  ```
+  bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px))
+  ```
+  → 88 px baseline + safe-area offset guarantees D-pad clears the fixed tab bar on all iPhones
 
-## Touch Gesture Coverage
+### 5. `AtmosphereBuilder.ts`
+- `addDaytimeClouds()` now caps at **4 clouds** on mobile (`window.innerWidth < 768`)
+- Each cloud = 5 sphere draw calls; saving one cloud = −5 draw calls per frame
+- Inline `window.innerWidth` check keeps the Three.js renderer free of React imports
 
-| Gesture | Handled by | Purpose |
-|---------|-----------|---------|
-| Tap tree | Three.js raycaster (existing) | Open skill path |
-| D-pad press/hold | `GardenDPad` → synthetic keydown | Move avatar |
-| Swipe left/right | `useTouchGestures` | Navigate lesson activities |
-| Swipe up/down | `useTouchGestures` | (available for future use) |
-| Double tap | `useTouchGestures` | (available — open context panel) |
-| Long press | `useTouchGestures` | (available — context menu) |
-| Pinch | `useTouchGestures` | (available — garden zoom, future) |
-
----
-
-## Viewport & Safe Area
-
-```
-iPhone 15 Pro (Dynamic Island):
-  ┌─────────────────────────┐ ← env(safe-area-inset-top) ≈ 59px
-  │         app content     │
-  │                         │
-  └─────────────────────────┘ ← env(safe-area-inset-bottom) ≈ 34px (home bar)
-```
-
-The `#root { padding: env(safe-area-inset-*) }` rule ensures no content is hidden behind the notch or home indicator.
+### 6. `App.tsx`
+- **`<main>`** padding: replaced `pb-20` class with inline style:
+  ```
+  paddingBottom: max(5rem, calc(3.5rem + env(safe-area-inset-bottom, 0px)))
+  ```
+  → max(80px, 90px) = 90 px on iPhone 14 Pro; stays 80 px on Android/desktop
+- **Shop button** `🛒`: removed `bottom-24` class, added inline style:
+  ```
+  bottom: calc(6rem + env(safe-area-inset-bottom, 0px))
+  ```
+  → button always sits above the inflated tab bar on newer iPhones
 
 ---
 
-## Testing Checklist
+## Files Changed
 
-- [x] TypeScript compiles clean
-- [x] D-pad renders on touch devices, hidden on desktop
-- [x] `viewport-fit=cover` added to index.html
-- [x] Safe-area CSS in place
-- [x] Touch targets ≥ 44px (enforced globally in index.html)
-- [x] No horizontal scroll on portrait mobile
-- [ ] Manual: D-pad moves avatar on iPhone (requires device test)
-- [ ] Manual: Swipe gesture works in lesson activities (requires device test)
-- [ ] Manual: No overscroll bounce on iOS Safari
+| File | Change |
+|---|---|
+| `src/renderer/GardenRenderer.ts` | ResizeObserver, field decl, dispose cleanup |
+| `src/components/garden/GardenWorld3D.tsx` | `min-height: 300px` on `.garden-world` |
+| `src/components/garden/GardenDPad.tsx` | Safe-area-aware `bottom` inline style |
+| `src/renderer/AtmosphereBuilder.ts` | 4 clouds on mobile, inline `isMobile` check |
+| `App.tsx` | `<main>` pb + shop button safe area inline styles |
 
 ---
-
-## Confidence Score
 
 ## Confidence: 8/10
 
 **Met:**
-- [x] Touch gesture hook complete with correct thresholds for kids
-- [x] D-pad implemented with pointer capture (no stuck keys)
-- [x] Viewport/safe-area configuration complete
-- [x] Mobile touch CSS (callout, text-size-adjust, overscroll) applied
-- [x] TypeScript clean
+- [x] Safe area insets applied throughout the layout chain
+- [x] D-pad clears tab bar on all modern iPhones (SE → Pro Max)
+- [x] Canvas resize works on orientation change (ResizeObserver)
+- [x] Landscape min-height prevents garden collapse
+- [x] Shop button never overlaps tab bar
+- [x] Mobile draw call reduction (-5 calls/frame on phones)
+- [x] No TypeScript errors introduced
 
-**Known gaps (acceptable):**
-- [ ] `useTouchGestures` not yet wired into `LessonView` (swipe navigation) — LessonView uses its own activity navigation; wire in Task E when lesson gen v2 is integrated
-- [ ] Pinch-to-zoom in garden not wired (GardenRenderer needs camera zoom method)
-- [ ] Haptic feedback (Vibration API) not implemented — low priority, deferred
+**Concerns:**
+- [ ] Cannot verify on real device without physical testing — layout math based on published Apple specs (safe-area-inset-bottom = 34pt on iPhone 14 Pro)
+- [ ] `window.innerWidth` cloud check runs at scene construction time; won't re-evaluate on orientation change (acceptable — cloud count is cosmetic)
 
----
-
-## Next Task
-
-**Task D: Tutorial Flow (1.1.16)**
-- First-run walkthrough for new users
-- Spotlight overlay for garden elements
-- Guided first lesson start
-- Progress saved to PB (tutorialComplete flag)
+**Deferred:**
+- [ ] Pinch-to-zoom gesture lock on canvas (not needed for MVP, kids unlikely to pinch 3D garden)
+- [ ] Haptic feedback on D-pad press (Phase 2)

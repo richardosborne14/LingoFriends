@@ -346,6 +346,9 @@ export const gardenWorldStyles = `
   position: relative;
   width: 100%;
   height: 100%;
+  /* Min-height prevents the garden from collapsing to < 300px in landscape
+     when 100vh is very short (e.g. iPhone SE landscape ≈ 375px viewport). */
+  min-height: 300px;
   overflow: hidden;
   background: #87CEEB;
 }

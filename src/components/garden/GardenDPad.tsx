@@ -175,11 +175,17 @@ export const GardenDPad: React.FC<GardenDPadProps> = ({ forceVisible = false, cl
       role="group"
       aria-label="Avatar movement controls"
       className={`
-        absolute bottom-6 left-6
+        absolute left-4
         z-20
         select-none
         ${className ?? ''}
       `}
+      style={{
+        // Clear the fixed tab bar (≈80px) plus the iOS home indicator safe area.
+        // `env(safe-area-inset-bottom, 0px)` is 0 on Android / desktop and
+        // ~34px on iPhone 14 Pro, so the D-pad stays visible above the bar.
+        bottom: 'calc(5.5rem + env(safe-area-inset-bottom, 0px))',
+      }}
     >
       {/*
         Layout:

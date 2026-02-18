@@ -82,6 +82,9 @@ export class GardenRenderer {
   private learningTrees: Map<string, THREE.Group> = new Map();
   private avatarGridPos: { gx: number; gz: number } = { gx: 6, gz: 6 };
   
+  /** ResizeObserver for canvas size changes (orientation, browser chrome). */
+  private resizeObserver: ResizeObserver | null = null;
+
   /** Next blink time (elapsed seconds). Random interval 3-6s between blinks. */
   private nextBlinkTime: number = 2 + Math.random() * 3;
   /** Whether avatar is currently mid-blink */
@@ -314,7 +317,12 @@ export class GardenRenderer {
   }
 
   /**
-   * Set up mouse and resize event listeners.
+   * Set up mouse, resize, and touch event listeners.
+   *
+   * Uses ResizeObserver on the canvas element (rather than window.resize)
+   * so we catch orientation changes and browser-chrome show/hide on mobile
+   * (e.g. the address bar animating in/out on scroll).
+   * window.resize is kept as a fallback for browsers without ResizeObserver.
    */
   private setupEventListeners(): void {
     const canvas = this.state.renderer.domElement;
@@ -325,8 +333,17 @@ export class GardenRenderer {
     // Click for avatar movement
     canvas.addEventListener('click', this.handleClick.bind(this));
     
-    // Window resize
-    window.addEventListener('resize', this.handleResize.bind(this));
+    // ResizeObserver — preferred over window.resize for mobile because it
+    // fires on orientation changes and browser-chrome visibility changes.
+    if (typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver(() => {
+        this.handleResize();
+      });
+      this.resizeObserver.observe(canvas);
+    } else {
+      // Fallback for environments without ResizeObserver (old Android WebViews)
+      window.addEventListener('resize', this.handleResize.bind(this));
+    }
   }
 
   // ==========================================================================
@@ -1007,11 +1024,17 @@ export class GardenRenderer {
       this.state.hoverTile.material.dispose();
     }
     
+    // Disconnect resize observer (primary resize strategy on mobile)
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+      this.resizeObserver = null;
+    } else {
+      // Only remove window listener if ResizeObserver wasn't available (fallback path)
+      window.removeEventListener('resize', this.handleResize.bind(this));
+    }
+
     // Dispose renderer
     this.state.renderer.dispose();
-    
-    // Remove event listeners
-    window.removeEventListener('resize', this.handleResize.bind(this));
   }
 
   // ==========================================================================
