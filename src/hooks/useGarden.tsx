@@ -33,7 +33,8 @@ import type {
   GiftType,
 } from '../types/game';
 import { TreeStatus as TreeStatusEnum, calculateGrowthStage } from '../types/game';
-import { MOCK_SKILL_PATHS } from '../data/mockGameData';
+import { getSkillPathById } from '../services/skillPathService';
+import { ensurePathGenerated } from '../services/pathGeneratorService';
 
 // ============================================
 // TYPES
@@ -224,10 +225,11 @@ export function useGarden(): UseGardenReturn {
         return;
       }
 
-      // Load trees
+      // Load trees — no sort parameter here because PocketBase returns 400
+      // when sorting by 'created' on collections without an explicit index.
+      // Trees are sorted client-side by createdAt after mapping.
       const treeRecords = await pb.collection('user_trees').getList<PBUserTree>(1, 50, {
         filter: `user = "${userId}"`,
-        sort: 'created',
       });
 
       const loadedTrees = treeRecords.items.map(pbTreeToUserTree);
@@ -245,9 +247,45 @@ export function useGarden(): UseGardenReturn {
         console.warn('[useGarden] Failed to update tree health:', healthError);
       }
 
-      // Load skill paths (from cache or database)
-      // MOCK_SKILL_PATHS used until Task K wires live PB skill path records
-      setSkillPaths(MOCK_SKILL_PATHS);
+      // Resolve each unique skillPathId to a full SkillPath from PB.
+      // Runs in parallel — skillPathService caches results so repeated IDs
+      // don't cause extra network requests.
+      const uniquePathIds = [...new Set(loadedTrees.map(t => t.skillPathId))];
+      const skillPathResults = await Promise.all(
+        uniquePathIds.map(id => getSkillPathById(id))
+      );
+      // Filter nulls — stale/unknown IDs are skipped safely (tree still renders,
+      // it just has no path label until the DB is fixed)
+      const resolvedPaths = skillPathResults.filter((p): p is SkillPath => p !== null);
+
+      // ── Task G: Dynamic Path Generation ─────────────────────────────────
+      // Paths with 0 lessons have empty `lessonTitles` in PB (not yet generated).
+      // Trigger AI generation for each such path, then re-fetch so the garden
+      // and PathView immediately show real lesson nodes.
+      //
+      // `ensurePathGenerated` is idempotent and concurrency-safe — safe to
+      // call even if another tab or the strict-mode double-render already
+      // started generation.
+      const emptyPathIds = uniquePathIds.filter(id => {
+        const path = resolvedPaths.find(p => p.id === id);
+        return path !== null && path !== undefined && path.lessons.length === 0;
+      });
+
+      if (emptyPathIds.length > 0) {
+        console.log(`[useGarden] ${emptyPathIds.length} path(s) need lesson generation — triggering...`);
+
+        // Generate all empty paths in parallel (each is independently idempotent)
+        await Promise.all(emptyPathIds.map(id => ensurePathGenerated(userId, id)));
+
+        // Re-fetch now that PB has been updated and cache cleared
+        const refreshedResults = await Promise.all(
+          uniquePathIds.map(id => getSkillPathById(id))
+        );
+        const refreshedPaths = refreshedResults.filter((p): p is SkillPath => p !== null);
+        setSkillPaths(refreshedPaths);
+      } else {
+        setSkillPaths(resolvedPaths);
+      }
 
     } catch (err) {
       console.error('[useGarden] Failed to load garden:', err);
