@@ -33,7 +33,7 @@ import type {
   GiftType,
 } from '../types/game';
 import { TreeStatus as TreeStatusEnum, calculateGrowthStage } from '../types/game';
-import { MOCK_SKILL_PATHS, MOCK_USER_TREES } from '../data/mockGameData';
+import { MOCK_SKILL_PATHS } from '../data/mockGameData';
 
 // ============================================
 // TYPES
@@ -126,13 +126,6 @@ interface GiftItemRecord {
 }
 
 // ============================================
-// CONSTANTS
-// ============================================
-
-/** Whether to use mock data (until Pocketbase schema is ready) */
-const USE_MOCK_DATA = true;
-
-// ============================================
 // HOOK IMPLEMENTATION
 // ============================================
 
@@ -173,19 +166,16 @@ export function useGarden(): UseGardenReturn {
   useEffect(() => {
     loadGarden();
     
-    // Subscribe to real-time updates (only if not using mock data)
-    if (!USE_MOCK_DATA) {
-      const userId = getCurrentUserId();
-      if (userId) {
-        subscribeToTreeChanges(userId);
-      }
+    // Subscribe to real-time updates so tree health/gift changes
+    // from other sources update the garden without a full reload.
+    const userId = getCurrentUserId();
+    if (userId) {
+      subscribeToTreeChanges(userId);
     }
     
     // Cleanup subscription on unmount
     return () => {
-      if (!USE_MOCK_DATA) {
-        pb.collection('user_trees').unsubscribe();
-      }
+      pb.collection('user_trees').unsubscribe();
     };
   }, []);
 
@@ -218,20 +208,13 @@ export function useGarden(): UseGardenReturn {
   };
 
   /**
-   * Load garden data from Pocketbase or mock
+   * Load garden data from Pocketbase.
+   * Empty array is valid for new users with no trees yet.
    */
   const loadGarden = async () => {
     try {
       setIsLoading(true);
       setError(null);
-
-      if (USE_MOCK_DATA) {
-        // Use mock data for development
-        setTrees(MOCK_USER_TREES);
-        setSkillPaths(MOCK_SKILL_PATHS);
-        setIsLoading(false);
-        return;
-      }
 
       const userId = getCurrentUserId();
       if (!userId) {
@@ -263,18 +246,12 @@ export function useGarden(): UseGardenReturn {
       }
 
       // Load skill paths (from cache or database)
-      // For now, use mock skill paths
+      // MOCK_SKILL_PATHS used until Task K wires live PB skill path records
       setSkillPaths(MOCK_SKILL_PATHS);
 
     } catch (err) {
       console.error('[useGarden] Failed to load garden:', err);
       setError('Failed to load your garden. Let\'s try again!');
-      
-      // Fall back to mock data on error
-      if (USE_MOCK_DATA) {
-        setTrees(MOCK_USER_TREES);
-        setSkillPaths(MOCK_SKILL_PATHS);
-      }
     } finally {
       setIsLoading(false);
     }
@@ -343,12 +320,6 @@ export function useGarden(): UseGardenReturn {
       updatedAt: new Date().toISOString(),
     };
 
-    if (USE_MOCK_DATA) {
-      // Just add to local state
-      setTrees(prev => [...prev, newTree]);
-      return newTree;
-    }
-
     try {
       setError(null);
 
@@ -389,14 +360,10 @@ export function useGarden(): UseGardenReturn {
     treeId: string, 
     position: { x: number; y: number }
   ): Promise<void> => {
-    // Optimistic update
+    // Optimistic update — show the move instantly, revert if PB rejects
     setTrees(prev => prev.map(t => 
       t.id === treeId ? { ...t, position } : t
     ));
-
-    if (USE_MOCK_DATA) {
-      return;
-    }
 
     try {
       setError(null);

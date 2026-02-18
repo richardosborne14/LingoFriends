@@ -43,12 +43,8 @@ import { getCurrentUserId } from './services/pocketbaseService';
 import type { SessionPlan } from './src/types/pedagogy';
 import { DevTestHarness, FlowTestHarness, TreeRendererTestHarness } from './src/components/dev';
 import { TutorialProvider, TutorialStep } from './src/components/tutorial';
-import {
-  MOCK_USER_TREES,
-  MOCK_SKILL_PATHS,
-  MOCK_AVATAR,
-  getSkillPathById,
-} from './src/data/mockGameData';
+import { MOCK_AVATAR } from './src/data/mockGameData';
+import { useGarden } from './src/hooks/useGarden';
 import type { OnboardingData } from './components/onboarding';
 import type { UserTree, SkillPathLesson, LessonPlan } from './src/types/game';
 import type { LessonResult } from './src/components/lesson/LessonView';
@@ -155,6 +151,11 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
   // Lesson state (for generating lesson plan when starting)
   const [lessonLoading, setLessonLoading] = useState(false);
 
+  // Task G: pathRefreshKey — increment after lesson complete so PathView's
+  // useSkillPath hook re-fetches live lessonsCompleted from PB, unlocking
+  // the next lesson node immediately without needing a full page reload.
+  const [pathRefreshKey, setPathRefreshKey] = useState(0);
+
   // Holds the SessionPlan produced by the v2 path in handleStartLesson.
   // Read in handleLessonComplete to identify which chunks to run SRS on.
   // useRef (not useState) — changing the plan must not trigger re-renders.
@@ -164,9 +165,10 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
   // refreshStats() is called after any mutation so the header updates immediately.
   const { stats, refreshStats } = useGameStats();
 
-  // Trees still use mock data for display — the actual game data is written to PB
-  // on every lesson/care action. Full PB tree loading comes in a future sub-task.
-  const trees = MOCK_USER_TREES;
+  // Live tree data from Pocketbase via useGarden hook (Task I).
+  // New users get trees = [] (empty garden); returning users see their real trees.
+  const { trees, isLoading: gardenLoading, error: gardenError, clearError: clearGardenError } = useGarden();
+  // Avatar stays mocked until Phase 2 avatar customisation
   const avatar = MOCK_AVATAR;
 
   /**
@@ -335,9 +337,14 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
       activePlanRef.current = null;
     }
 
+    // Task G: Increment pathRefreshKey so PathView re-fetches live lesson statuses
+    // from PB after returning to the path. This unlocks the next node immediately
+    // without a full page remount. Uses functional update to avoid stale closure.
+    setPathRefreshKey((k) => k + 1);
+
     // Navigate back immediately (don't wait for PB)
     actions.goBack();
-  }, [actions, state.selectedTree, refreshStats]);
+  }, [actions, state.selectedTree, refreshStats, setPathRefreshKey]);
 
   /**
    * Handle lesson exit (user closed without completing)
@@ -414,11 +421,6 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
     setSelectedShopItem(null);
   }, [trees, refreshStats]);
 
-  // Get skill path for selected tree
-  const selectedSkillPath = state.selectedTree
-    ? getSkillPathById(state.selectedTree.skillPathId)
-    : null;
-
   // Inject shop panel styles
   useEffect(() => {
     const styleId = 'shop-panel-styles';
@@ -485,6 +487,39 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
               id="garden-view"
               className="h-full relative"
             >
+              {/* Garden loading overlay — shown while PB query is in flight */}
+              {gardenLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white/60 z-20">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-white rounded-2xl p-6 shadow-xl text-center"
+                  >
+                    <div className="text-4xl mb-3">🌱</div>
+                    <p className="font-medium text-gray-700">Loading your garden...</p>
+                  </motion.div>
+                </div>
+              )}
+
+              {/* Garden error banner — kid-friendly, dismissible */}
+              {gardenError && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="absolute top-2 left-4 right-4 z-20 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center gap-3 shadow"
+                >
+                  <span className="text-2xl">😅</span>
+                  <p className="flex-1 text-sm font-medium text-amber-800">{gardenError}</p>
+                  <button
+                    onClick={clearGardenError}
+                    className="text-amber-500 hover:text-amber-700 font-bold text-lg leading-none"
+                    aria-label="Dismiss"
+                  >
+                    ✕
+                  </button>
+                </motion.div>
+              )}
+
               {/* 3D garden with learning trees — clicking a tree opens its skill path */}
               <GardenWorld3D
                 className="h-[calc(100vh-180px)]"
@@ -532,8 +567,12 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
             </motion.div>
           )}
 
-          {/* Path View */}
-          {state.currentView === 'path' && state.selectedTree && selectedSkillPath && (
+          {/* Path View
+            PathView now owns its own data loading (Task G).
+            We only need skillPathId — it fetches live progress from PB internally.
+            refreshKey increments after lesson complete to unlock the next node.
+          */}
+          {state.currentView === 'path' && state.selectedTree && (
             <motion.div
               key="path"
               initial={{ opacity: 0, x: 20 }}
@@ -542,9 +581,10 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
               transition={{ duration: 0.2 }}
             >
               <PathView
-                skillPath={selectedSkillPath}
+                skillPathId={state.selectedTree.skillPathId}
                 userTree={state.selectedTree}
                 avatar={avatar}
+                refreshKey={pathRefreshKey}
                 onStartLesson={handleStartLesson}
                 onBack={handlePathBack}
               />
