@@ -338,6 +338,16 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
                 onAvatarMove={(gx, gz) => {
                   console.log('[GameApp] Avatar moved to', gx, gz);
                 }}
+                // Shop placement mode — pass the selected item so the renderer shows a ghost preview
+                placementModeItem={selectedShopItem}
+                onPlacementEnd={(placed) => {
+                  // Clear selected item regardless; close shop after successful placement
+                  setSelectedShopItem(null);
+                  if (placed) {
+                    console.log('[GameApp] Object placed — closing shop');
+                    setIsShopOpen(false);
+                  }
+                }}
               />
             </motion.div>
           )}

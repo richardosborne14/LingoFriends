@@ -1,4 +1,8 @@
-# Step 6: Shop Currency & Categories
+# Step 6: Shop Currency & Categories ✅ COMPLETE (2026-02-18)
+
+> **See `docs/phase-1.1/task-A-shop-categories.md` for full completion notes.**
+> The shop category tabs, TreeCare consumables, tree picker modal, and placement mode wiring are all done.
+
 
 **Priority:** 🟢 MEDIUM
 **Estimated effort:** 2-3 hours

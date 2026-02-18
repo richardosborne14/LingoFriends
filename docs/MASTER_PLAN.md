@@ -3,7 +3,7 @@
 > **This is the single source of truth for what needs to be done.**
 > All old phase overview docs are now secondary references. If anything contradicts this document, this document wins.
 
-**Last updated:** 2026-02-16
+**Last updated:** 2026-02-18
 
 ---
 
@@ -12,133 +12,119 @@
 | Phase | Focus | Status |
 |-------|-------|--------|
 | **Phase 1** | Foundation (auth, DB, AI swap, design system, onboarding) | ✅ COMPLETE |
-| **Phase 1.1** | Game-based learning redesign (garden, lessons, activities) | 🔶 PARTIALLY COMPLETE — see below |
-| **Phase 1.2** | Pedagogy engine (adaptive learning, chunk system, SRS) | 🔶 PARTIALLY COMPLETE — see below |
+| **Phase 1.1** | Game-based learning redesign (garden, lessons, activities) | ✅ COMPLETE (all fix steps done) |
+| **Phase 1.2** | Pedagogy engine (adaptive learning, chunk system, SRS) | 🔶 PARTIALLY COMPLETE — Tasks 1.2.1–1.2.8 done, 1.2.9–1.2.12 remaining |
 | **Phase 2** | Social features, friends, multiplayer | 🔲 NOT STARTED |
 | **Phase 3** | Advanced content, more languages | 🔲 NOT STARTED |
 
 ---
 
-## The Problem Right Now
+## Current State (as of 2026-02-18)
 
-The 3D garden world and the game mechanics are **two completely separate systems that don't talk to each other**. Specifically:
+### What's Actually Working
 
-1. `GardenRenderer` renders cosmetic shop decorations only
-2. `learningTrees.ts` has working code to build 3D learning trees — but it's never called
-3. `GardenContext`/`useGarden` manages `UserTree[]` game state — but the 3D scene never sees it
-4. You can't click a tree in the 3D world to start a lesson
-5. The atmosphere (evening sky, stars, moon, fence) from the GardenV2.jsx reference was never implemented
-6. The shop uses the wrong currency (SunDrops instead of Gems)
-7. The dev sandboxes (FlowTestHarness, DevTestHarness) prove the concepts work in isolation but nothing made it into the real app
+- ✅ Full 3D garden with learning trees (click-to-walk, click tree to open path)
+- ✅ Game loop: Garden → Path View → Lesson → Rewards → back to Garden
+- ✅ Daytime atmosphere (sky blue, clouds, fence, checkered grass tiles)
+- ✅ Currency model: Gems in shop, SunDrops per-tree, both shown in header
+- ✅ Chibi avatar with toon materials, walking bob, idle breathing, eye blink
+- ✅ Shop with 6 category tabs + TreeCare consumables + tree picker modal
+- ✅ Shop placement mode fully wired (ghost preview → confirm → close shop)
+- ✅ Pedagogy engine services (1.2.1–1.2.8): chunk system, learner profile, difficulty calibration, affective filter, lesson generator v2
+- ✅ Auth, onboarding, profile (Phase 1)
+- ✅ All activity component types (6 types)
 
-**Bottom line:** The game loop `garden → click tree → path → lesson → rewards → back to garden` is broken at step 1.
+### Critical Remaining Gap
 
----
+> **The app currently runs on mock data.** Pocketbase collections exist (schema done) but nothing reads/writes from the real database. No progress persists between sessions.
 
-## What's Actually Done
-
-### Phase 1 — ✅ ALL COMPLETE
-All 12 tasks done. Auth, Pocketbase, Groq AI, design system, onboarding, profile. No action needed.
-
-### Phase 1.1 — What's Done vs What's Not
-
-| Task | Name | Status | Notes |
-|------|------|--------|-------|
-| 1.1.1 | Type definitions & SunDrop service | ✅ Done | |
-| 1.1.2 | Activity components (6 types) | ✅ Done | |
-| 1.1.3 | Lesson view container | ✅ Done | |
-| 1.1.4 | Path view (lesson select) | ✅ Done | |
-| 1.1.5 | Garden world basic (2D placeholder) | ⚠️ SUPERSEDED | Replaced by Three.js approach |
-| 1.1.6 | App navigation | ✅ Done | Garden→Path→Lesson routing works |
-| 1.1.7 | Pocketbase game schema | ✅ Done | Collections created |
-| 1.1.8 | Garden state (useGarden) | ✅ Done | But not connected to 3D |
-| 1.1.9 | AI lesson generator v1 | ✅ Done | Superseded by 1.2 pedagogy engine |
-| 1.1.10 | Tree health & decay | ✅ Done | Service exists, not shown in 3D |
-| 1.1.11 | Gift system | ✅ Done | Service + UI components |
-| 1.1.12 | Decoration system | ⚠️ PARTIAL | Types exist, wrong currency model |
-| 1.1.13 | Seed earning | ✅ Done | Service exists |
-| 1.1.14 | Three.js garden renderer | ⚠️ PARTIAL | Renders decorations only, not learning trees |
-| 1.1.15 | Mobile polish | 🔲 Not started | |
-| 1.1.16 | Tutorial & testing | 🔲 Not started | |
-| 1.1.17 | Garden shop UI | ⚠️ PARTIAL | Works but wrong currency |
-| 1.1.18 | Avatar customization | ✅ Done | But avatar looks "silly" - needs polish |
-| 1.1.19 | Architecture correction | 🔲 NOT DONE | Doc written, code never changed |
-| 1.1.20 | Tree→renderer integration | 🔲 NOT DONE | THE critical missing piece |
-| 1.1.21 | Path node visualization | 🔲 NOT DONE | |
-| 1.1.22 | Garden dev sandbox | ⚠️ PARTIAL | FlowTestHarness works standalone |
-
-### Phase 1.2 — What's Done vs What's Not
-
-| Task | Name | Status | Notes |
-|------|------|--------|-------|
-| 1.2.1 | Learner model schema | ✅ Done | |
-| 1.2.2 | Chunk content design | ✅ Done | |
-| 1.2.3 | Chunk generation service | ✅ Done | |
-| 1.2.4 | Learner profile service | ✅ Done | |
-| 1.2.5 | Pedagogy engine core | ✅ Done | |
-| 1.2.6 | Difficulty calibration | ✅ Done | |
-| 1.2.7 | Affective filter monitor | ✅ Done | |
-| 1.2.8 | Lesson generator v2 | ✅ Done | |
-| 1.2.9 | Dynamic paths | 🔲 Not started | Independent of garden fix |
-| 1.2.10 | Chunk SRS | 🔲 Not started | Independent of garden fix |
-| 1.2.11 | System prompts | 🔲 Not started | Independent of garden fix |
-| 1.2.12 | Integration testing | 🔲 Not started | Needs garden working |
+> **Lesson Generator V2 exists but is never called.** The lesson flow uses `lessonPlanService` (v1 mock approach), not the pedagogy engine.
 
 ---
 
-## The Fix — Step by Step
+## Revised Task Roadmap
 
-These are the remaining tasks in priority order. Complete them top to bottom.
+### GROUP 1 — Finish the Baseline Experience
+*Goal: A polished, Pocketbase-backed game that a real kid can play with persistent progress*
 
-### Step 1: Connect Learning Trees to the 3D Renderer
-**File:** `docs/FIX-STEPS/step-1-tree-renderer-bridge.md`
-**Priority:** 🔴 CRITICAL — Everything else depends on this
+| # | Task | What It Is | Est. | Status |
+|---|------|-----------|------|--------|
+| **A** | Shop Categories & Tree Care | Categorised shop tabs, TreeCare consumables, placement mode wiring | 2-3h | ✅ DONE (2026-02-18) |
+| **B** | Pocketbase Live Data Wiring | Connect useGarden, useSunDrops, lesson completion to real Pocketbase; replace all mock data | 5-7h | 🔲 Next |
+| **C** | Mobile Polish (1.1.15) | Touch controls, D-pad garden navigation, responsive layout, performance | 4-5h | 🔲 |
+| **D** | Tutorial Flow (1.1.16) | First-time user experience: plant first tree, do first lesson, understand the loop | 4-5h | 🔲 |
 
-Make `GardenRenderer` able to show `UserTree` objects as 3D learning trees. The `makeLearningTree()` function in `src/renderer/objects/learningTrees.ts` already builds beautiful 15-stage growth trees. It just needs to be called by the renderer.
+### GROUP 2 — Wire the Pedagogy Brain
+*Goal: The adaptive learning engine actually drives lessons — no two learners get the same experience*
 
-### Step 2: Wire the Full Game Loop in App.tsx
-**File:** `docs/FIX-STEPS/step-2-game-loop-wiring.md`
-**Priority:** 🔴 CRITICAL
+| # | Task | What It Is | Est. | Status |
+|---|------|-----------|------|--------|
+| **E** | Wire Lesson Generator V2 | Connect LessonView/PathView to `lessonGeneratorV2` + `pedagogyEngine`; replace static lesson plan service | 3-4h | 🔲 |
+| **F** | Chunk SRS System (1.2.10) | Implement `srsService.ts` (SM-2 algorithm), integrate with chunk encounters, connect to tree health | 3-4h | 🔲 |
+| **G** | Dynamic Path Generation (1.2.9) | Replace static paths with topic-based generated paths; interests drive what trees appear | 4-5h | 🔲 |
+| **H** | System Prompts Overhaul (1.2.11) | Update Professor Finch prompts for chunk-based teaching; add lesson gen, error correction, interest detection | 3-4h | 🔲 |
+| **I** | Integration & E2E Testing (1.2.12) | Full pedagogy engine tests, full session flow, confidence checks | 6-8h | 🔲 |
 
-Connect: `GardenWorld3D` ← `UserTree[]` data → `onTreeClick` → `PathView` → `LessonView` → rewards → back. All the pieces exist, they just aren't plugged together.
+### GROUP 3 — Phase 2
+Social features, friends system, multiplayer — when Groups 1+2 are done.
 
-### Step 3: Garden Atmosphere (Match GardenV2.jsx)
-**File:** `docs/FIX-STEPS/step-3-garden-atmosphere.md`
-**Priority:** 🟡 HIGH
+---
 
-The reference `GardenV2.jsx` has an evening/night theme with stars, moon, fog, fence, checkered tiles, and dirt paths. The current renderer has none of this. Copy the atmosphere directly from GardenV2.jsx.
+## Fix Steps — Final Status
 
-### Step 4: Fix Currency Model
-**File:** `docs/FIX-STEPS/step-4-currency-fix.md`
-**Priority:** 🟡 HIGH
+| Step | What | Status |
+|------|------|--------|
+| Step 1 | Tree-Renderer Bridge | ✅ DONE (2026-02-17) |
+| Step 2 | Game Loop Wiring | ✅ DONE (2026-02-17) |
+| Step 3 | Garden Atmosphere | ✅ DONE — pivoted to daytime (sky blue, sun, clouds, fence) |
+| Step 4 | Currency Model Fix | ✅ DONE (2026-02-17) |
+| Step 5 | Avatar Polish | ✅ DONE (2026-02-17) |
+| Step 6 | Shop Categories & Tree Care | ✅ DONE (2026-02-18) |
 
-- SunDrops: per-tree, earned from lessons for that skill path
-- Gems: global currency, earned as bonus rewards, spent in shop
-- Seeds: earned from pathway milestones, used to plant new learning trees
+---
 
-### Step 5: Avatar Polish
-**File:** `docs/FIX-STEPS/step-5-avatar-polish.md`
-**Priority:** 🟢 MEDIUM
+## Phase 1.1 — Final Status
 
-Improve AvatarBuilder proportions and appearance.
+| Task | Name | Status |
+|------|------|--------|
+| 1.1.1 | Type definitions & SunDrop service | ✅ Done |
+| 1.1.2 | Activity components (6 types) | ✅ Done |
+| 1.1.3 | Lesson view container | ✅ Done |
+| 1.1.4 | Path view (lesson select) | ✅ Done |
+| 1.1.5 | Garden world basic (2D placeholder) | ✅ Done (superseded by Three.js) |
+| 1.1.6 | App navigation | ✅ Done |
+| 1.1.7 | Pocketbase game schema | ✅ Done (schema created; **live wiring is Task B**) |
+| 1.1.8 | Garden state (useGarden) | ✅ Done |
+| 1.1.9 | AI lesson generator v1 | ✅ Done (superseded by 1.2.8 v2, **wiring is Task E**) |
+| 1.1.10 | Tree health & decay | ✅ Done |
+| 1.1.11 | Gift system | ✅ Done |
+| 1.1.12 | Decoration system | ✅ Done (merged into shop) |
+| 1.1.13 | Seed earning | ✅ Done |
+| 1.1.14 | Three.js garden renderer | ✅ Done |
+| 1.1.15 | Mobile polish | 🔲 Task C |
+| 1.1.16 | Tutorial & testing | 🔲 Task D |
+| 1.1.17 | Garden shop UI | ✅ Done |
+| 1.1.18 | Avatar customization | ✅ Done |
+| 1.1.19–22 | Architecture fix / renderer integration | ✅ Done (via fix steps 1–6) |
 
-### Step 6: Shop Currency & Categories
-**File:** `docs/FIX-STEPS/step-6-shop-fix.md`
-**Priority:** 🟢 MEDIUM
+---
 
-Update ShopPanel to use Gems, add proper categories (decorations, decoration trees, tree care items).
+## Phase 1.2 — Status
 
-### Step 7: Mobile Polish
-**File:** `docs/FIX-STEPS/step-7-mobile-polish.md`
-**Priority:** 🟢 MEDIUM
-
-Touch controls, responsive layout, performance on mobile.
-
-### Step 8: Phase 1.2 Remaining Tasks
-**File:** See `docs/phase-1.2/` individual task docs
-**Priority:** 🟡 HIGH (independent of garden)
-
-Tasks 1.2.9 (dynamic paths), 1.2.10 (chunk SRS), 1.2.11 (system prompts) can be done in parallel with garden fixes. Task 1.2.12 (integration testing) needs the garden working.
+| Task | Name | Status |
+|------|------|--------|
+| 1.2.1 | Learner model schema | ✅ Done |
+| 1.2.2 | Chunk content design | ✅ Done |
+| 1.2.3 | Chunk generation service | ✅ Done |
+| 1.2.4 | Learner profile service | ✅ Done |
+| 1.2.5 | Pedagogy engine core | ✅ Done |
+| 1.2.6 | Difficulty calibration | ✅ Done |
+| 1.2.7 | Affective filter monitor | ✅ Done |
+| 1.2.8 | Lesson generator v2 | ✅ Done (not yet wired into game — **Task E**) |
+| 1.2.9 | Dynamic path generation | 🔲 Task G |
+| 1.2.10 | Chunk SRS system | 🔲 Task F |
+| 1.2.11 | System prompts overhaul | 🔲 Task H |
+| 1.2.12 | Integration testing | 🔲 Task I |
 
 ---
 
@@ -146,28 +132,32 @@ Tasks 1.2.9 (dynamic paths), 1.2.10 (chunk SRS), 1.2.11 (system prompts) can be 
 
 | File | What It Is |
 |------|-----------|
-| `docs/phase-1.1/GardenV2.jsx` | Visual reference — THE spec for how the garden should look |
+| `docs/phase-1.1/GardenV2.jsx` | Visual reference — original spec for garden appearance |
 | `docs/phase-1.1/GAME_DESIGN.md` | Source of truth for all game mechanics |
-| `src/renderer/objects/learningTrees.ts` | Already-built 15-stage tree growth code |
-| `src/components/dev/FlowTestHarness.tsx` | Proof the full loop works (standalone) |
-| `src/renderer/GardenRenderer.ts` | The renderer that needs learning tree support added |
-| `src/components/garden/GardenWorld3D.tsx` | React wrapper that needs UserTree props added |
+| `src/renderer/objects/learningTrees.ts` | 15-stage tree growth code |
+| `src/renderer/GardenRenderer.ts` | Main Three.js renderer |
+| `src/components/garden/GardenWorld3D.tsx` | React wrapper for the renderer |
+| `src/renderer/types.ts` | SHOP_CATALOGUE, ShopItem, ObjectCategory |
+| `src/components/garden/ShopPanel.tsx` | Shop UI with categories and tree care |
+| `src/services/lessonGeneratorV2.ts` | Phase 1.2 lesson generator (not yet wired) |
+| `src/services/pedagogyEngine.ts` | Central pedagogy orchestrator |
+| `src/data/mockGameData.ts` | All mock data — will be replaced by Task B |
+| `App.tsx` | Main app — game loop wiring lives here |
 
 ---
 
 ## Deprecated Docs
 
-These docs are marked deprecated because they've been superseded or are misleading:
+These docs are kept for reference but are superseded:
 
 | Doc | Why Deprecated |
 |-----|---------------|
-| `task-1-1-5-garden-world-basic.md` | Superseded by Three.js approach (task 1.1.14) |
+| `task-1-1-5-garden-world-basic.md` | Superseded by Three.js approach |
 | `task-1-1-17-oss-assets DEPRECATED.md` | Already marked deprecated |
-| `task-1-1-19-garden-architecture-fix.md` | Good concepts but never implemented; superseded by this master plan |
-| `task-1-1-20-tree-renderer-integration.md` | Superseded by Step 1 in this plan |
-| `task-1-1-21-path-node-visualization.md` | Superseded by Step 1 in this plan |
-| `task-1-1-22-garden-dev-sandbox.md` | Superseded; FlowTestHarness already exists |
-| `CLINE_GAME_IMPLEMENTATION.md` | References PixiJS (we use Three.js now) |
-| `GARDEN_THREE_IMPLEMENTATION.md` | Partially accurate but missing "what's actually done" context |
-
-See each individual doc for its deprecation notice.
+| `task-1-1-19-garden-architecture-fix.md` | Implemented via fix steps |
+| `task-1-1-20-tree-renderer-integration.md` | Done in Step 1 |
+| `task-1-1-21-path-node-visualization.md` | Done in Steps 1–2 |
+| `task-1-1-22-garden-dev-sandbox.md` | FlowTestHarness/TreeRendererTestHarness serve this purpose |
+| `CLINE_GAME_IMPLEMENTATION.md` | References PixiJS (we use Three.js) |
+| `GARDEN_THREE_IMPLEMENTATION.md` | Partially accurate but superseded by actual implementation |
+| `docs/FIX-STEPS/step-6-shop-fix.md` | Completed — see task doc `task-A-shop-categories.md` |
