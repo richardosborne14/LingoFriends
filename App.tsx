@@ -36,6 +36,8 @@ import {
   savePlacedObject,
 } from './src/services/gameProgressService';
 import { learnerProfileService } from './src/services/learnerProfileService';
+import { pedagogyEngine } from './src/services/pedagogyEngine';
+import { lessonGeneratorV2 } from './src/services/lessonGeneratorV2';
 import { getCurrentUserId } from './services/pocketbaseService';
 import { DevTestHarness, FlowTestHarness, TreeRendererTestHarness } from './src/components/dev';
 import { TutorialProvider, TutorialStep } from './src/components/tutorial';
@@ -169,26 +171,76 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
   }, [actions]);
 
   /**
-   * Handle starting a lesson from the path view
+   * Handle starting a lesson from the path view.
+   *
+   * Tries v2 (pedagogy engine + chunk-based AI) first.
+   * Falls back to v1 (static lessonPlanService) if v2 throws or the user
+   * has no Pocketbase record yet (cold start / no chunks encountered).
+   *
+   * v2 chain:
+   *   learnerProfileService.getOrCreateProfile()   → get/create learner model
+   *   pedagogyEngine.prepareSession()               → i+1 calibration + chunk selection
+   *   lessonGeneratorV2.generateLesson()            → Groq-powered activity generation
    */
   const handleStartLesson = useCallback(async (lesson: SkillPathLesson) => {
     console.log('[GameApp] Starting lesson:', lesson.title);
     setLessonLoading(true);
-    
+
     try {
-      const lessonPlan = await generateLessonPlan({
-        lesson,
-        targetLanguage: profile.targetLanguage,
-      });
-      
+      let lessonPlan: LessonPlan | null = null;
+      const userId = getCurrentUserId() ?? '';
+
+      // ── V2 path ─────────────────────────────────────────────────────────
+      if (userId) {
+        try {
+          // Get or create learner profile — first lesson initialises the record.
+          const learnerProfile = await learnerProfileService.getOrCreateProfile(userId, {
+            targetLanguage: profile.targetLanguage ?? 'French',
+            nativeLanguage: profile.nativeLanguage ?? 'English',
+          });
+
+          // Run i+1 calibration and select appropriate chunks.
+          // topic: lesson.title gives the engine a human-readable context hint
+          // (e.g. "Greetings & Basics") so chunk generation is topic-aware.
+          const sessionPlan = await pedagogyEngine.prepareSession(userId, {
+            topic: lesson.title,
+            maxNewChunks: 5,
+            duration: 10, // minutes — default session length
+          });
+
+          // Generate chunk-based activities via Groq.
+          const { lesson: generatedPlan } = await lessonGeneratorV2.generateLesson({
+            userId,
+            sessionPlan,
+            profile: learnerProfile,
+          });
+
+          lessonPlan = generatedPlan;
+          console.log('[GameApp] V2 lesson generated successfully');
+        } catch (v2Error) {
+          // Non-fatal: cold start (no chunks yet) or network failure.
+          // Fall through to v1.
+          console.warn('[GameApp] V2 generation failed, falling back to v1:', v2Error);
+        }
+      }
+
+      // ── V1 fallback ──────────────────────────────────────────────────────
+      // Used when: user has no chunks yet, Groq is unavailable, or not authed.
+      if (!lessonPlan) {
+        lessonPlan = await generateLessonPlan({
+          lesson,
+          targetLanguage: profile.targetLanguage,
+        });
+      }
+
       actions.goToLesson(lesson, lessonPlan);
     } catch (error) {
       console.error('[GameApp] Failed to generate lesson:', error);
-      // TODO: Show error toast to user
+      // TODO (Task D): Show kid-friendly error toast
     } finally {
       setLessonLoading(false);
     }
-  }, [actions, profile.targetLanguage]);
+  }, [actions, profile.targetLanguage, profile.nativeLanguage]);
 
   /**
    * Handle lesson completion — saves progress to Pocketbase.
@@ -417,15 +469,18 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
                 }}
                 // Shop placement mode — pass the selected item so the renderer shows a ghost preview
                 placementModeItem={selectedShopItem}
+                onObjectPlace={(_objectId, objectType, gx, gz) => {
+                  // Persist decoration to Pocketbase when the renderer confirms placement.
+                  // Fire-and-forget: the object is already visible in the 3D scene —
+                  // we never block or surface errors to the child.
+                  savePlacedObject({ objectType, gx, gz }).catch(err => {
+                    console.warn('[GameApp] Could not save placed object (non-fatal):', err);
+                  });
+                }}
                 onPlacementEnd={(placed) => {
-                  // Capture item before clearing (needed to know what was placed)
-                  const placedItem = selectedShopItem;
                   setSelectedShopItem(null);
-                  if (placed && placedItem) {
-                    console.log('[GameApp] Object placed — closing shop');
-                    // TODO: pass gx/gz from GardenWorld3D once onObjectPlaced(type,gx,gz)
-                    // callback is added to GardenWorld3D props. For now, track by type only.
-                    // savePlacedObject({ objectType: placedItem.id, gx, gz });
+                  if (placed) {
+                    // Placement persisted via onObjectPlace above — just close the shop.
                     setIsShopOpen(false);
                   }
                 }}

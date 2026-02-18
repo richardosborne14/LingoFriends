@@ -61,7 +61,7 @@
 
 | # | Task | What It Is | Est. | Status |
 |---|------|-----------|------|--------|
-| **E** | Wire Lesson Generator V2 | Connect LessonView/PathView to `lessonGeneratorV2` + `pedagogyEngine`; replace static lesson plan service | 3-4h | 🔲 |
+| **E** | Wire Lesson Generator V2 | Connect LessonView/PathView to `lessonGeneratorV2` + `pedagogyEngine`; replace static lesson plan service | 3-4h | ✅ DONE (2026-02-18) |
 | **F** | Chunk SRS System (1.2.10) | Implement `srsService.ts` (SM-2 algorithm), integrate with chunk encounters, connect to tree health | 3-4h | 🔲 |
 | **G** | Dynamic Path Generation (1.2.9) | Replace static paths with topic-based generated paths; interests drive what trees appear | 4-5h | 🔲 |
 | **H** | System Prompts Overhaul (1.2.11) | Update Professor Finch prompts for chunk-based teaching; add lesson gen, error correction, interest detection | 3-4h | 🔲 |
