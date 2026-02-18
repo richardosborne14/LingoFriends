@@ -35,6 +35,7 @@ import {
   savePlacedObject,
 } from './src/services/gameProgressService';
 import { DevTestHarness, FlowTestHarness, TreeRendererTestHarness } from './src/components/dev';
+import { TutorialProvider, TutorialStep } from './src/components/tutorial';
 import {
   MOCK_USER_TREES,
   MOCK_SKILL_PATHS,
@@ -359,6 +360,7 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
+              id="garden-view"
               className="h-full relative"
             >
               {/* 3D garden with learning trees — clicking a tree opens its skill path */}
@@ -511,6 +513,61 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
         </motion.button>
       )}
 
+      {/* ── Tutorial Steps ────────────────────────────────────
+        TutorialStep components are self-hiding — they only render when
+        their `step` matches the TutorialManager's currentStep.
+        Placed at the bottom so they render above everything else via z-index.
+      */}
+      <TutorialStep
+        step="welcome"
+        icon="👋"
+        title="Welcome to LingoFriends!"
+        description="Let's take a quick tour of your learning garden. It only takes a minute!"
+        nextLabel="Let's go! 🚀"
+        hideSkip={false}
+      />
+      <TutorialStep
+        step="garden_intro"
+        targetSelector="#garden-view"
+        icon="🌳"
+        title="This is your garden!"
+        description="Each tree represents a language you're learning. Walk up to a tree and tap it to start a lesson."
+        nextLabel="Cool! 😎"
+      />
+      <TutorialStep
+        step="header_stats"
+        targetSelector="header"
+        icon="☀️"
+        title="Your progress lives up here"
+        description="Sun Drops ☀️ are earned by completing lessons. Gems 💎 are spent in the shop. Keep your streak 🔥 going every day!"
+        nextLabel="Got it!"
+      />
+      <TutorialStep
+        step="tap_tree"
+        targetSelector="#garden-view"
+        icon="👆"
+        title="Tap a tree to start learning!"
+        description="Walk your avatar to any glowing tree and tap it. Your first lesson is waiting!"
+        nextLabel="I'll try it!"
+        hideSkip={false}
+      />
+      <TutorialStep
+        step="shop_intro"
+        targetSelector="[title='Open Shop']"
+        icon="🛒"
+        title="The Shop"
+        description="Spend your Gems on decorations for your garden, or buy Tree Care items to keep your trees healthy!"
+        nextLabel="Nice!"
+      />
+      <TutorialStep
+        step="complete"
+        icon="🎉"
+        title="You're all set!"
+        description="Your adventure starts now. Complete lessons every day to grow your trees and earn rewards!"
+        nextLabel="Let's learn! 🌱"
+        hideSkip={true}
+      />
+
       {/* Shop Panel - Only show in garden view */}
       {state.currentView === 'garden' && (
         <ShopPanel
@@ -634,9 +691,11 @@ function App() {
     );
   }
 
-  // Show main game app
+  // Show main game app — wrap with TutorialProvider so tutorial steps
+  // have access to context; wrapping here (not inside GameApp) keeps the
+  // provider lifetime tied to the authenticated session.
   return (
-    <>
+    <TutorialProvider>
       <GameApp
         profile={profile}
         onLogout={logout}
@@ -652,7 +711,7 @@ function App() {
           🧪 Dev
         </button>
       )}
-    </>
+    </TutorialProvider>
   );
 }
 
