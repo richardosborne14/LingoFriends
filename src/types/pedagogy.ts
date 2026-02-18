@@ -525,6 +525,13 @@ export interface LearnerProfile {
   /** Last reflection question asked (for coaching cycle) */
   lastReflectionPrompt: string;
   
+  /** 
+   * Learner's age group for content calibration.
+   * Optional — defaults to '11-14' until collected via onboarding/settings.
+   * Used by lessonGeneratorV2 to select age-appropriate tone and vocabulary.
+   */
+  ageGroup?: '7-10' | '11-14' | '15-18';
+
   /** AI observations about the learner's style and needs */
   coachingNotes: string;
   

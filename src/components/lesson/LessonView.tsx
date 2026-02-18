@@ -11,7 +11,7 @@
  * @module LessonView
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { TutorBubble } from './TutorBubble';
 import { SunDropBurst } from './SunDropBurst';
@@ -54,6 +54,8 @@ export interface LessonResult {
   stepsCompleted: number;
   /** Total steps */
   stepsTotal: number;
+  /** Time spent in milliseconds — used by learnerProfileService.recordSession() */
+  timeSpentMs: number;
 }
 
 /**
@@ -127,6 +129,10 @@ export const LessonView: React.FC<LessonViewProps> = ({
     rewardAmount: 0,
     isComplete: false,
   });
+
+  // Track start time for session duration reporting to learnerProfileService.
+  // useRef so it doesn't trigger re-renders and survives across state updates.
+  const lessonStartTimeRef = useRef<number>(Date.now());
 
   // Current step data
   const currentStep = lesson.steps[state.currentStepIndex];
@@ -205,10 +211,13 @@ export const LessonView: React.FC<LessonViewProps> = ({
 
   /**
    * Handle lesson completion continuation.
+   * Computes timeSpentMs from lessonStartTimeRef so learnerProfileService
+   * can record accurate session duration without corrupting analytics.
    */
   const handleContinue = useCallback(() => {
     const stars = calculateStarsFromDrops(state.sunDropsEarned, sunDropsMax);
-    
+    const timeSpentMs = Date.now() - lessonStartTimeRef.current;
+
     onComplete({
       lessonId: lesson.id,
       sunDropsEarned: state.sunDropsEarned,
@@ -216,13 +225,16 @@ export const LessonView: React.FC<LessonViewProps> = ({
       stars,
       stepsCompleted: lesson.steps.length,
       stepsTotal: lesson.steps.length,
+      timeSpentMs,
     });
   }, [lesson.id, lesson.steps.length, state.sunDropsEarned, sunDropsMax]);
 
   /**
    * Handle replaying the lesson.
+   * Reset start time so replay duration is measured correctly.
    */
   const handleReplay = useCallback(() => {
+    lessonStartTimeRef.current = Date.now();
     setState({
       currentStepIndex: 0,
       sunDropsEarned: 0,

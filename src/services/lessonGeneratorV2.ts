@@ -291,7 +291,8 @@ export class LessonGeneratorV2 {
       targetChunks: [chunk],
       reviewChunks: [],
       interests: profile.explicitInterests,
-      ageGroup: getAgeGroup(undefined), // TODO: Get from profile
+      // Read ageGroup from learner profile; falls back to '11-14' if not yet collected.
+      ageGroup: getAgeGroup(profile.ageGroup),
       filterRiskScore: profile.filterRiskScore,
     };
     
@@ -325,7 +326,10 @@ export class LessonGeneratorV2 {
       targetChunks: sessionPlan.targetChunks,
       reviewChunks: sessionPlan.reviewChunks,
       interests: profile.explicitInterests,
-      ageGroup: getAgeGroup(undefined), // TODO: Get from profile
+      // Use ageGroup from profile if set (requires onboarding to collect it).
+      // Defaults to '11-14' — the middle range is the safest content calibration
+      // until we add age selection to onboarding.
+      ageGroup: getAgeGroup(profile.ageGroup),
       filterRiskScore: profile.filterRiskScore,
       focusAreas: additionalContext?.focusArea ? [additionalContext.focusArea] : undefined,
     };

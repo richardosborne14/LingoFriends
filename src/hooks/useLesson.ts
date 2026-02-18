@@ -191,8 +191,9 @@ export function useLesson(): UseLessonReturn {
   const [isComplete, setIsComplete] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Timing
-  const [lessonStartTime, setLessonStartTime] = useState<number>(0);
+  // Timing — initialized to Date.now() so endLesson() always produces a valid
+  // timeSpentMs even if loadLesson() is never called (e.g. lesson passed as prop).
+  const [lessonStartTime, setLessonStartTime] = useState<number>(Date.now());
 
   // ==========================================
   // Derived State

@@ -1,10 +1,35 @@
 /**
- * LingoFriends - System Prompts
+ * LingoFriends - System Prompts (Legacy — Main Hall Chat)
+ * 
+ * ⚠️  ARCHITECTURE NOTE (Task H / Phase 1.2 Audit)
+ * ─────────────────────────────────────────────────────────────────────────────
+ * There are TWO prompt systems in LingoFriends, intentionally separate:
+ *
+ *  1. THIS FILE  (services/systemPrompts.ts — root level, legacy)
+ *     - Used by:  services/groqService.ts  →  ChatInterface (Main Hall chat)
+ *     - Persona:  "Lingo" — a friendly owl tutor
+ *     - Purpose:  Open-ended conversation, lesson creation, interest detection
+ *     - Era:      Phase 1 / Gemini-era, ported to Groq
+ *
+ *  2. NEW FILE  (src/services/aiPedagogyClient.ts — src/, Phase 1.2)
+ *     - Used by:  src/services/lessonGeneratorV2.ts  →  structured lessons
+ *     - Persona:  "Professor Finch" — a chunk-based pedagogy coach
+ *     - Purpose:  Generate activities, calibrate difficulty (i+1), respect
+ *                 affective filter, build on lexical chunks from chunkManager
+ *     - Era:      Phase 1.2 — the new lesson pipeline
+ *
+ * These two systems COEXIST because they serve different UX surfaces:
+ *   - Main Hall chat  → Lingo persona, conversational, lesson *creation*
+ *   - Lesson screen   → Professor Finch, structured, chunk *delivery*
+ *
+ * DO NOT merge these until Phase 2 when the Main Hall becomes chunk-aware.
+ * ─────────────────────────────────────────────────────────────────────────────
  * 
  * Kid-friendly AI tutor prompts with age-based adjustments.
  * These prompts create the "Lingo" persona for language learning.
  * 
  * @module systemPrompts
+ * @see src/services/aiPedagogyClient.ts for the Phase 1.2 lesson prompt system
  */
 
 import type { 

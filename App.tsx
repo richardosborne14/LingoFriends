@@ -35,6 +35,8 @@ import {
   applyTreeCare as applyTreeCareService,
   savePlacedObject,
 } from './src/services/gameProgressService';
+import { learnerProfileService } from './src/services/learnerProfileService';
+import { getCurrentUserId } from './services/pocketbaseService';
 import { DevTestHarness, FlowTestHarness, TreeRendererTestHarness } from './src/components/dev';
 import { TutorialProvider, TutorialStep } from './src/components/tutorial';
 import {
@@ -218,6 +220,26 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
     postLessonSRSUpdate(result.stars ?? 1).catch(err => {
       // Non-fatal: pedagogy engine degrades gracefully without this update
       console.warn('[GameApp] SRS update failed (non-fatal):', err);
+    });
+
+    // Phase 1.2 GAP 3 FIX: Record session in the learner profile so the
+    // pedagogy engine has engagement data (totalSessions, timeMinutes, etc.).
+    //
+    // Approximations:
+    // - correctFirstTry uses star rating as a proxy (3★ ≈ 100%, 1★ ≈ 33%)
+    // - helpUsed is 0 until LessonResult tracks help per activity (Phase 2)
+    //
+    // Fire-and-forget — never block navigation or show errors to the child.
+    // getCurrentUserId() reads from pb.authStore.record so it is always
+    // in sync with the active session without needing it on UserProfile.
+    const currentUserId = getCurrentUserId() ?? '';
+    learnerProfileService.recordSession(currentUserId, {
+      durationMinutes: Math.max(1, Math.round((result.timeSpentMs ?? 0) / 60000)),
+      chunksEncountered: result.stepsCompleted ?? 0,
+      correctFirstTry: Math.round((result.stepsCompleted ?? 0) * ((result.stars ?? 1) / 3)),
+      helpUsed: 0,
+    }).catch(err => {
+      console.warn('[GameApp] Learner profile session record failed (non-fatal):', err);
     });
 
     // Navigate back immediately (don't wait for PB)
