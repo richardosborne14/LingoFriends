@@ -2,9 +2,16 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <!-- viewport-fit=cover: extends content into iPhone notch/Dynamic Island area -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#58CC02" />
     <meta name="description" content="LingoFriends - Learn languages with friends!" />
+
+    <!-- PWA / home-screen install support -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="LingoFriends" />
+    <meta name="mobile-web-app-capable" content="yes" />
     
     <title>LingoFriends</title>
     
@@ -60,6 +67,40 @@
         50% { transform: translateY(-10px); }
       }
       
+      /* ── Mobile touch optimisation ── */
+
+      /* Prevent callout (iOS long-press menu) on interactive elements */
+      button, a, [role="button"] {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+
+      /* Prevent text-size adjustment on orientation change (iOS) */
+      body {
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+      }
+
+      /* Prevent overscroll bounce showing the white background underneath */
+      html, body {
+        overscroll-behavior: none;
+      }
+
+      /* Safe-area padding so content clears the notch / home indicator */
+      #root {
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+      }
+
+      /* Touch targets — every tappable element should be ≥ 44px */
+      button, [role="button"] {
+        min-height: 44px;
+        min-width: 44px;
+      }
+
       /* Custom scrollbar - Kid-friendly, not harsh */
       ::-webkit-scrollbar {
         width: 8px;

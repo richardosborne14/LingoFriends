@@ -24,7 +24,7 @@ import { useAuth } from './src/hooks/useAuth';
 import { useNavigation } from './src/hooks/useNavigation';
 import { useGameStats } from './src/hooks/useGameStats';
 import { AppHeader, TabBar } from './src/components/navigation';
-import { GardenWorld3D, ShopPanel, shopPanelStyles } from './src/components/garden';
+import { GardenWorld3D, ShopPanel, shopPanelStyles, GardenDPad } from './src/components/garden';
 import { DEFAULT_AVATAR, ShopItem } from './src/renderer';
 import { PathView } from './src/components/path';
 import { LessonView } from './src/components/lesson';
@@ -359,7 +359,7 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
-              className="h-full"
+              className="h-full relative"
             >
               {/* 3D garden with learning trees — clicking a tree opens its skill path */}
               <GardenWorld3D
@@ -399,6 +399,9 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
                   }
                 }}
               />
+
+              {/* D-pad overlay for touch avatar movement (hidden on desktop) */}
+              <GardenDPad />
             </motion.div>
           )}
 

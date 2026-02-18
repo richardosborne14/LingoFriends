@@ -26,6 +26,9 @@ export type { InteractionPanelProps } from './InteractionPanel';
 export { MobileDpad } from './MobileDpad';
 export type { MobileDpadProps } from './MobileDpad';
 
+// Touch D-pad for avatar movement on mobile (Three.js garden)
+export { GardenDPad } from './GardenDPad';
+
 // Shop components
 export { ShopPanel, shopPanelStyles } from './ShopPanel';
 export type { ShopPanelProps } from './ShopPanel';
