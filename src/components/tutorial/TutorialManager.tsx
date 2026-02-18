@@ -145,9 +145,16 @@ export const TutorialProvider: React.FC<TutorialProviderProps> = ({ children }) 
         const userId = pb.authStore.record?.id;
         if (!userId) return;
         const profile = await pb.collection('profiles').getOne(userId, {
-          fields: 'tutorialComplete',
+          // Fetch both fields: tutorialComplete is the definitive flag;
+          // onboardingComplete is the fallback for users who existed before
+          // the tutorialComplete field was added (pre-migration period).
+          fields: 'tutorialComplete,onboardingComplete',
         });
-        if (profile.tutorialComplete) {
+
+        // tutorialComplete is the authoritative "seen tutorial" flag.
+        // If null/false, the tutorial will show (correct for new users).
+        // Run scripts/migrate-tutorial-field.cjs once to backfill existing users.
+        if (profile.tutorialComplete === true) {
           localStorage.setItem(LS_KEY, 'true');
           return;
         }
