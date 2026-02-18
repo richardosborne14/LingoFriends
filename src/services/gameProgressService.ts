@@ -352,6 +352,159 @@ function calculateNewStreak(currentStreak: number, lastActivity: string | undefi
 }
 
 // ============================================
+// WRITE: INITIAL TREE SEEDING (Task J)
+// ============================================
+
+/**
+ * Maps a TargetSubject display name (from onboarding) to a BCP-47 language code.
+ *
+ * PocketBase skill_paths records use a `language` field (e.g. 'de', 'fr', 'es', 'en').
+ * We look up the real PB record ID from this code at runtime, rather than
+ * hard-coding fake canonical IDs that don't exist in PB.
+ *
+ * Kept private — callers use createInitialTree() which handles the full lookup.
+ */
+function subjectToLanguageCode(subject: string): string {
+  // Normalise to lowercase for case-insensitive matching
+  const normalised = subject.toLowerCase();
+  const map: Record<string, string> = {
+    // Language subjects (from Step2Subject)
+    'german':      'de',
+    'french':      'fr',
+    'spanish':     'es',
+    'english':     'en',
+    'english-esl': 'en',
+    // Subject types (future)
+    'maths':       'en', // Math paths use English language code
+    'scratch':     'en',
+  };
+  return map[normalised] ?? 'en'; // Default to English if unknown subject
+}
+
+/**
+ * Looks up the first beginner skill_path record in PB for a given language code.
+ * Returns the record's PB ID (e.g. 'g22wn86mwoizjfr'), not a fake canonical string.
+ *
+ * This is the correct approach — PB record IDs are random strings assigned at
+ * insert time and cannot be predicted from the subject name. Canonical slug IDs
+ * like 'german-beginner' are NOT used as PB record IDs.
+ *
+ * @param languageCode - BCP-47 code (e.g. 'de', 'fr', 'es', 'en')
+ * @returns The PB record ID for the first beginner path, or null if not found
+ */
+async function getFirstBeginnerPathId(languageCode: string): Promise<{ id: string; name: string } | null> {
+  try {
+    const results = await pb.collection('skill_paths').getList(1, 1, {
+      filter: `language = "${languageCode}" && category = "beginner"`,
+    });
+    if (results.items.length > 0) {
+      return {
+        id: results.items[0].id,
+        name: (results.items[0] as unknown as Record<string, unknown>).name as string ?? '',
+      };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Language code → emoji flag for first-tree icon.
+ */
+function languageCodeToFlag(languageCode: string): string {
+  const flags: Record<string, string> = {
+    'de': '🇩🇪',
+    'fr': '🇫🇷',
+    'es': '🇪🇸',
+    'en': '🇬🇧',
+  };
+  return flags[languageCode] ?? '🌱';
+}
+
+/**
+ * Seeds the user's first learning tree in PocketBase after onboarding.
+ *
+ * Called exactly once per user — immediately after the onboarding flow
+ * completes. Creates a user_tree record at the centre of the garden grid
+ * (gx: 5, gz: 5) so the user has a tree to tap when they first arrive.
+ *
+ * Idempotent: if the user already has any tree in PB, does nothing. Safe
+ * to call multiple times (e.g. if onboarding is retried after a network error).
+ *
+ * Non-fatal: if PB is unreachable or no skill path exists for the subject,
+ * logs a warning but does NOT throw. The caller (OnboardingContainer) still
+ * navigates the user into the garden.
+ *
+ * @param userId  - PocketBase user ID
+ * @param subject - TargetSubject from onboarding (e.g. 'German', 'French')
+ */
+export async function createInitialTree(userId: string, subject: string): Promise<void> {
+  if (!userId) {
+    console.warn('[gameProgressService] createInitialTree: no userId — skipping');
+    return;
+  }
+
+  try {
+    // Idempotency check — if the user already has ANY tree, bail out.
+    // Broad check (not by skillPathId) so fake legacy IDs don't cause duplicates.
+    const existing = await pb.collection('user_trees').getList(1, 1, {
+      filter: `user = "${userId}"`,
+    });
+
+    if (existing.items.length > 0) {
+      console.log('[gameProgressService] createInitialTree: user already has a tree — skipping');
+      return;
+    }
+
+    // Resolve the real PB skill_path record ID by language code.
+    // PB record IDs are random strings (e.g. 'g22wn86mwoizjfr'), NOT canonical
+    // slugs — we must look them up at runtime, not derive them from the subject name.
+    const languageCode = subjectToLanguageCode(subject);
+    const skillPathRecord = await getFirstBeginnerPathId(languageCode);
+
+    if (!skillPathRecord) {
+      console.warn(`[gameProgressService] createInitialTree: no beginner skill path found for language '${languageCode}' (subject: '${subject}') — skipping`);
+      return;
+    }
+
+    const { id: skillPathPbId, name: skillPathName } = skillPathRecord;
+    const icon = languageCodeToFlag(languageCode);
+
+    // Place the first tree at the visual centre of the 12×12 garden grid.
+    // Future trees get adjacent cells managed by useGarden.createTree().
+    await pb.collection('user_trees').create({
+      user:             userId,
+      // Write to BOTH fields:
+      // - skillPath: PB relation field (references skill_paths record by ID)
+      // - skillPathId: text field used by the app's service layer for lookups
+      skillPath:        skillPathPbId,
+      skillPathId:      skillPathPbId,
+      name:             skillPathName,
+      icon,
+      status:           'growing',
+      health:           100,
+      bufferDays:       0,
+      sunDropsEarned:   0,
+      sunDropsTotal:    0,
+      lessonsCompleted: 0,
+      lastRefreshDate:  new Date().toISOString(),
+      lastLessonDate:   new Date().toISOString(),
+      gridPosition:     { gx: 5, gz: 5 },
+      position:         { x: 250, y: 250 },
+      decorations:      [],
+      giftsReceived:    [],
+    });
+
+    console.log(`[gameProgressService] 🌱 First tree seeded: ${skillPathName} (${skillPathPbId}) at (5,5) for user ${userId}`);
+  } catch (err) {
+    // Non-fatal — user still reaches the garden; saveLessonCompletion will
+    // create the tree on first lesson completion as a fallback.
+    console.warn('[gameProgressService] createInitialTree failed (non-fatal):', err);
+  }
+}
+
+// ============================================
 // WRITE: SRS / LEARNER MODEL UPDATE (Task F)
 // ============================================
 
