@@ -13,7 +13,7 @@
 |-------|-------|--------|
 | **Phase 1** | Foundation (auth, DB, AI swap, design system, onboarding) | ✅ COMPLETE |
 | **Phase 1.1** | Game-based learning redesign (garden, lessons, activities) | ✅ COMPLETE (all fix steps done) |
-| **Phase 1.2** | Pedagogy engine (adaptive learning, chunk system, SRS) | 🔶 PARTIALLY COMPLETE — Tasks 1.2.1–1.2.8 done, 1.2.9–1.2.12 remaining |
+| **Phase 1.2** | Pedagogy engine (adaptive learning, chunk system, SRS) | 🔶 PARTIALLY COMPLETE — Tasks 1.2.1–1.2.8 done + audit fixes; Tasks C, D, E, F, G, H, I remaining |
 | **Phase 2** | Social features, friends, multiplayer | 🔲 NOT STARTED |
 | **Phase 3** | Advanced content, more languages | 🔲 NOT STARTED |
 
@@ -34,11 +34,13 @@
 - ✅ Auth, onboarding, profile (Phase 1)
 - ✅ All activity component types (6 types)
 
-### Critical Remaining Gap
+### Critical Remaining Gaps
 
-> **The app currently runs on mock data.** Pocketbase collections exist (schema done) but nothing reads/writes from the real database. No progress persists between sessions.
+> **Task B is done:** Gems, sunDrops, streak, lesson completions, and tree care all write/read real Pocketbase. Garden trees are still mock (intentional — Task G replaces them with dynamic paths).
 
-> **Lesson Generator V2 exists but is never called.** The lesson flow uses `lessonPlanService` (v1 mock approach), not the pedagogy engine.
+> **Lesson Generator V2 is never called (Task E).** The lesson flow uses `lessonPlanService` (v1 static) not the pedagogy engine. Every kid gets the same hardcoded activities.
+
+> **Garden decoration placement is not persisted (Task E).** `GardenWorld3D.onPlacementEnd` doesn't pass gx/gz coordinates back, so `savePlacedObject()` cannot be called. Bundled into Task E.
 
 ---
 
@@ -50,7 +52,7 @@
 | # | Task | What It Is | Est. | Status |
 |---|------|-----------|------|--------|
 | **A** | Shop Categories & Tree Care | Categorised shop tabs, TreeCare consumables, placement mode wiring | 2-3h | ✅ DONE (2026-02-18) |
-| **B** | Pocketbase Live Data Wiring | Connect useGarden, useSunDrops, lesson completion to real Pocketbase; replace all mock data | 5-7h | 🔲 Next |
+| **B** | Pocketbase Live Data Wiring | Lesson completion, tree care, gem stats all write/read real Pocketbase | 5-7h | ✅ DONE (2026-02-18) |
 | **C** | Mobile Polish (1.1.15) | Touch controls, D-pad garden navigation, responsive layout, performance | 4-5h | 🔲 |
 | **D** | Tutorial Flow (1.1.16) | First-time user experience: plant first tree, do first lesson, understand the loop | 4-5h | 🔲 |
 
@@ -141,7 +143,7 @@ Social features, friends system, multiplayer — when Groups 1+2 are done.
 | `src/components/garden/ShopPanel.tsx` | Shop UI with categories and tree care |
 | `src/services/lessonGeneratorV2.ts` | Phase 1.2 lesson generator (not yet wired) |
 | `src/services/pedagogyEngine.ts` | Central pedagogy orchestrator |
-| `src/data/mockGameData.ts` | All mock data — will be replaced by Task B |
+| `src/data/mockGameData.ts` | Mock tree/path data — garden trees still use this; will be replaced by Task G |
 | `App.tsx` | Main app — game loop wiring lives here |
 
 ---
