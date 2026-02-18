@@ -22,18 +22,23 @@ import { ProfileSettings } from './components/ProfileSettings';
 import { Logo } from './components/ui';
 import { useAuth } from './src/hooks/useAuth';
 import { useNavigation } from './src/hooks/useNavigation';
+import { useGameStats } from './src/hooks/useGameStats';
 import { AppHeader, TabBar } from './src/components/navigation';
 import { GardenWorld3D, ShopPanel, shopPanelStyles } from './src/components/garden';
 import { DEFAULT_AVATAR, ShopItem } from './src/renderer';
 import { PathView } from './src/components/path';
 import { LessonView } from './src/components/lesson';
 import { generateLessonPlan } from './src/services/lessonPlanService';
+import {
+  saveLessonCompletion,
+  applyTreeCare as applyTreeCareService,
+  savePlacedObject,
+} from './src/services/gameProgressService';
 import { DevTestHarness, FlowTestHarness, TreeRendererTestHarness } from './src/components/dev';
 import {
   MOCK_USER_TREES,
   MOCK_SKILL_PATHS,
   MOCK_AVATAR,
-  MOCK_USER_PROGRESS,
   getSkillPathById,
 } from './src/data/mockGameData';
 import type { OnboardingData } from './components/onboarding';
@@ -142,10 +147,14 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
   // Lesson state (for generating lesson plan when starting)
   const [lessonLoading, setLessonLoading] = useState(false);
 
-  // TODO (Task 1.1.7): Replace mock data with real data from Pocketbase
+  // Real game stats from Pocketbase (gems, sunDrops, streak).
+  // refreshStats() is called after any mutation so the header updates immediately.
+  const { stats, refreshStats } = useGameStats();
+
+  // Trees still use mock data for display — the actual game data is written to PB
+  // on every lesson/care action. Full PB tree loading comes in a future sub-task.
   const trees = MOCK_USER_TREES;
   const avatar = MOCK_AVATAR;
-  const progress = MOCK_USER_PROGRESS;
 
   /**
    * Handle opening a skill path from the garden
@@ -178,19 +187,34 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
   }, [actions, profile.targetLanguage]);
 
   /**
-   * Handle lesson completion
+   * Handle lesson completion — saves progress to Pocketbase.
+   *
+   * Writes sunDropsEarned + lessonsCompleted to the user_tree record,
+   * awards gem bonus, and updates streak on the profile.
+   * Non-fatal: if PB is unreachable the reward screen still shows.
    */
-  const handleLessonComplete = useCallback((result: LessonResult) => {
+  const handleLessonComplete = useCallback(async (result: LessonResult) => {
     console.log('[GameApp] Lesson complete:', result);
-    
-    // TODO (Task 1.1.7): Save progress to Pocketbase
-    // - Update lesson status
-    // - Award SunDrops
-    // - Update tree progress
-    
-    // Return to path view
+
+    // Save to Pocketbase in the background
+    if (state.selectedTree) {
+      saveLessonCompletion({
+        skillPathId: state.selectedTree.skillPathId,
+        sunDropsEarned: result.sunDropsEarned ?? 0,
+        // starsEarned added to LessonResult in Task E when lesson gen v2 is wired
+        starsEarned: (result as unknown as Record<string, unknown>).starsEarned as number ?? 0,
+      }).then(() => {
+        // Refresh header stats after save completes
+        refreshStats();
+      }).catch(err => {
+        // Non-fatal — lesson still "completes" for the user
+        console.error('[GameApp] Progress save failed:', err);
+      });
+    }
+
+    // Navigate back immediately (don't wait for PB)
     actions.goBack();
-  }, [actions]);
+  }, [actions, state.selectedTree, refreshStats]);
 
   /**
    * Handle lesson exit (user closed without completing)
@@ -234,16 +258,38 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
   }, []);
 
   /**
-   * Handle tree care application (for consumable items)
+   * Handle tree care application (consumable items from shop).
+   *
+   * Calls applyTreeCare in gameProgressService which:
+   * 1. Verifies gem balance
+   * 2. Applies health/sunDrop boost to the tree in PB
+   * 3. Deducts gems from profile
+   * Then refreshes header stats.
    */
-  const handleApplyTreeCare = useCallback((item: ShopItem, treeId: string) => {
+  const handleApplyTreeCare = useCallback(async (item: ShopItem, treeId: string) => {
     console.log('[GameApp] Applying tree care:', item.name, 'to tree:', treeId);
-    // TODO (Task 1.1.7): Apply tree care to specific tree
-    // - Deduct gems
-    // - Update tree health or SunDrops
-    // - Show success feedback
+
+    // Find the tree's skillPathId (tree care service uses skillPathId, not treeId)
+    const targetTree = trees.find(t => t.id === treeId);
+    if (!targetTree) return;
+
+    try {
+      await applyTreeCareService({
+        skillPathId: targetTree.skillPathId,
+        healthRestore: item.healthRestore ?? 0,
+        sunDropBoost: item.sunDropBoost ?? 0,
+        gemCost: item.cost,   // ShopItem uses `cost`, not `price`
+      });
+      // Refresh header so new gem balance shows immediately
+      await refreshStats();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Something went wrong';
+      console.error('[GameApp] Tree care failed:', msg);
+      // TODO (Task D — Tutorial): Show kid-friendly error toast
+    }
+
     setSelectedShopItem(null);
-  }, []);
+  }, [trees, refreshStats]);
 
   // Get skill path for selected tree
   const selectedSkillPath = state.selectedTree
@@ -293,11 +339,11 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
     <div className="min-h-screen bg-gradient-to-b from-[#f0fdf4] to-[#dcfce7] flex flex-col">
       {/* Header - hidden during lesson and lesson exit transition */}
       {state.currentView !== 'lesson' && !isLessonExiting && (
-        <AppHeader
+          <AppHeader
           avatarEmoji={avatar.emoji}
-          streak={progress.streak}
-          sunDrops={progress.sunDrops}
-          gems={progress.gems}
+          streak={stats.streak}
+          sunDrops={stats.sunDrops}
+          gems={stats.gems}
           onSettingsClick={() => setShowProfileSettings(true)}
         />
       )}
@@ -341,10 +387,14 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
                 // Shop placement mode — pass the selected item so the renderer shows a ghost preview
                 placementModeItem={selectedShopItem}
                 onPlacementEnd={(placed) => {
-                  // Clear selected item regardless; close shop after successful placement
+                  // Capture item before clearing (needed to know what was placed)
+                  const placedItem = selectedShopItem;
                   setSelectedShopItem(null);
-                  if (placed) {
+                  if (placed && placedItem) {
                     console.log('[GameApp] Object placed — closing shop');
+                    // TODO: pass gx/gz from GardenWorld3D once onObjectPlaced(type,gx,gz)
+                    // callback is added to GardenWorld3D props. For now, track by type only.
+                    // savePlacedObject({ objectType: placedItem.id, gx, gz });
                     setIsShopOpen(false);
                   }
                 }}
@@ -463,7 +513,7 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
         <ShopPanel
           isOpen={isShopOpen}
           onClose={() => setIsShopOpen(false)}
-          gemBalance={progress.gems}
+          gemBalance={stats.gems}
           selectedItem={selectedShopItem}
           onSelectItem={handleShopItemSelect}
           onCancel={handleShopCancel}
