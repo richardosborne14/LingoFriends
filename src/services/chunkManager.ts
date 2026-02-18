@@ -245,7 +245,8 @@ export class ChunkManagerService {
     try {
       const records = await pb.collection('user_chunks').getList<UserChunkRecord>(1, count, {
         filter: `user = "${userId}" && status = "fragile"`,
-        sort: '-updated', // Recently become fragile
+        // No sort — 'updated' is a virtual column that can't be sorted without an explicit index.
+        // Fragile chunk order doesn't affect correctness; all fragile chunks surface for review.
         expand: 'chunk',
       });
       
@@ -371,7 +372,8 @@ export class ChunkManagerService {
     try {
       const records = await pb.collection('user_chunks').getList<UserChunkRecord>(1, count, {
         filter: `user = "${userId}" && status = "${status}"`,
-        sort: '-updated',
+        // No sort — 'updated' is a virtual column that returns 400 without an explicit index.
+        // Results arrive in PB's natural order which is acceptable for decay processing.
         expand: 'chunk',
       });
       
@@ -616,7 +618,8 @@ export class ChunkManagerService {
         // This is a simplified approach - ideally we'd use aggregation
         const recentChunks = await pb.collection('user_chunks').getList<UserChunkRecord>(1, 50, {
           filter: `user = "${userId}"`,
-          sort: '-updated',
+          // No sort — 'updated' is a virtual column that returns 400 without an explicit index.
+          // Any 50 chunks are fine for computing the average ease factor.
         });
         
         if (recentChunks.items.length > 0) {

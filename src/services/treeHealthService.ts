@@ -467,7 +467,7 @@ export async function getUserTrees(userId: string): Promise<UserTree[]> {
   try {
     const records = await pb.collection('user_trees').getList<PBUserTree>(1, 50, {
       filter: `user = "${userId}"`,
-      sort: 'created',
+      // No sort — 'created' is a virtual column that returns 400 without an explicit index.
     });
     
     return records.items.map(pbTreeToUserTree);
