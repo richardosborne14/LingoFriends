@@ -414,6 +414,89 @@ filter: `user = "${userId}"`,
 
 ---
 
+---
+
+## 2026-02-20: PocketBase required:true + value 0 = 400 Error
+
+**Problem:** `learner_profiles` collection was created with all counter fields (`current_level`, `total_sessions`, `chunks_acquired`, etc.) marked `required: true`. Every `initializeProfile()` call failed with HTTP 400 because PocketBase treats **numeric `0` as "blank"** for required validation — same behaviour as an empty string for text fields.
+
+**Solution:** Patch all numeric stat fields to `required: false` via the admin API. These fields represent counters that legitimately start at zero — "required" was semantically wrong for them. The only truly required field is `user` (the relation).
+
+```javascript
+// Patch via admin API — run once per environment
+const updated = col.fields.map(f =>
+  f.type === 'number' && f.name !== 'user' ? { ...f, required: false } : f
+);
+await fetch(`${PB_URL}/api/collections/${col.id}`, {
+  method: 'PATCH',
+  headers: { 'Content-Type': 'application/json', Authorization: adminToken },
+  body: JSON.stringify({ fields: updated }),
+});
+```
+
+**Rule for future schema design:** Only mark a PocketBase field `required: true` if:
+- It's a relation (`user`, `chunk`) — referential integrity
+- It's a short text with no valid "empty" state (`status` select field)
+- NEVER for numeric counters or stats that start at 0
+
+**Apply to:** Any new PocketBase collection with numeric/counter fields (`setup-learner-profiles.mjs` now creates them as `required: false`)
+
+---
+
+## 2026-02-20: Lesson Pipeline — Fallback Served Wrong Language
+
+**Problem:** The hardcoded fallback in `lessonGeneratorV2.ts` matched languages by full display name string (`topic.toLowerCase().includes('greetings')`, `langCode === 'German'`). But by the time the fallback ran, `langCode` was an ISO code (`'de'`), not `'German'`. So `langCode === 'German'` was always false → always fell back to French regardless of target language.
+
+**Root cause:** Three separate places in the codebase each had their own language string format:
+- Profile stored: `'German'` (full name)
+- `toLanguageCode()` returned: `'de'` (ISO code)
+- Fallback matched: `'German'` (full name)
+
+**Solution:** Unify on ISO codes everywhere. The fallback now uses `getHardcodedStarterChunks(langCode)` where `langCode` is always an ISO code, and the switch statement uses `'de'`/`'fr'`/`'es'`. The `languageUtils.ts` module is the single source of truth.
+
+**Rule:** Every function that receives or passes a language identifier must use ISO 639-1 codes (`'de'`, `'fr'`, `'en'`). Full names (`'German'`, `'French'`) are only for display. Convert at the boundary, store/compare codes.
+
+**Apply to:** Any future language-aware feature — always convert to ISO code at the point of receipt.
+
+---
+
+## 2026-02-20: Translate.tsx Requires correctAnswer (not just acceptedAnswers)
+
+**Problem:** `Translate.tsx` line 72 guards:
+```typescript
+if (!data.sourcePhrase || !data.correctAnswer) {
+  return <div>Error: Missing activity data</div>;
+}
+```
+
+But `lessonAssembler.buildRecallStep()` was building translate activities with only `acceptedAnswers` (an array of variants) and NOT `correctAnswer` (the canonical string). Every translate step hit the error boundary with "Missing activity data".
+
+**The .clinerules contract was incomplete:** Rule 6 listed `translate` as requiring only `sourcePhrase` and `acceptedAnswers`. The component also requires `correctAnswer`.
+
+**Solution:**
+```typescript
+// In buildRecallStep() in lessonAssembler.ts:
+activity: {
+  type: GameActivityType.TRANSLATE,
+  sourcePhrase: chunk.nativeTranslation,
+  correctAnswer: chunk.targetPhrase,      // ← REQUIRED by Translate.tsx
+  acceptedAnswers: getTranslateAcceptedAnswers(chunk),  // variants
+  hint: `It starts with "${chunk.targetPhrase.substring(0, 3)}..."`,
+  sunDrops: 3,
+},
+```
+
+**Rule:** `correctAnswer` is the canonical answer string. `acceptedAnswers` is the full set including case/punctuation variants. The component uses `correctAnswer` for:
+1. Guard check (null check)
+2. Displaying "the answer is X" after multiple failed attempts
+3. The primary comparison in `checkAnswer()`
+
+Both fields are required on translate activities. The validator now enforces this.
+
+**Apply to:** Any new code that builds translate activities. Check the component guard before assuming which fields are optional.
+
+---
+
 ## Quick Reference
 
 | Issue | Solution | Entry Date |
@@ -431,3 +514,6 @@ filter: `user = "${userId}"`,
 | Animate named mesh parts | getObjectByName() in tick loop | 2026-02-17 |
 | Hosted PocketBase schema constraints | Language codes, fallback profiles | 2026-02-20 |
 | PocketBase virtual column sort | Remove sort or add explicit index | 2026-02-20 |
+| PocketBase required:true + 0 = 400 | Make counter fields required:false | 2026-02-20 |
+| Language fallback wrong language | Match on ISO codes not display names | 2026-02-20 |
+| Translate shows "Missing activity data" | Add correctAnswer to buildRecallStep() | 2026-02-20 |

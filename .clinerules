@@ -275,3 +275,73 @@ VITE_DEBUG_MODE=true
 - [ ] Phase audit performed
 - [ ] LEARNINGS.md updated
 - [ ] README.md current status updated
+
+---
+
+## Lesson Generation Pipeline — ARCHITECTURE RULES
+
+These rules are NON-NEGOTIABLE. Every task that touches lesson generation must follow them.
+
+### Rule 1: The AI generates CONTENT, not ACTIVITIES
+The AI (Groq/Llama) generates ONLY:
+- Target language phrases (lexical chunks)
+- Native language translations
+- Example sentences
+- Usage notes
+- Plausible distractors (in the NATIVE language)
+- Usage contexts
+
+The AI NEVER generates:
+- ActivityConfig objects
+- JSON with fields like `type`, `correctIndex`, `options`, `sunDrops`
+- LessonStep objects
+- LessonPlan objects
+
+Activity assembly is handled by `src/services/lessonAssembler.ts` — deterministic TypeScript, no AI.
+
+### Rule 2: Teach before test — ALWAYS
+Every chunk/phrase follows the 5-step teach-first progression:
+1. INTRODUCE (INFO) — Show phrase + translation, 0 SunDrops
+2. RECOGNIZE (MULTIPLE_CHOICE) — "What does X mean?", 1 SunDrop
+3. PRACTICE (FILL_BLANK) — Complete the phrase, 2 SunDrops
+4. RECALL (TRANSLATE) — Translate from native to target, 3 SunDrops
+5. APPLY (MULTIPLE_CHOICE) — "When would you say X?", 2 SunDrops
+
+A learner must NEVER be quizzed on content they haven't seen in an INTRODUCE step first.
+
+### Rule 3: Language codes — ONE utility, no shortcuts
+All language name ↔ code conversion MUST use `src/utils/languageUtils.ts`.
+- `toLanguageCode("German")` → `"de"` ✅
+- `"German".substring(0, 2)` → `"Ge"` ❌ NEVER DO THIS
+- Local lookup tables in individual files ❌ NEVER DO THIS
+
+### Rule 4: Validation before rendering
+Every LessonPlan MUST pass `validateLessonPlan()` from `src/services/lessonValidator.ts` before reaching LessonView. If validation fails, throw an error — do NOT render a broken lesson.
+
+### Rule 5: Distractors match the question language
+If the question is "What does [German phrase] mean?", the options (including distractors) are in the NATIVE language (e.g. English/French). Distractors are NEVER in the target language.
+
+### Rule 6: ActivityConfig field contracts
+Each activity type requires specific fields. If ANY required field is missing, the activity MUST NOT render.
+
+| Type | Required Fields |
+|------|----------------|
+| `info` | `title` OR `content` |
+| `multiple_choice` | `question`, `options` (4 items), `correctIndex` (0-3) |
+| `fill_blank` | `sentence` (with `___`), `correctAnswer` |
+| `translate` | `sourcePhrase`, `correctAnswer`, `acceptedAnswers` (≥1 item) |
+| `true_false` | `statement` OR `question`, `isTrue` (boolean) |
+| `matching` | `pairs` (≥2 items, each with `left` + `right`) |
+| `word_arrange` | `targetSentence`, `scrambledWords` (≥2 items) |
+
+All types also require `sunDrops` (number, 0-4).
+
+### Rule 7: File responsibilities — no mixing
+
+| File | Responsibility | NEVER does |
+|------|---------------|------------|
+| `aiPedagogyClient.ts` | Calls Groq, returns chunk content | Builds ActivityConfig |
+| `lessonAssembler.ts` | Builds LessonPlan from chunks | Calls AI, makes network requests |
+| `lessonValidator.ts` | Validates LessonPlan fields | Calls AI, modifies the plan |
+| `lessonGeneratorV2.ts` | Orchestrates: AI → Assembler → Validator | Builds activities directly |
+| `lessonPlanService.ts` | Entry point, gets profile, calls generator | Builds activities directly |
