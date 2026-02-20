@@ -95,9 +95,25 @@ export const MatchingPairs: React.FC<MatchingPairsProps> = ({
   onComplete,
   onWrong,
 }) => {
+  // Handle missing pairs gracefully - allow skip
   if (!data.pairs || data.pairs.length === 0) {
     console.error('MatchingPairs: Missing pairs data', data);
-    return <div className="p-4 text-red-500">Error: Missing activity data</div>;
+    return (
+      <div className="bg-[#FCFFFE] rounded-2xl p-4 border-2 border-red-200 shadow-sm">
+        <div className="text-center">
+          <span className="text-4xl">😅</span>
+          <p className="text-red-600 font-medium mt-2">Oops! This question seems broken.</p>
+          <p className="text-slate-500 text-sm mt-1">Let's skip to the next one.</p>
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={() => onComplete(true, 0)}
+            className="mt-4 px-6 py-2 bg-green-500 text-white rounded-full font-bold text-sm hover:bg-green-600 transition"
+          >
+            Skip →
+          </motion.button>
+        </div>
+      </div>
+    );
   }
 
   // Shuffle left and right columns independently

@@ -367,6 +367,53 @@ if (eyePart) eyePart.scale.y = 0.1; // blink!
 
 ---
 
+## 2026-02-20: Hosted PocketBase Schema Constraints
+
+**Problem:** When working with a hosted PocketBase instance, the admin API might not persist schema changes. The API returns 200 OK but the schema doesn't update. Additionally, some hosted instances have constraints like max text length that weren't visible in the schema API response.
+
+**Solution:**
+1. **Language codes instead of names** — Convert language names to ISO 639-1 codes (2 letters) to fit within max-length constraints:
+```typescript
+function toLanguageCode(language: string): string {
+  const codes: Record<string, string> = {
+    'english': 'en', 'spanish': 'es', 'french': 'fr', 'german': 'de',
+    'italian': 'it', 'portuguese': 'pt', 'japanese': 'ja', 'chinese': 'zh',
+  };
+  const normalized = language.toLowerCase().trim();
+  return normalized.length === 2 ? normalized : codes[normalized] || normalized.substring(0, 2);
+}
+```
+
+2. **Fallback profiles** — Service gracefully falls back to in-memory profiles when PocketBase fails:
+```typescript
+async getOrCreateProfile(userId: string, defaults?: Partial<LearnerProfile>): Promise<LearnerProfile> {
+  try {
+    return await this.initializeProfile(userId, { ... });
+  } catch (error) {
+    // PocketBase failed - return in-memory profile so V2 pipeline can continue
+    console.warn('[LearnerProfileService] PB failed, using in-memory fallback');
+    return createDefaultProfile(userId, ...);
+  }
+}
+```
+
+3. **Virtual column sorts** — PocketBase returns 400 when sorting by virtual columns (`created`, `updated`) without explicit indexes. Remove the sort or ensure index exists:
+```typescript
+// BAD: Sort on virtual column without index
+filter: `user = "${userId}"`,
+sort: '-updated',  // 400 error!
+
+// GOOD: No sort on virtual column
+filter: `user = "${userId}"`,
+// Natural order is acceptable for many use cases
+```
+
+**Gotcha:** The PocketBase SDK `collections.update()` returns success even when schema doesn't persist on hosted instances. Always verify with a test record creation after schema changes.
+
+**Apply to:** Hosted PocketBase instances, learner profile service, chunk manager
+
+---
+
 ## Quick Reference
 
 | Issue | Solution | Entry Date |
@@ -382,3 +429,5 @@ if (eyePart) eyePart.scale.y = 0.1; // blink!
 | 3D avatar looks flat | MeshToonMaterial + emissive | 2026-02-17 |
 | Avatar proportions for kids | Chibi: head +20%, body -15% | 2026-02-17 |
 | Animate named mesh parts | getObjectByName() in tick loop | 2026-02-17 |
+| Hosted PocketBase schema constraints | Language codes, fallback profiles | 2026-02-20 |
+| PocketBase virtual column sort | Remove sort or add explicit index | 2026-02-20 |

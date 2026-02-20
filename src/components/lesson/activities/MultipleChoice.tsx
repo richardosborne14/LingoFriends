@@ -202,6 +202,13 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({
   }, []);
 
   /**
+   * Skip this question entirely.
+   */
+  const handleSkip = useCallback(() => {
+    onComplete(false, 0);
+  }, [onComplete]);
+
+  /**
    * Determine option styling based on state.
    */
   const getOptionStyle = (index: number): string => {
@@ -319,6 +326,19 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({
           );
         })}
       </div>
+
+      {/* Skip button */}
+      {!state.isComplete && (
+        <div className="flex justify-end mt-3">
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={handleSkip}
+            className="bg-slate-100 text-slate-500 px-4 py-2 rounded-full font-bold text-sm hover:bg-slate-200 transition"
+          >
+            Skip
+          </motion.button>
+        </div>
+      )}
     </div>
   );
 };

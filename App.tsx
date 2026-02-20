@@ -34,7 +34,9 @@ import {
   postLessonSRSUpdate,
   applyTreeCare as applyTreeCareService,
   savePlacedObject,
+  createInitialTree,
 } from './src/services/gameProgressService';
+import { GardenReveal } from './src/components/garden/GardenReveal';
 import { learnerProfileService } from './src/services/learnerProfileService';
 import { pedagogyEngine } from './src/services/pedagogyEngine';
 import { lessonGeneratorV2 } from './src/services/lessonGeneratorV2';
@@ -42,7 +44,7 @@ import * as srsService from './src/services/srsService';
 import { getCurrentUserId } from './services/pocketbaseService';
 import type { SessionPlan } from './src/types/pedagogy';
 import { DevTestHarness, FlowTestHarness, TreeRendererTestHarness } from './src/components/dev';
-import { TutorialProvider, TutorialStep } from './src/components/tutorial';
+import { TutorialProvider, TutorialStep, useTutorial } from './src/components/tutorial';
 import { MOCK_AVATAR } from './src/data/mockGameData';
 import { useGarden } from './src/hooks/useGarden';
 import type { OnboardingData } from './components/onboarding';
@@ -82,13 +84,31 @@ const LoadingScreen: React.FC = () => (
 interface OnboardingFlowProps {
   profile: ReturnType<typeof useAuth>['profile'];
   updateProfile: ReturnType<typeof useAuth>['updateProfile'];
+  /** Called once both updateProfile AND createInitialTree have succeeded */
+  onFirstRunReady?: () => void;
 }
 
-const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ profile, updateProfile }) => {
+const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ profile, updateProfile, onFirstRunReady }) => {
   const handleOnboardingComplete = useCallback(async (data: OnboardingData) => {
     console.log('[App] Onboarding complete:', data);
     
     try {
+      // Capture userId NOW — before any async calls that might transiently clear
+      // the auth store. getCurrentUserId() can return null mid-flight if PocketBase
+      // refreshes the token between calls (authStore blips to null briefly).
+      const userId = getCurrentUserId();
+
+      // Belt-and-suspenders: persist the onboarding flag BEFORE calling updateProfile.
+      // Setting it first means any re-render triggered by updateProfile's state change
+      // will see localOnboardingDone = true and skip the onboarding gate.
+      // Keyed by auth user ID so different accounts on the same device don't bleed.
+      // Cleared on logout via handleLogout.
+      if (userId) {
+        try { localStorage.setItem(`lf_onboarding_${userId}`, 'true'); } catch { /* private mode */ }
+      }
+
+      // 1. Persist profile — this flips onboardingComplete: true so the App
+      //    re-renders into GameApp after the await resolves.
       await updateProfile({
         name: data.displayName,
         nativeLanguage: data.nativeLanguage,
@@ -100,13 +120,28 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ profile, updateProfile 
           : 'English',
         onboardingComplete: true,
       });
-      
       console.log('[App] Profile updated successfully');
+
+      // 2. Plant the first tree in PocketBase so the garden isn't empty.
+      //    Non-fatal: createInitialTree logs but never throws; we still navigate.
+      if (userId) {
+        // Fire-and-forget — tree creation is quick but we don't wait on it
+        // because updateProfile already caused a re-render to GameApp.
+        // createInitialTree is idempotent so double-calls are safe.
+        createInitialTree(userId, data.targetSubject).catch(err => {
+          console.warn('[App] createInitialTree failed (non-fatal):', err);
+        });
+      }
+
+      // 3. Signal to App that this is a first-run session so GameApp can
+      //    auto-start the first lesson once the tree data loads.
+      onFirstRunReady?.();
+
     } catch (error) {
       console.error('[App] Failed to save onboarding data:', error);
       throw error;
     }
-  }, [updateProfile]);
+  }, [updateProfile, onFirstRunReady]);
 
   return (
     <OnboardingContainer
@@ -131,9 +166,19 @@ interface GameAppProps {
   profile: NonNullable<ReturnType<typeof useAuth>['profile']>;
   onLogout: () => void;
   onUpdateProfile: ReturnType<typeof useAuth>['updateProfile'];
+  /**
+   * True when the user just finished onboarding in this session.
+   * Triggers auto-start of the first lesson and shows GardenReveal
+   * (instead of the normal lesson-end screen) after completion.
+   */
+  isFirstRun?: boolean;
 }
 
-const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile }) => {
+const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile, isFirstRun }) => {
+  // Tutorial context — used to trigger the garden tour after first lesson.
+  // GameApp renders inside <TutorialProvider>, so this is always valid.
+  const tutorial = useTutorial();
+
   // Navigation state
   const { state, actions } = useNavigation();
   
@@ -150,6 +195,19 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
   
   // Lesson state (for generating lesson plan when starting)
   const [lessonLoading, setLessonLoading] = useState(false);
+
+  // ── First-run state ────────────────────────────────────────────────────────
+  // GardenReveal data — set when the first lesson completes on a first-run session.
+  // null = not showing; non-null = show the GardenReveal overlay with these props.
+  const [gardenRevealData, setGardenRevealData] = useState<{
+    stars: number;
+    sunDropsEarned: number;
+    gemsEarned: number;
+  } | null>(null);
+
+  // Tracks whether we've already auto-started the first lesson.
+  // useRef so toggling it doesn't re-render; this is purely internal state.
+  const hasAutoStartedRef = useRef(false);
 
   // Task G: pathRefreshKey — increment after lesson complete so PathView's
   // useSkillPath hook re-fetches live lessonsCompleted from PB, unlocking
@@ -281,6 +339,13 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
 
     // Task F: SRS write-back — update learner model confidence + chunk stats.
     // Coarse signal: star rating → correct/incorrect, triggers i+1 recalibration.
+    // Tutorial gate: if this is the user's first lesson ever, trigger the
+    // post-lesson garden tour. onFirstLessonComplete is idempotent — safe to
+    // call every time since it checks localStorage internally.
+    if (localStorage.getItem('lf_first_lesson_done') !== 'true') {
+      try { tutorial.onFirstLessonComplete(); } catch { /* not in TutorialProvider — ignore */ }
+    }
+
     postLessonSRSUpdate(result.stars ?? 1).catch(err => {
       // Non-fatal: pedagogy engine degrades gracefully without this update
       console.warn('[GameApp] SRS update failed (non-fatal):', err);
@@ -342,9 +407,25 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
     // without a full page remount. Uses functional update to avoid stale closure.
     setPathRefreshKey((k) => k + 1);
 
-    // Navigate back immediately (don't wait for PB)
-    actions.goBack();
-  }, [actions, state.selectedTree, refreshStats, setPathRefreshKey]);
+    // First-run: show GardenReveal overlay instead of returning directly to garden.
+    // gardenRevealData triggers the full-screen celebration with tree-grow animation.
+    // For first-run sessions, navigate directly to Garden (not goBack) so the
+    // tutorial modals appear over the garden, not the path view.
+    if (isFirstRun && !gardenRevealData) {
+      setGardenRevealData({
+        stars: result.stars ?? 1,
+        sunDropsEarned: result.sunDropsEarned ?? 0,
+        // Estimate gems using the same formula as saveLessonCompletion
+        gemsEarned: Math.max(1, Math.floor((result.sunDropsEarned ?? 0) / 10)) +
+          ((result.stars ?? 1) >= 3 ? 2 : (result.stars ?? 1) >= 2 ? 1 : 0),
+      });
+      // Navigate directly to garden for first-run so tutorial shows over garden
+      actions.goToGarden();
+    } else {
+      // Navigate back immediately (don't wait for PB)
+      actions.goBack();
+    }
+  }, [actions, state.selectedTree, refreshStats, setPathRefreshKey, isFirstRun, gardenRevealData]);
 
   /**
    * Handle lesson exit (user closed without completing)
@@ -437,6 +518,24 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run once on mount — userId is stable for the lifetime of this component
+
+  // ── First-run: auto-navigate to PathView when the initial tree loads ──────
+  // When the user comes straight from onboarding (isFirstRun=true), we skip
+  // the empty garden and jump them straight to the skill path so they can
+  // start their first lesson with one tap. hasAutoStartedRef prevents this
+  // from firing more than once (e.g. on the re-render after PB loads).
+  useEffect(() => {
+    if (!isFirstRun) return;
+    if (gardenLoading) return;
+    if (trees.length === 0) return;
+    if (hasAutoStartedRef.current) return;
+    if (state.currentView !== 'garden') return; // Already navigated somewhere
+
+    hasAutoStartedRef.current = true;
+    // Navigate straight to the first tree's skill path
+    actions.goToPath(trees[0]);
+    console.log('[GameApp] First-run: auto-navigated to path for tree:', trees[0].name);
+  }, [isFirstRun, gardenLoading, trees, state.currentView, actions]);
 
   // Inject shop panel styles
   useEffect(() => {
@@ -579,6 +678,7 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
               <GardenWorld3D
                 className="h-[calc(100vh-180px)]"
                 avatarOptions={DEFAULT_AVATAR}
+                seedUserId={getCurrentUserId() ?? undefined}
                 userTrees={trees.map((t) => ({
                   id: t.id,
                   gridX: t.gridPosition.gx,
@@ -792,6 +892,25 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
         hideSkip={true}
       />
 
+      {/* ── GardenReveal overlay — first-run only ────────────────────────────
+          Shown after the user completes their very first lesson.
+          Fixed z-[500] so it renders above everything (header, tabs, modals).
+          User taps "Enter your garden!" → clears gardenRevealData → shows garden.
+          After dismissal, start the tutorial if pending (first lesson done, not yet seen). */}
+      {gardenRevealData && (
+        <GardenReveal
+          stars={gardenRevealData.stars}
+          sunDropsEarned={gardenRevealData.sunDropsEarned}
+          gemsEarned={gardenRevealData.gemsEarned}
+          targetSubject={profile.targetSubject ?? profile.targetLanguage ?? 'your subject'}
+          onEnterGarden={() => {
+            setGardenRevealData(null);
+            // Start tutorial AFTER GardenReveal dismisses, not during
+            tutorial.startTutorialIfPending();
+          }}
+        />
+      )}
+
       {/* Shop Panel - Only show in garden view */}
       {state.currentView === 'garden' && (
         <ShopPanel
@@ -828,6 +947,12 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile })
  */
 function App() {
   const { isAuthenticated, isLoading: authLoading, profile, logout, updateProfile } = useAuth();
+
+  // isFirstRun: true when the user just completed onboarding in this browser session.
+  // Persists across the onboarding → GameApp re-render because it lives in App.
+  // GameApp uses it to auto-navigate to PathView + show GardenReveal after lesson 1.
+  const [isFirstRun, setIsFirstRun] = useState(false);
+  const handleFirstRunReady = useCallback(() => setIsFirstRun(true), []);
   
   // Dev mode for testing components directly
   const [showDevHarness, setShowDevHarness] = useState(false);
@@ -905,15 +1030,37 @@ function App() {
     return <AuthScreen />;
   }
 
-  // Show onboarding if not completed
-  if (!profile?.onboardingComplete) {
+  // Belt-and-suspenders onboarding gate: also check localStorage in case the
+  // PocketBase onboarding_complete field has a race condition (authStore.onChange
+  // re-fetch returning stale data before the write fully commits).
+  // Keyed by user ID → multi-account safe. Set in OnboardingFlow, cleared on logout.
+  const currentUserId = getCurrentUserId() ?? null;
+  const localOnboardingDone = (() => {
+    if (!currentUserId) return false;
+    try { return localStorage.getItem(`lf_onboarding_${currentUserId}`) === 'true'; } catch { return false; }
+  })();
+
+  // Show onboarding if not completed (both PB field AND localStorage say false)
+  if (!profile?.onboardingComplete && !localOnboardingDone) {
     return (
       <OnboardingFlow
         profile={profile}
         updateProfile={updateProfile}
+        onFirstRunReady={handleFirstRunReady}
       />
     );
   }
+
+  /**
+   * Logout wrapper — clears the local onboarding flag so the next user
+   * on this device doesn't inherit a stale "onboarding complete" marker.
+   */
+  const handleLogout = () => {
+    if (currentUserId) {
+      try { localStorage.removeItem(`lf_onboarding_${currentUserId}`); } catch { /* noop */ }
+    }
+    logout();
+  };
 
   // Show main game app — wrap with TutorialProvider so tutorial steps
   // have access to context; wrapping here (not inside GameApp) keeps the
@@ -922,8 +1069,9 @@ function App() {
     <TutorialProvider>
       <GameApp
         profile={profile}
-        onLogout={logout}
+        onLogout={handleLogout}
         onUpdateProfile={updateProfile}
+        isFirstRun={isFirstRun}
       />
       {/* Dev mode indicator (only in development) */}
       {import.meta.env.DEV && (

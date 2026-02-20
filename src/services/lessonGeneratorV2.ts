@@ -9,12 +9,16 @@
  * - Affective Filter: Detect struggle and adapt
  * - Language Coaching: Build learner autonomy
  * 
- * This service replaces the Phase 1.1 vocabulary-based generator with
- * a chunk-based approach that integrates with the Pedagogy Engine.
+ * TEACH-FIRST PEDAGOGY:
+ * All lessons follow a 5-step progression for each phrase:
+ * 1. INTRODUCE - Show word/phrase with translation (no quiz)
+ * 2. RECOGNIZE - Guided multiple choice (answer visible)
+ * 3. PRACTICE - Fill blank with hints
+ * 4. RECALL - Translate without hints
+ * 5. APPLY - Use in context
  * 
  * @module lessonGeneratorV2
  * @see docs/phase-1.2/task-1.2-8-lesson-generator-v2.md
- * @see PEDAGOGY.md for pedagogical foundation
  */
 
 import type {
@@ -35,31 +39,20 @@ import {
 import type { LessonPlan, LessonStep, ActivityConfig } from '../types/game';
 import { GameActivityType as LegacyActivityType } from '../types/game';
 
-// ============================================================================
+// ============================================
 // TYPES
-// ============================================================================
+// ============================================
 
 /**
  * Request to generate a lesson.
- * This is the main input for the lesson generator.
  */
 export interface LessonRequest {
-  /** User ID */
   userId: string;
-  
-  /** Session plan from Pedagogy Engine */
   sessionPlan: SessionPlan;
-  
-  /** Learner's profile for personalization */
   profile: LearnerProfile;
-  
-  /** Additional context for generation */
   additionalContext?: {
-    /** Specific focus area */
     focusArea?: string;
-    /** Previous lesson topics to avoid repetition */
     previousTopics?: string[];
-    /** User's current mood or preference */
     mood?: 'focused' | 'casual' | 'tired';
   };
 }
@@ -68,20 +61,12 @@ export interface LessonRequest {
  * Result of lesson generation.
  */
 export interface LessonGenerationResult {
-  /** The generated lesson */
   lesson: LessonPlan;
-  
-  /** Metadata about generation */
   meta: {
-    /** Time taken to generate (ms) */
     generationTimeMs: number;
-    /** Number of new chunks introduced */
     newChunksCount: number;
-    /** Number of review chunks included */
     reviewChunksCount: number;
-    /** Whether fallback was used */
     usedFallback: boolean;
-    /** Activity types included */
     activityTypes: GameActivityType[];
   };
 }
@@ -90,49 +75,38 @@ export interface LessonGenerationResult {
  * Options for lesson generation.
  */
 export interface LessonGeneratorOptions {
-  /** Minimum activities per lesson */
   minActivities?: number;
-  
-  /** Maximum activities per lesson */
   maxActivities?: number;
-  
-  /** Minimum Sun Drops per activity */
   minSunDrops?: number;
-  
-  /** Maximum Sun Drops per activity */
   maxSunDrops?: number;
-  
-  /** Enable caching of generated lessons */
   enableCache?: boolean;
-  
-  /** Cache TTL in milliseconds */
   cacheTtl?: number;
 }
 
-// ============================================================================
-// CONSTANTS
-// ============================================================================
+/**
+ * Starter phrase for fallback lessons.
+ */
+interface StarterPhrase {
+  target: string;
+  native: string;
+  context?: string;
+  explanation?: string;
+  usage?: string; // How it's used
+}
 
-/** Default options for lesson generation */
+// ============================================
+// CONSTANTS
+// ============================================
+
 const DEFAULT_OPTIONS: Required<LessonGeneratorOptions> = {
   minActivities: 5,
-  maxActivities: 8,
+  maxActivities: 15,
   minSunDrops: 15,
   maxSunDrops: 30,
   enableCache: true,
-  cacheTtl: 30 * 60 * 1000, // 30 minutes
+  cacheTtl: 30 * 60 * 1000,
 };
 
-/** Activity type distribution for balanced lessons */
-const DEFAULT_ACTIVITY_DISTRIBUTION: GameActivityType[] = [
-  'multiple_choice',
-  'true_false',
-  'fill_blank',
-  'matching',
-  'translate',
-];
-
-/** Age group mapping for prompts */
 function getAgeGroup(ageGroup: string | undefined): '7-10' | '11-14' | '15-18' {
   if (!ageGroup) return '11-14';
   if (ageGroup === '7-10' || ageGroup === '11-14' || ageGroup === '15-18') {
@@ -141,61 +115,33 @@ function getAgeGroup(ageGroup: string | undefined): '7-10' | '11-14' | '15-18' {
   return '11-14';
 }
 
-// ============================================================================
+// ============================================
 // LESSON GENERATOR SERVICE
-// ============================================================================
+// ============================================
 
-/**
- * Lesson Generator V2 Service
- * 
- * Generates structured lessons with chunk-based content that follows
- * the Lexical Approach and adapts to learner needs.
- */
 export class LessonGeneratorV2 {
   
   private options: Required<LessonGeneratorOptions>;
-  
-  /** Cache of generated lessons */
   private lessonCache = new Map<string, { lesson: LessonPlan; timestamp: number }>();
   
   constructor(options?: LessonGeneratorOptions) {
     this.options = { ...DEFAULT_OPTIONS, ...options };
   }
   
-  /**
-   * Generate a lesson from a session plan.
-   * 
-   * This is the main entry point. It:
-   * 1. Converts session plan to pedagogy context
-   * 2. Calls AI to generate activities
-   * 3. Converts to LessonPlan format for UI
-   * 
-   * @param request - Lesson generation request
-   * @returns Generated lesson with metadata
-   */
   async generateLesson(request: LessonRequest): Promise<LessonGenerationResult> {
     const startTime = Date.now();
     
-    // Check cache first
+    // Check cache
     if (this.options.enableCache) {
       const cacheKey = this.getCacheKey(request);
       const cached = this.lessonCache.get(cacheKey);
       if (cached && Date.now() - cached.timestamp < this.options.cacheTtl) {
-        console.log('[LessonGenerator] Using cached lesson');
         return {
           lesson: cached.lesson,
           meta: {
             generationTimeMs: 0,
-            newChunksCount: cached.lesson.steps.filter(s => 
-              request.sessionPlan.targetChunks.some(c => 
-                s.activity.correctAnswer?.includes(c.text)
-              )
-            ).length,
-            reviewChunksCount: cached.lesson.steps.filter(s => 
-              request.sessionPlan.reviewChunks.some(c => 
-                s.activity.correctAnswer?.includes(c.text)
-              )
-            ).length,
+            newChunksCount: 0,
+            reviewChunksCount: 0,
             usedFallback: false,
             activityTypes: this.extractActivityTypes(cached.lesson),
           },
@@ -204,17 +150,10 @@ export class LessonGeneratorV2 {
     }
     
     try {
-      // Build pedagogy context
       const context = this.buildPedagogyContext(request);
-      
-      // Determine activity count and types
       const activityCount = this.calculateActivityCount(request.sessionPlan);
-      const activityTypes = this.selectActivityTypes(
-        activityCount,
-        request.sessionPlan.recommendedActivities
-      );
+      const activityTypes = this.selectActivityTypes(activityCount, request.sessionPlan.recommendedActivities);
       
-      // Build the generation request
       const generationRequest: LessonGenerationRequest = {
         context,
         activityTypes,
@@ -223,24 +162,18 @@ export class LessonGeneratorV2 {
         difficultyLevel: Math.round(request.sessionPlan.difficulty),
       };
       
-      // Call the AI client
       const generatedLesson = await aiPedagogyClient.generateLesson(generationRequest);
-      
-      // Convert to LessonPlan format for UI
       const lesson = this.convertToLessonPlan(generatedLesson, request);
       
-      // Cache the result
       if (this.options.enableCache) {
         const cacheKey = this.getCacheKey(request);
         this.lessonCache.set(cacheKey, { lesson, timestamp: Date.now() });
       }
       
-      const generationTimeMs = Date.now() - startTime;
-      
       return {
         lesson,
         meta: {
-          generationTimeMs,
+          generationTimeMs: Date.now() - startTime,
           newChunksCount: generatedLesson.newChunkIds.length,
           reviewChunksCount: generatedLesson.reviewChunkIds.length,
           usedFallback: false,
@@ -251,14 +184,12 @@ export class LessonGeneratorV2 {
     } catch (error) {
       console.error('[LessonGenerator] AI generation failed, using fallback:', error);
       
-      // Use fallback lesson
       const fallbackLesson = this.generateFallbackLesson(request);
-      const generationTimeMs = Date.now() - startTime;
       
       return {
         lesson: fallbackLesson,
         meta: {
-          generationTimeMs,
+          generationTimeMs: Date.now() - startTime,
           newChunksCount: request.sessionPlan.targetChunks.length,
           reviewChunksCount: request.sessionPlan.reviewChunks.length,
           usedFallback: true,
@@ -268,15 +199,6 @@ export class LessonGeneratorV2 {
     }
   }
   
-  /**
-   * Generate a single activity for a chunk.
-   * Useful for dynamic generation during a session.
-   * 
-   * @param chunk - Chunk to create activity for
-   * @param type - Activity type to generate
-   * @param profile - Learner profile
-   * @returns Generated activity converted to ActivityConfig
-   */
   async generateSingleActivity(
     chunk: LexicalChunk,
     type: GameActivityType,
@@ -291,7 +213,6 @@ export class LessonGeneratorV2 {
       targetChunks: [chunk],
       reviewChunks: [],
       interests: profile.explicitInterests,
-      // Read ageGroup from learner profile; falls back to '11-14' if not yet collected.
       ageGroup: getAgeGroup(profile.ageGroup),
       filterRiskScore: profile.filterRiskScore,
     };
@@ -300,20 +221,14 @@ export class LessonGeneratorV2 {
     return this.convertToActivityConfig(generated);
   }
   
-  /**
-   * Clear the lesson cache.
-   */
   clearCache(): void {
     this.lessonCache.clear();
   }
   
-  // ==========================================================================
+  // ===========================================
   // PRIVATE METHODS
-  // ==========================================================================
+  // ===========================================
   
-  /**
-   * Build pedagogy context from lesson request.
-   */
   private buildPedagogyContext(request: LessonRequest): PedagogyContext {
     const { sessionPlan, profile, additionalContext } = request;
     
@@ -326,41 +241,20 @@ export class LessonGeneratorV2 {
       targetChunks: sessionPlan.targetChunks,
       reviewChunks: sessionPlan.reviewChunks,
       interests: profile.explicitInterests,
-      // Use ageGroup from profile if set (requires onboarding to collect it).
-      // Defaults to '11-14' — the middle range is the safest content calibration
-      // until we add age selection to onboarding.
       ageGroup: getAgeGroup(profile.ageGroup),
       filterRiskScore: profile.filterRiskScore,
       focusAreas: additionalContext?.focusArea ? [additionalContext.focusArea] : undefined,
     };
   }
   
-  /**
-   * Calculate the number of activities based on session plan.
-   */
   private calculateActivityCount(plan: SessionPlan): number {
-    // Base count on chunks
     const chunkCount = plan.targetChunks.length + plan.reviewChunks.length;
-    
-    // Aim for 1.5 activities per chunk
     const baseCount = Math.round(chunkCount * 1.5);
-    
-    // Clamp to min/max
-    return Math.max(
-      this.options.minActivities,
-      Math.min(this.options.maxActivities, baseCount)
-    );
+    return Math.max(this.options.minActivities, Math.min(this.options.maxActivities, baseCount));
   }
   
-  /**
-   * Select activity types for the lesson.
-   */
-  private selectActivityTypes(
-    count: number,
-    recommended?: GameActivityType[]
-  ): GameActivityType[] {
+  private selectActivityTypes(count: number, recommended?: GameActivityType[]): GameActivityType[] {
     if (recommended && recommended.length > 0) {
-      // Use recommended types, cycling if needed
       const types: GameActivityType[] = [];
       for (let i = 0; i < count; i++) {
         types.push(recommended[i % recommended.length]);
@@ -368,44 +262,30 @@ export class LessonGeneratorV2 {
       return types;
     }
     
-    // Use default distribution
-    const types: GameActivityType[] = [];
-    for (let i = 0; i < count; i++) {
-      types.push(DEFAULT_ACTIVITY_DISTRIBUTION[i % DEFAULT_ACTIVITY_DISTRIBUTION.length]);
-    }
-    return types;
+    // Default: teach-first progression
+    return ['multiple_choice', 'multiple_choice', 'fill_blank', 'translate', 'multiple_choice'];
   }
   
-  /**
-   * Convert generated lesson to LessonPlan format for UI.
-   */
-  private convertToLessonPlan(
-    generated: GeneratedLesson,
-    request: LessonRequest
-  ): LessonPlan {
-    const steps: LessonStep[] = generated.activities.map((activity, index) => ({
+  private convertToLessonPlan(generated: GeneratedLesson, request: LessonRequest): LessonPlan {
+    const steps: LessonStep[] = generated.activities.map((activity) => ({
       tutorText: activity.tutorText,
       helpText: activity.helpText,
       activity: this.convertToActivityConfig(activity),
     }));
     
-    // Calculate total Sun Drops
     const totalSunDrops = steps.reduce((sum, step) => sum + step.activity.sunDrops, 0);
     
     return {
       id: generated.id,
       title: generated.title,
-      icon: '📚', // TODO: Get from topic or generate
+      icon: '📚',
       skillPathId: request.sessionPlan.topic,
-      lessonIndex: 0, // Set by caller
+      lessonIndex: 0,
       steps,
       totalSunDrops,
     };
   }
   
-  /**
-   * Convert generated activity to ActivityConfig format.
-   */
   private convertToActivityConfig(generated: GeneratedActivity): ActivityConfig {
     const config: ActivityConfig = {
       type: this.convertActivityType(generated.type),
@@ -413,33 +293,27 @@ export class LessonGeneratorV2 {
       hint: generated.helpText,
     };
     
-    // Add type-specific fields
     switch (generated.type) {
       case 'multiple_choice':
         config.question = generated.data.question;
         config.options = generated.data.options;
         config.correctIndex = generated.data.correctIndex;
         break;
-        
       case 'fill_blank':
         config.sentence = generated.data.sentence;
         config.correctAnswer = generated.data.correctAnswer;
         break;
-        
       case 'matching':
         config.pairs = generated.data.pairs;
         break;
-        
       case 'translate':
         config.sourcePhrase = generated.data.sourceText;
         config.acceptedAnswers = generated.data.acceptedAnswers;
         break;
-        
       case 'true_false':
         config.statement = generated.data.statement;
         config.isTrue = generated.data.isTrue;
         break;
-        
       case 'word_arrange':
         config.targetSentence = generated.data.correctOrder;
         config.scrambledWords = generated.data.words;
@@ -449,9 +323,6 @@ export class LessonGeneratorV2 {
     return config;
   }
   
-  /**
-   * Convert GameActivityType to legacy ActivityType.
-   */
   private convertActivityType(type: GameActivityType): LegacyActivityType {
     const mapping: Record<GameActivityType, LegacyActivityType> = {
       multiple_choice: LegacyActivityType.MULTIPLE_CHOICE,
@@ -460,19 +331,15 @@ export class LessonGeneratorV2 {
       translate: LegacyActivityType.TRANSLATE,
       true_false: LegacyActivityType.TRUE_FALSE,
       word_arrange: LegacyActivityType.WORD_ARRANGE,
-      listening: LegacyActivityType.MULTIPLE_CHOICE, // Fallback
-      speaking: LegacyActivityType.FILL_BLANK, // Fallback
+      listening: LegacyActivityType.MULTIPLE_CHOICE,
+      speaking: LegacyActivityType.FILL_BLANK,
     };
     return mapping[type] || LegacyActivityType.MULTIPLE_CHOICE;
   }
   
-  /**
-   * Extract activity types from a lesson plan.
-   */
   private extractActivityTypes(lesson: LessonPlan): GameActivityType[] {
     return lesson.steps.map(step => {
       const legacyType = step.activity.type;
-      // Map back to GameActivityType
       const mapping: Record<string, GameActivityType> = {
         [LegacyActivityType.MULTIPLE_CHOICE]: 'multiple_choice',
         [LegacyActivityType.FILL_BLANK]: 'fill_blank',
@@ -485,31 +352,41 @@ export class LessonGeneratorV2 {
     });
   }
   
-  /**
-   * Generate a cache key for the lesson.
-   */
   private getCacheKey(request: LessonRequest): string {
     const targetIds = request.sessionPlan.targetChunks.map(c => c.id).sort().join(',');
     const reviewIds = request.sessionPlan.reviewChunks.map(c => c.id).sort().join(',');
     return `${request.userId}:${request.sessionPlan.topic}:${targetIds}:${reviewIds}`;
   }
   
+  // ===========================================
+  // FALLBACK LESSON GENERATION
+  // ===========================================
+  
   /**
-   * Generate a fallback lesson when AI fails.
+   * Generate a fallback lesson with TEACH-FIRST pedagogy.
+   * 
+   * Each phrase follows:
+   * 1. INTRODUCE - Show phrase + translation (information step)
+   * 2. RECOGNIZE - Multiple choice with answer visible
+   * 3. PRACTICE - Fill blank with hint
+   * 4. RECALL - Translate without hint
+   * 5. APPLY - Use in context
    */
   private generateFallbackLesson(request: LessonRequest): LessonPlan {
     const { sessionPlan, profile } = request;
     
-    // Combine new and review chunks
     const allChunks = [...sessionPlan.targetChunks, ...sessionPlan.reviewChunks];
     
-    // Generate simple activities for each chunk
-    const steps: LessonStep[] = allChunks.slice(0, this.options.maxActivities).map((chunk, index) => {
-      // Cycle through activity types
-      const activityType = DEFAULT_ACTIVITY_DISTRIBUTION[index % DEFAULT_ACTIVITY_DISTRIBUTION.length];
-      
-      return this.createFallbackStep(chunk, activityType, index);
-    });
+    let steps: LessonStep[];
+    
+    if (allChunks.length === 0) {
+      // No chunks - use teach-first starter activities
+      const phrases = this.getTopicStarters(sessionPlan.topic, profile.targetLanguage, profile.nativeLanguage);
+      steps = this.createTeachFirstSteps(phrases.slice(0, 3), profile); // Max 3 phrases
+    } else {
+      // Use existing chunks with teach-first structure
+      steps = this.createTeachFirstStepsFromChunks(allChunks.slice(0, 3), profile);
+    }
     
     const totalSunDrops = steps.reduce((sum, step) => sum + step.activity.sunDrops, 0);
     
@@ -525,177 +402,301 @@ export class LessonGeneratorV2 {
   }
   
   /**
-   * Create a fallback step for a chunk.
+   * Create teach-first steps for starter phrases.
    */
-  private createFallbackStep(
-    chunk: LexicalChunk,
-    activityType: GameActivityType,
-    index: number
-  ): LessonStep {
-    // Create different activity types based on the type
-    let activity: ActivityConfig;
+  private createTeachFirstSteps(phrases: StarterPhrase[], profile: LearnerProfile): LessonStep[] {
+    const steps: LessonStep[] = [];
+    const targetLang = profile.targetLanguage || 'German';
+    const nativeLang = profile.nativeLanguage || 'English';
     
-    switch (activityType) {
-      case 'multiple_choice':
-        activity = this.createMultipleChoiceActivity(chunk, index);
-        break;
-      case 'true_false':
-        activity = this.createTrueFalseActivity(chunk);
-        break;
-      case 'fill_blank':
-        activity = this.createFillBlankActivity(chunk);
-        break;
-      case 'matching':
-        activity = this.createMatchingActivity(chunk);
-        break;
-      case 'translate':
-        activity = this.createTranslateActivity(chunk);
-        break;
-      default:
-        activity = this.createMultipleChoiceActivity(chunk, index);
+    for (const phrase of phrases) {
+      // STEP 1: INTRODUCE (Information - no quiz)
+      steps.push({
+        tutorText: `📚 New Word: "${phrase.target}"`,
+        helpText: `${phrase.explanation || ''} ${phrase.usage || ''}`,
+        activity: {
+          type: LegacyActivityType.INFO,
+          title: phrase.target,
+          content: `${phrase.target} = "${phrase.native}"`,
+          explanation: phrase.explanation,
+          example: phrase.context,
+          sunDrops: 0,
+        },
+      });
+      
+      // STEP 2: RECOGNIZE (Guided multiple choice)
+      steps.push({
+        tutorText: `Let's check: What does "${phrase.target}" mean?`,
+        helpText: `Remember: "${phrase.target}" means "${phrase.native}"`,
+        activity: {
+          type: LegacyActivityType.MULTIPLE_CHOICE,
+          question: `What does "${phrase.target}" mean?`,
+          options: [
+            phrase.native,
+            this.getDistractor(phrase.native, 0),
+            this.getDistractor(phrase.native, 1),
+            this.getDistractor(phrase.native, 2),
+          ],
+          correctIndex: 0,
+          sunDrops: 1,
+          hint: `"${phrase.target}" = "${phrase.native}"`,
+        },
+      });
+      
+      // STEP 3: PRACTICE (Fill blank with hint)
+      const words = phrase.target.split(' ');
+      const blankWord = words.length > 1 ? words[0] : phrase.target;
+      steps.push({
+        tutorText: `Practice: Complete the word!`,
+        helpText: `The answer starts with "${blankWord[0]}"`,
+        activity: {
+          type: LegacyActivityType.FILL_BLANK,
+          sentence: phrase.context || `___ means "${phrase.native}"`,
+          correctAnswer: blankWord,
+          acceptedAnswers: [blankWord, phrase.target],
+          sunDrops: 2,
+          hint: `"${phrase.target}" = "${phrase.native}"`,
+        },
+      });
+      
+      // STEP 4: RECALL (Translate)
+      steps.push({
+        tutorText: `Your turn: Translate "${phrase.native}"`,
+        helpText: `Say it in ${targetLang}`,
+        activity: {
+          type: LegacyActivityType.TRANSLATE,
+          sourcePhrase: phrase.native,
+          acceptedAnswers: [phrase.target, phrase.target.toLowerCase()],
+          sunDrops: 3,
+          hint: phrase.explanation,
+        },
+      });
+      
+      // STEP 5: APPLY (Context question)
+      steps.push({
+        tutorText: `When would you use "${phrase.target}"?`,
+        helpText: phrase.usage || phrase.explanation,
+        activity: {
+          type: LegacyActivityType.MULTIPLE_CHOICE,
+          question: phrase.usage 
+            ? `When do you say "${phrase.target}"?`
+            : `Is "${phrase.target}" formal or casual?`,
+          options: this.getUsageOptions(phrase),
+          correctIndex: 0,
+          sunDrops: 2,
+          hint: phrase.explanation,
+        },
+      });
     }
     
-    return {
-      tutorText: `Let's practice "${chunk.text}"!`,
-      helpText: `This means "${chunk.translation}"`,
-      activity,
-    };
+    return steps;
   }
   
   /**
-   * Create a multiple choice activity.
+   * Create teach-first steps from existing chunks.
    */
-  private createMultipleChoiceActivity(chunk: LexicalChunk, index: number): ActivityConfig {
-    // Create simple distractors by modifying the translation
-    const correctAnswer = chunk.translation;
+  private createTeachFirstStepsFromChunks(chunks: LexicalChunk[], profile: LearnerProfile): LessonStep[] {
+    const steps: LessonStep[] = [];
+    
+    for (const chunk of chunks) {
+      // STEP 1: INTRODUCE
+      steps.push({
+        tutorText: `📚 Learn: "${chunk.text}"`,
+        helpText: chunk.notes || `This means "${chunk.translation}"`,
+        activity: {
+          type: LegacyActivityType.INFO,
+          title: chunk.text,
+          content: `${chunk.text} = "${chunk.translation}"`,
+          explanation: chunk.notes,
+          sunDrops: 0,
+        },
+      });
+      
+      // STEP 2: RECOGNIZE
+      steps.push({
+        tutorText: `Quick check: What does "${chunk.text}" mean?`,
+        helpText: `"${chunk.text}" = "${chunk.translation}"`,
+        activity: {
+          type: LegacyActivityType.MULTIPLE_CHOICE,
+          question: `What does "${chunk.text}" mean?`,
+          options: [
+            chunk.translation,
+            'Something else',
+            'I don\'t know',
+            'None of these',
+          ],
+          correctIndex: 0,
+          sunDrops: 1,
+          hint: `Remember: "${chunk.text}" = "${chunk.translation}"`,
+        },
+      });
+      
+      // STEP 3: PRACTICE
+      steps.push({
+        tutorText: `Practice using "${chunk.text}"`,
+        helpText: `Hint: "${chunk.translation}"`,
+        activity: {
+          type: LegacyActivityType.TRANSLATE,
+          sourcePhrase: chunk.translation,
+          acceptedAnswers: [chunk.text, chunk.text.toLowerCase()],
+          sunDrops: 2,
+          hint: chunk.notes,
+        },
+      });
+    }
+    
+    return steps;
+  }
+  
+  /**
+   * Get usage options for apply step.
+   */
+  private getUsageOptions(phrase: StarterPhrase): string[] {
+    // Default usage question options
+    if (phrase.usage?.toLowerCase().includes('casual') || phrase.usage?.toLowerCase().includes('friend')) {
+      return [
+        'With friends and people I know well',
+        'In formal situations',
+        'With strangers',
+        'In business meetings',
+      ];
+    }
+    if (phrase.usage?.toLowerCase().includes('formal') || phrase.usage?.toLowerCase().includes('polite')) {
+      return [
+        'In formal situations',
+        'With friends',
+        'With family',
+        'Casual settings',
+      ];
+    }
+    // Generic options
+    return [
+      phrase.usage || 'Everyday situations',
+      'Only in writing',
+      'Never',
+      'Only to older people',
+    ];
+  }
+  
+  /**
+   * Get distractor for multiple choice.
+   */
+  private getDistractor(correctAnswer: string, index: number): string {
     const distractors = [
-      `Option A (not ${correctAnswer})`,
-      `Option B (not ${correctAnswer})`,
-      `Option C (not ${correctAnswer})`,
+      'Good morning',
+      'Goodbye',
+      'Hello',
+      'Thank you',
+      'Please',
+      'Sorry',
+      'Yes',
+      'No',
     ];
-    
-    // Shuffle options
-    const options = [correctAnswer, ...distractors];
-    const correctIndex = Math.floor(Math.random() * 4);
-    const temp = options[0];
-    options[0] = options[correctIndex];
-    options[correctIndex] = temp;
-    
-    return {
-      type: LegacyActivityType.MULTIPLE_CHOICE,
-      question: `What does "${chunk.text}" mean?`,
-      options,
-      correctIndex,
-      sunDrops: 2,
-      hint: chunk.notes || `This is a ${chunk.chunkType} phrase.`,
-    };
+    // Filter out the correct answer
+    const filtered = distractors.filter(d => d.toLowerCase() !== correctAnswer.toLowerCase());
+    return filtered[index % filtered.length];
   }
   
   /**
-   * Create a true/false activity.
+   * Get topic-specific starter phrases.
    */
-  private createTrueFalseActivity(chunk: LexicalChunk): ActivityConfig {
-    const isTrue = Math.random() > 0.5;
-    const statement = isTrue
-      ? `"${chunk.text}" means "${chunk.translation}"`
-      : `"${chunk.text}" means "something else"`;
-    
-    return {
-      type: LegacyActivityType.TRUE_FALSE,
-      statement,
-      isTrue,
-      sunDrops: 1,
-      hint: `Think about what you've learned about this phrase.`,
+  private getTopicStarters(
+    topic: string,
+    targetLang: string,
+    nativeLang: string
+  ): StarterPhrase[] {
+    // German phrases
+    const germanPhrases: Record<string, StarterPhrase[]> = {
+      'Greetings & Basics': [
+        { 
+          target: 'Hallo', 
+          native: 'Hello', 
+          explanation: 'A casual, friendly greeting for any time of day',
+          usage: 'Use with friends, family, and people you know',
+          context: 'Hallo, wie geht\'s?' 
+        },
+        { 
+          target: 'Guten Morgen', 
+          native: 'Good morning', 
+          explanation: 'A polite morning greeting',
+          usage: 'Use until about noon, can be formal or casual',
+          context: 'Guten Morgen! Wie geht es dir?' 
+        },
+        { 
+          target: 'Tschüss', 
+          native: 'Bye', 
+          explanation: 'A casual way to say goodbye',
+          usage: 'Use with friends and people you know well - this is INFORMAL',
+          context: 'Tschüss! Bis morgen!' 
+        },
+        { 
+          target: 'Auf Wiedersehen', 
+          native: 'Goodbye (formal)', 
+          explanation: 'A formal way to say goodbye',
+          usage: 'Use with strangers, in business, or formal situations',
+          context: 'Auf Wiedersehen, Herr Schmidt.' 
+        },
+        { 
+          target: 'Danke', 
+          native: 'Thank you', 
+          explanation: 'Express gratitude',
+          usage: 'Use in any situation',
+          context: 'Danke schön!' 
+        },
+      ],
+      'default': [
+        { target: 'Hallo', native: 'Hello', explanation: 'A common greeting', usage: 'Casual, any time' },
+        { target: 'Danke', native: 'Thank you', explanation: 'Express gratitude', usage: 'Any situation' },
+        { target: 'Bitte', native: 'Please/You\'re welcome', explanation: 'Polite word', usage: 'Any situation' },
+        { target: 'Tschüss', native: 'Bye', explanation: 'Casual goodbye', usage: 'With friends' },
+        { target: 'Ja', native: 'Yes', explanation: 'Affirmative', usage: 'Any situation' },
+      ],
     };
-  }
-  
-  /**
-   * Create a fill in the blank activity.
-   */
-  private createFillBlankActivity(chunk: LexicalChunk): ActivityConfig {
-    // For chunks with slots, use those; otherwise create a simple blank
-    if (chunk.slots && chunk.slots.length > 0) {
-      const slot = chunk.slots[0];
-      const sentence = chunk.text.replace(slot.placeholder || '___', '___');
-      return {
-        type: LegacyActivityType.FILL_BLANK,
-        sentence,
-        correctAnswer: slot.examples[0] || '',
-        sunDrops: 2,
-        hint: `Think about what fits naturally here.`,
-      };
-    }
     
-    // Otherwise, use a portion of the chunk
-    const words = chunk.text.split(' ');
-    const blankIndex = Math.floor(words.length / 2);
-    const blankWord = words[blankIndex];
-    words[blankIndex] = '___';
-    
-    return {
-      type: LegacyActivityType.FILL_BLANK,
-      sentence: words.join(' '),
-      correctAnswer: blankWord,
-      sunDrops: 2,
-      hint: `The phrase means "${chunk.translation}"`,
+    // French phrases
+    const frenchPhrases: Record<string, StarterPhrase[]> = {
+      'Greetings & Basics': [
+        { target: 'Bonjour', native: 'Hello/Good day', explanation: 'The most common French greeting', usage: 'Any time of day, can be formal or casual' },
+        { target: 'Salut', native: 'Hi/Bye', explanation: 'Casual greeting or goodbye', usage: 'With friends only - this is INFORMAL' },
+        { target: 'Au revoir', native: 'Goodbye', explanation: 'Standard way to say goodbye', usage: 'Any situation' },
+        { target: 'Merci', native: 'Thank you', explanation: 'Express gratitude', usage: 'Any situation' },
+        { target: 'Bonsoir', native: 'Good evening', explanation: 'Evening greeting', usage: 'After about 6pm' },
+      ],
+      'default': [
+        { target: 'Bonjour', native: 'Hello', explanation: 'Common greeting' },
+        { target: 'Merci', native: 'Thank you', explanation: 'Express gratitude' },
+        { target: 'Au revoir', native: 'Goodbye', explanation: 'Standard goodbye' },
+        { target: 'Oui', native: 'Yes', explanation: 'Affirmative' },
+        { target: 'Non', native: 'No', explanation: 'Negative' },
+      ],
     };
-  }
-  
-  /**
-   * Create a matching activity.
-   * Note: This is simplified - real matching needs multiple pairs.
-   */
-  private createMatchingActivity(chunk: LexicalChunk): ActivityConfig {
-    // Create pseudo-pairs for the chunk
-    const pairs = [
-      { left: chunk.text, right: chunk.translation },
-    ];
     
-    // Add some placeholder pairs
-    pairs.push({ left: 'Example 1', right: 'Translation 1' });
-    pairs.push({ left: 'Example 2', right: 'Translation 2' });
-    pairs.push({ left: 'Example 3', right: 'Translation 3' });
+    // Select language
+    const normalizedLang = targetLang.toLowerCase();
+    let topicPhrases: Record<string, StarterPhrase[]>;
     
-    return {
-      type: LegacyActivityType.MATCHING,
-      pairs,
-      sunDrops: 3,
-      hint: 'Match each phrase with its translation.',
-    };
-  }
-  
-  /**
-   * Create a translation activity.
-   */
-  private createTranslateActivity(chunk: LexicalChunk): ActivityConfig {
-    // Randomly choose direction
-    const fromTarget = Math.random() > 0.5;
-    
-    if (fromTarget) {
-      return {
-        type: LegacyActivityType.TRANSLATE,
-        sourcePhrase: chunk.text,
-        acceptedAnswers: [chunk.translation],
-        sunDrops: 3,
-        hint: `Translate this ${chunk.targetLanguage} phrase to ${chunk.nativeLanguage}.`,
-      };
+    if (normalizedLang.includes('german') || normalizedLang === 'deutsch') {
+      topicPhrases = germanPhrases;
     } else {
-      return {
-        type: LegacyActivityType.TRANSLATE,
-        sourcePhrase: chunk.translation,
-        acceptedAnswers: [chunk.text],
-        sunDrops: 3,
-        hint: `Translate this to ${chunk.targetLanguage}.`,
-      };
+      topicPhrases = frenchPhrases;
     }
+    
+    // Find matching topic
+    const normalizedTopic = topic.toLowerCase();
+    for (const [key, phrases] of Object.entries(topicPhrases)) {
+      if (normalizedTopic.includes(key.toLowerCase()) || key.toLowerCase().includes(normalizedTopic)) {
+        return phrases;
+      }
+    }
+    
+    return topicPhrases['default'];
   }
 }
 
-// ============================================================================
+// ===========================================
 // SINGLETON EXPORT
-// ============================================================================
+// ===========================================
 
-/** Singleton instance of the Lesson Generator V2 */
 export const lessonGeneratorV2 = new LessonGeneratorV2();
 
 export default lessonGeneratorV2;

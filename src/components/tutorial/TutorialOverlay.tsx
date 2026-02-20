@@ -49,8 +49,18 @@ export interface TutorialOverlayProps {
 
 /** Padding around the spotlight rect (px) */
 const SPOTLIGHT_PADDING = 10;
-/** Minimum px gap between spotlight bottom and viewport bottom before flipping */
-const TOOLTIP_FLIP_THRESHOLD = 200;
+/** Minimum px gap between spotlight bottom and viewport bottom before flipping tooltip above.
+ *  Must be ≥ APPROX_CARD_HEIGHT to guarantee the below-tooltip actually fits. */
+const TOOLTIP_FLIP_THRESHOLD = 300;
+/** Minimum distance from any viewport edge to the tooltip card */
+const EDGE_PADDING = 16;
+/** Gap between the spotlight cutout and the tooltip card */
+const CARD_GAP = 12;
+/** Approximate card height — used to estimate "above" placement.
+ *  If actual height exceeds this, the card becomes scrollable rather than clipping. */
+const APPROX_CARD_HEIGHT = 280;
+/** Minimum space above spotlight required to place tooltip there — must fit the card */
+const MIN_SPACE_ABOVE = APPROX_CARD_HEIGHT + CARD_GAP + EDGE_PADDING;
 
 // ============================================
 // COMPONENT
@@ -98,34 +108,99 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({
     : null;
 
   // ── Tooltip placement ───────────────────────────────────
-  // Default: centred on screen (for steps with no spotlight)
+  // Default: centred on screen (for steps with no spotlight).
+  // maxHeight is always set so tall content never overflows the viewport.
   let tooltipStyle: React.CSSProperties = {
     position: 'fixed',
     left: '50%',
     top: '50%',
     transform: 'translate(-50%, -50%)',
     maxWidth: 'min(92vw, 360px)',
+    // Centred card must fit within the viewport — keeps kids from seeing a
+    // truncated card on short devices like iPhone SE or landscape phones.
+    maxHeight: `${vpHeight - 2 * EDGE_PADDING}px`,
+    overflowY: 'auto',
   };
 
   if (spotlight) {
-    const spaceBelow = vpHeight - (spotlight.top + spotlight.height);
+    const spotlightBottom = spotlight.top + spotlight.height;
+    const spaceBelow = vpHeight - spotlightBottom - EDGE_PADDING;
+    const spaceAbove = spotlight.top - EDGE_PADDING;
+
     if (spaceBelow >= TOOLTIP_FLIP_THRESHOLD) {
-      // Tooltip below spotlight
-      tooltipStyle = {
-        position: 'fixed',
-        left: '50%',
-        top:  spotlight.top + spotlight.height + 16,
-        transform: 'translateX(-50%)',
-        maxWidth: 'min(92vw, 360px)',
-      };
+      // ── Tooltip below spotlight ──────────────────────────
+      // Anchor to spotlight bottom + gap. Clamp so at least APPROX_CARD_HEIGHT
+      // is available; if there isn't, fall through to centre.
+      const rawTop = spotlightBottom + CARD_GAP;
+      const availableHeight = vpHeight - rawTop - EDGE_PADDING;
+
+      if (availableHeight >= APPROX_CARD_HEIGHT) {
+        tooltipStyle = {
+          position: 'fixed',
+          left: '50%',
+          top: Math.min(rawTop, vpHeight - APPROX_CARD_HEIGHT - EDGE_PADDING),
+          transform: 'translateX(-50%)',
+          maxWidth: 'min(92vw, 360px)',
+          // Cap at available space so the card never extends below the viewport
+          maxHeight: `${availableHeight}px`,
+          overflowY: 'auto',
+        };
+      } else {
+        // Not enough room below — fall through to centre (handled at end)
+        tooltipStyle = {
+          position: 'fixed',
+          left: '50%',
+          top: '50%',
+          transform: 'translate(-50%, -50%)',
+          maxWidth: 'min(92vw, 360px)',
+          maxHeight: `${vpHeight - 2 * EDGE_PADDING}px`,
+          overflowY: 'auto',
+        };
+      }
+    } else if (spaceAbove >= MIN_SPACE_ABOVE) {
+      // ── Tooltip above spotlight ──────────────────────────
+      // Place card bottom CARD_GAP above the spotlight.
+      // Clamp rawTop to EDGE_PADDING so the card never escapes the top edge.
+      const preferredTop = spotlight.top - CARD_GAP - APPROX_CARD_HEIGHT;
+      const rawTop = Math.max(EDGE_PADDING, preferredTop);
+      // availableHeight = space between rawTop and the spotlight (minus gap + edge).
+      // This hard ceiling prevents the card from overlapping the spotlight.
+      const availableHeight = spotlight.top - rawTop - CARD_GAP - EDGE_PADDING;
+
+      if (availableHeight >= APPROX_CARD_HEIGHT) {
+        tooltipStyle = {
+          position: 'fixed',
+          left: '50%',
+          top: rawTop,
+          transform: 'translateX(-50%)',
+          maxWidth: 'min(92vw, 360px)',
+          maxHeight: `${availableHeight}px`,
+          overflowY: 'auto',
+        };
+      } else {
+        // Calculated "above" space is smaller than the card — centre instead
+        tooltipStyle = {
+          position: 'fixed',
+          left: '50%',
+          top: '50%',
+          transform: 'translate(-50%, -50%)',
+          maxWidth: 'min(92vw, 360px)',
+          maxHeight: `${vpHeight - 2 * EDGE_PADDING}px`,
+          overflowY: 'auto',
+        };
+      }
     } else {
-      // Tooltip above spotlight
+      // ── Not enough space either side — centre the card ───
+      // Happens when spotlight fills most of the screen (e.g. garden_intro or tap_tree).
+      // Centring on a large spotlight still looks good — the card floats over it.
       tooltipStyle = {
         position: 'fixed',
         left: '50%',
-        bottom: vpHeight - spotlight.top + 16,
-        transform: 'translateX(-50%)',
+        top: '50%',
+        transform: 'translate(-50%, -50%)',
         maxWidth: 'min(92vw, 360px)',
+        maxHeight: `${vpHeight - 2 * EDGE_PADDING}px`,
+        overflowY: 'auto',
       };
     }
   }

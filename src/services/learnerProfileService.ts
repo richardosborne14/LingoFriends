@@ -101,6 +101,36 @@ export interface LearnerProfileService {
 // ============================================================================
 
 /**
+ * Convert language name to ISO 639-1 code.
+ * The PocketBase schema has a 5-char max constraint on language fields.
+ */
+function toLanguageCode(language: string): string {
+  const codes: Record<string, string> = {
+    'english': 'en',
+    'spanish': 'es',
+    'french': 'fr',
+    'german': 'de',
+    'italian': 'it',
+    'portuguese': 'pt',
+    'japanese': 'ja',
+    'chinese': 'zh',
+    'korean': 'ko',
+    'russian': 'ru',
+    'arabic': 'ar',
+    'hindi': 'hi',
+    'dutch': 'nl',
+    'swedish': 'sv',
+    'polish': 'pl',
+  };
+  
+  const normalized = language.toLowerCase().trim();
+  // If already a 2-letter code, return as-is
+  if (normalized.length === 2) return normalized;
+  // Otherwise, map to code
+  return codes[normalized] || normalized.substring(0, 2);
+}
+
+/**
  * Create a default learner profile.
  */
 function createDefaultProfile(
@@ -114,8 +144,8 @@ function createDefaultProfile(
   return {
     id: '', // Will be set by Pocketbase
     userId,
-    nativeLanguage,
-    targetLanguage,
+    nativeLanguage: toLanguageCode(nativeLanguage),
+    targetLanguage: toLanguageCode(targetLanguage),
     currentLevel: 0, // A1
     levelHistory: [{
       date: now,
@@ -298,10 +328,14 @@ export const learnerProfileService: LearnerProfileService = {
     );
     
     try {
+      // Convert language names to ISO codes (PocketBase has 5-char max constraint)
+      const nativeCode = toLanguageCode(options.nativeLanguage);
+      const targetCode = toLanguageCode(options.targetLanguage);
+      
       const record = await pb.collection('learner_profiles').create<LearnerProfileRecord>({
         user: userId,
-        native_language: options.nativeLanguage,
-        target_language: options.targetLanguage,
+        native_language: nativeCode,
+        target_language: targetCode,
         current_level: profile.currentLevel,
         level_history: profile.levelHistory,
         total_chunks_encountered: profile.totalChunksEncountered,
@@ -353,6 +387,9 @@ export const learnerProfileService: LearnerProfileService = {
   
   /**
    * Get or create a learner's profile.
+   * 
+   * Falls back gracefully to an in-memory profile if PocketBase fails.
+   * This ensures the V2 lesson pipeline works even when PB has schema issues.
    */
   async getOrCreateProfile(
     userId: string,
@@ -363,12 +400,24 @@ export const learnerProfileService: LearnerProfileService = {
       return existing;
     }
     
-    // Create with defaults
-    return this.initializeProfile(userId, {
-      nativeLanguage: defaults?.nativeLanguage || 'English',
-      targetLanguage: defaults?.targetLanguage || 'French',
-      interests: defaults?.explicitInterests || [],
-    });
+    // Try to create in PocketBase
+    try {
+      return await this.initializeProfile(userId, {
+        nativeLanguage: defaults?.nativeLanguage || 'English',
+        targetLanguage: defaults?.targetLanguage || 'French',
+        interests: defaults?.explicitInterests || [],
+      });
+    } catch (error) {
+      // PocketBase failed (400, 404, network error, etc.)
+      // Return an in-memory profile so the V2 pipeline can continue
+      console.warn('[LearnerProfileService] PB profile creation failed, using in-memory fallback:', error);
+      return createDefaultProfile(
+        userId,
+        defaults?.nativeLanguage || 'English',
+        defaults?.targetLanguage || 'French',
+        defaults?.explicitInterests || []
+      );
+    }
   },
   
   /**

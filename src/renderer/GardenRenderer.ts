@@ -73,6 +73,36 @@ const CAMERA_ELEVATION = Math.PI / 6; // 30 degrees from horizontal
  * // Place an object
  * renderer.placeObject('oak', 5, 5);
  */
+// ============================================================================
+// SEEDED RANDOM UTILITY
+// ============================================================================
+
+/**
+ * Returns a deterministic pseudo-random number generator seeded from a string.
+ * Uses the 32-bit xorshift/LCG mix so the same userId always produces the same
+ * decoration layout — no surprises after a page refresh.
+ *
+ * @param seed - Any string (typically the PocketBase user ID)
+ * @returns A function that produces numbers in [0, 1)
+ */
+function makeSeededRng(seed: string): () => number {
+  // Hash the string to a 32-bit integer using FNV-1a
+  let h = 0x811c9dc5;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  // LCG from Numerical Recipes — fast, good enough for decoration placement
+  return function () {
+    h = (Math.imul(1664525, h) + 1013904223) | 0;
+    return (h >>> 0) / 0x100000000;
+  };
+}
+
+// ============================================================================
+// GARDEN RENDERER CLASS
+// ============================================================================
+
 export class GardenRenderer {
   private state: RendererState;
   private options: GardenRendererOptions;
@@ -84,6 +114,13 @@ export class GardenRenderer {
   
   /** ResizeObserver for canvas size changes (orientation, browser chrome). */
   private resizeObserver: ResizeObserver | null = null;
+
+  /**
+   * Ambient decoration meshes — flowers/plants placed at startup from the
+   * seeded layout. Tracked separately so they are disposed correctly and
+   * do NOT count as "occupied" cells (the avatar can walk through them).
+   */
+  private ambientDecorations: THREE.Group[] = [];
 
   /** Next blink time (elapsed seconds). Random interval 3-6s between blinks. */
   private nextBlinkTime: number = 2 + Math.random() * 3;
@@ -134,6 +171,12 @@ export class GardenRenderer {
       options.initialObjects.forEach((obj) => {
         this.placeObject(obj.objectType, obj.gx, obj.gz, obj.id);
       });
+    }
+
+    // Seed ambient decorations (flowers/plants) once if a userId was provided.
+    // Done after initial objects so flowers never conflict with them.
+    if (options.seedUserId) {
+      this.setupAmbientDecoration(options.seedUserId);
     }
   }
 
@@ -1035,6 +1078,79 @@ export class GardenRenderer {
 
     // Dispose renderer
     this.state.renderer.dispose();
+  }
+
+  // ==========================================================================
+  // AMBIENT DECORATION
+  // ==========================================================================
+
+  /**
+   * Scatter flowers and small plants across the garden using a seeded layout.
+   *
+   * Rules:
+   * - Avoids border tiles (gx/gz = 0 or 11) — those are the fence line
+   * - Avoids the centre zone (gx 4-7, gz 4-7) — reserved for learning trees
+   * - Avatar avatar spawns at (6,6), so nothing is placed there
+   * - Uses a deterministic RNG so the same userId always sees the same garden
+   * - Decorations are NOT added to occupiedCells — avatar walks through them
+   *   (small flowers don't block movement; feels natural)
+   *
+   * @param userId - PocketBase user ID (seeds the RNG)
+   */
+  private setupAmbientDecoration(userId: string): void {
+    const rng = makeSeededRng(userId);
+
+    // Flower and plant types available as ambient decorations.
+    // Bias heavily toward cheap flowers so the garden looks colourful.
+    const palette = [
+      'daisy', 'daisy', 'daisy',
+      'tulip', 'tulip',
+      'lavender', 'lavender',
+      'rose',
+      'poppy',
+      'mushroom',
+      'hedge',
+    ];
+
+    // Build candidate list — every interior tile NOT in the centre learning-tree zone
+    const candidates: { gx: number; gz: number }[] = [];
+    for (let gx = 1; gx <= 10; gx++) {
+      for (let gz = 1; gz <= 10; gz++) {
+        // Skip the learning-tree centre zone
+        if (gx >= 4 && gx <= 7 && gz >= 4 && gz <= 7) continue;
+        // Skip the avatar spawn tile
+        if (gx === 6 && gz === 6) continue;
+        candidates.push({ gx, gz });
+      }
+    }
+
+    // Fisher–Yates shuffle using the seeded RNG
+    for (let i = candidates.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      const tmp = candidates[i];
+      candidates[i] = candidates[j];
+      candidates[j] = tmp;
+    }
+
+    // Place ~22 decorations (enough to feel lively without cluttering)
+    const COUNT = 22;
+    for (let i = 0; i < Math.min(COUNT, candidates.length); i++) {
+      const { gx, gz } = candidates[i];
+
+      // Skip if another placed object already occupies this cell
+      if (this.state.occupiedCells.has(cellKey(gx, gz))) continue;
+
+      const typeIdx = Math.floor(rng() * palette.length);
+      const objectType = palette[typeIdx];
+
+      const mesh = createObject(objectType, gx, gz);
+      if (!mesh) continue;
+
+      // Add directly to scene (not objectLayer) so shop remove doesn't touch them
+      this.state.scene.add(mesh);
+      this.ambientDecorations.push(mesh);
+      // Note: we intentionally do NOT add to occupiedCells — avatar walks through
+    }
   }
 
   // ==========================================================================

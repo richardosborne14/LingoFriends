@@ -364,4 +364,10 @@ export interface GardenRendererOptions {
   onObjectPlace?: (objectId: string, gx: number, gz: number) => void;
   /** Callback when a tile is clicked (for shop placement) */
   onTileClick?: (gx: number, gz: number, isOccupied: boolean) => void;
+  /**
+   * User ID used to seed the ambient decoration RNG.
+   * When provided, the same user always sees the same flowers/plants layout.
+   * Omit (or pass undefined) to skip ambient decoration entirely.
+   */
+  seedUserId?: string;
 }

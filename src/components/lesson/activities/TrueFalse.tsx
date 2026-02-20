@@ -36,7 +36,14 @@ interface TrueFalseState {
   /** Whether help has been used */
   usedHelp: boolean;
   showHelp: boolean;
+  showGiveUp: boolean;
 }
+
+// ============================================
+// CONSTANTS
+// ============================================
+
+const MAX_ATTEMPTS = 3;
 
 // ============================================
 // COMPONENT
@@ -76,6 +83,7 @@ export const TrueFalse: React.FC<TrueFalseProps> = ({
     attempts: 0,
     usedHelp: false,
     showHelp: false,
+    showGiveUp: false,
   });
 
   const handleSelect = useCallback((value: boolean) => {
@@ -93,11 +101,13 @@ export const TrueFalse: React.FC<TrueFalseProps> = ({
       }));
       setTimeout(() => onComplete(true, earned), 900);
     } else {
+      const newAttempts = state.attempts + 1;
       setState(prev => ({
         ...prev,
         selected: value,
         isCorrect: false,
-        attempts: prev.attempts + 1,
+        attempts: newAttempts,
+        showGiveUp: newAttempts >= MAX_ATTEMPTS,
       }));
       onWrong();
       setTimeout(() => {
@@ -114,7 +124,30 @@ export const TrueFalse: React.FC<TrueFalseProps> = ({
     setState(prev => ({ ...prev, showHelp: false }));
   }, []);
 
+  /**
+   * Handle give up - show answer and continue.
+   */
+  const handleGiveUp = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      isComplete: true,
+    }));
+    
+    // Continue after showing answer
+    setTimeout(() => {
+      onComplete(false, 0);
+    }, 2000);
+  }, [onComplete]);
+
+  /**
+   * Skip this question entirely.
+   */
+  const handleSkip = useCallback(() => {
+    onComplete(false, 0);
+  }, [onComplete]);
+
   const reduced = state.usedHelp || state.attempts > 0;
+  const canGiveUp = state.attempts >= MAX_ATTEMPTS && !state.isComplete;
 
   return (
     <div className="bg-[#FCFFFE] rounded-2xl p-4 border-2 border-green-200 shadow-sm">
@@ -162,12 +195,34 @@ export const TrueFalse: React.FC<TrueFalseProps> = ({
 
       <p className="font-bold text-lg text-slate-800 mb-4">{data.statement}</p>
 
+      {/* Give up option after max attempts */}
+      {canGiveUp && (
+        <motion.div
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-4 p-3 bg-amber-50 border-2 border-amber-200 rounded-xl"
+        >
+          <p className="font-bold text-sm text-amber-700 mb-2">
+            Need help? The answer is: <span className="text-amber-900">{data.isTrue ? 'True' : 'False'}</span>
+          </p>
+          <div className="flex gap-2">
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={handleGiveUp}
+              className="px-4 py-2 bg-amber-500 text-white rounded-full font-bold text-sm hover:bg-amber-600 transition"
+            >
+              Got It, Continue →
+            </motion.button>
+          </div>
+        </motion.div>
+      )}
+
       {/* True/False buttons */}
       <div className="flex gap-3">
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={() => handleSelect(true)}
-          disabled={state.isComplete}
+          disabled={state.isComplete || canGiveUp}
           className={`flex-1 py-4 rounded-2xl font-bold text-xl border-2 transition-colors ${
             state.isComplete && state.selected === true && state.isCorrect
               ? 'bg-green-100 border-green-500 text-green-800'
@@ -185,7 +240,7 @@ export const TrueFalse: React.FC<TrueFalseProps> = ({
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={() => handleSelect(false)}
-          disabled={state.isComplete}
+          disabled={state.isComplete || canGiveUp}
           className={`flex-1 py-4 rounded-2xl font-bold text-xl border-2 transition-colors ${
             state.isComplete && state.selected === false && state.isCorrect
               ? 'bg-green-100 border-green-500 text-green-800'
@@ -200,6 +255,19 @@ export const TrueFalse: React.FC<TrueFalseProps> = ({
           False
         </motion.button>
       </div>
+
+      {/* Skip button */}
+      {!state.isComplete && !canGiveUp && (
+        <div className="flex justify-end mt-3">
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={handleSkip}
+            className="bg-slate-100 text-slate-500 px-4 py-2 rounded-full font-bold text-sm hover:bg-slate-200 transition"
+          >
+            Skip
+          </motion.button>
+        </div>
+      )}
     </div>
   );
 };

@@ -22,6 +22,9 @@ export type { Step1LanguageProps } from './Step1Language';
 export { Step2Subject } from './Step2Subject';
 export type { Step2SubjectProps } from './Step2Subject';
 
+export { Step2_5Proficiency } from './Step2_5Proficiency';
+export type { Step2_5ProficiencyProps, ProficiencyLevel } from './Step2_5Proficiency';
+
 export { Step3Interests } from './Step3Interests';
 export type { Step3InterestsProps } from './Step3Interests';
 

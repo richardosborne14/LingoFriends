@@ -1,0 +1,805 @@
+{
+  "issues": [
+    {
+      "collection": "learner_profiles",
+      "type": "missing_field",
+      "field": "user",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "type": "missing_field",
+      "field": "native_language",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "type": "missing_field",
+      "field": "target_language",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "type": "missing_field",
+      "field": "current_level",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "type": "missing_field",
+      "field": "total_chunks_encountered",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "type": "missing_field",
+      "field": "chunks_acquired",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "type": "missing_field",
+      "field": "chunks_learning",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "type": "missing_field",
+      "field": "chunks_fragile",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "type": "missing_field",
+      "field": "average_confidence",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "type": "missing_field",
+      "field": "total_sessions",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "type": "missing_field",
+      "field": "total_time_minutes",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "type": "missing_field",
+      "field": "average_session_length",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "type": "missing_field",
+      "field": "help_request_rate",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "type": "missing_field",
+      "field": "wrong_answer_rate",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "type": "missing_field",
+      "field": "preferred_session_length",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "type": "missing_field",
+      "field": "filter_risk_score",
+      "required": true
+    },
+    {
+      "collection": "chunk_library",
+      "type": "missing_field",
+      "field": "text",
+      "required": true
+    },
+    {
+      "collection": "chunk_library",
+      "type": "missing_field",
+      "field": "translation",
+      "required": true
+    },
+    {
+      "collection": "chunk_library",
+      "type": "missing_field",
+      "field": "chunk_type",
+      "required": true
+    },
+    {
+      "collection": "chunk_library",
+      "type": "missing_field",
+      "field": "target_language",
+      "required": true
+    },
+    {
+      "collection": "chunk_library",
+      "type": "missing_field",
+      "field": "native_language",
+      "required": true
+    },
+    {
+      "collection": "chunk_library",
+      "type": "missing_field",
+      "field": "difficulty",
+      "required": true
+    },
+    {
+      "collection": "chunk_library",
+      "type": "missing_field",
+      "field": "topics",
+      "required": true
+    },
+    {
+      "collection": "chunk_library",
+      "type": "missing_field",
+      "field": "frequency",
+      "required": true
+    },
+    {
+      "collection": "chunk_library",
+      "type": "missing_field",
+      "field": "base_interval",
+      "required": true
+    },
+    {
+      "collection": "chunk_library",
+      "type": "missing_field",
+      "field": "age_appropriate",
+      "required": true
+    },
+    {
+      "collection": "user_chunks",
+      "type": "missing_field",
+      "field": "user",
+      "required": true
+    },
+    {
+      "collection": "user_chunks",
+      "type": "missing_field",
+      "field": "chunk",
+      "required": true
+    },
+    {
+      "collection": "user_chunks",
+      "type": "missing_field",
+      "field": "status",
+      "required": true
+    },
+    {
+      "collection": "user_chunks",
+      "type": "missing_field",
+      "field": "ease_factor",
+      "required": true
+    },
+    {
+      "collection": "user_chunks",
+      "type": "missing_field",
+      "field": "interval",
+      "required": true
+    },
+    {
+      "collection": "user_chunks",
+      "type": "missing_field",
+      "field": "next_review_date",
+      "required": true
+    },
+    {
+      "collection": "user_chunks",
+      "type": "missing_field",
+      "field": "repetitions",
+      "required": true
+    },
+    {
+      "collection": "user_chunks",
+      "type": "missing_field",
+      "field": "total_encounters",
+      "required": true
+    },
+    {
+      "collection": "user_chunks",
+      "type": "missing_field",
+      "field": "correct_first_try",
+      "required": true
+    },
+    {
+      "collection": "user_chunks",
+      "type": "missing_field",
+      "field": "wrong_attempts",
+      "required": true
+    },
+    {
+      "collection": "user_chunks",
+      "type": "missing_field",
+      "field": "help_used_count",
+      "required": true
+    },
+    {
+      "collection": "user_chunks",
+      "type": "missing_field",
+      "field": "confidence_score",
+      "required": true
+    },
+    {
+      "collection": "topics",
+      "type": "missing_field",
+      "field": "name",
+      "required": true
+    },
+    {
+      "collection": "topics",
+      "type": "missing_field",
+      "field": "icon",
+      "required": true
+    },
+    {
+      "collection": "topics",
+      "type": "missing_field",
+      "field": "description",
+      "required": true
+    },
+    {
+      "collection": "topics",
+      "type": "missing_field",
+      "field": "target_language",
+      "required": true
+    },
+    {
+      "collection": "topics",
+      "type": "missing_field",
+      "field": "difficulty_range",
+      "required": true
+    },
+    {
+      "collection": "topics",
+      "type": "missing_field",
+      "field": "tags",
+      "required": true
+    },
+    {
+      "collection": "topics",
+      "type": "missing_field",
+      "field": "chunk_count",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "type": "create_failed",
+      "status": 400,
+      "error": {
+        "data": {
+          "average_session_length": {
+            "code": "validation_required",
+            "message": "Cannot be blank."
+          },
+          "chunks_acquired": {
+            "code": "validation_required",
+            "message": "Cannot be blank."
+          },
+          "chunks_fragile": {
+            "code": "validation_required",
+            "message": "Cannot be blank."
+          },
+          "chunks_learning": {
+            "code": "validation_required",
+            "message": "Cannot be blank."
+          },
+          "filter_risk_score": {
+            "code": "validation_required",
+            "message": "Cannot be blank."
+          },
+          "help_request_rate": {
+            "code": "validation_required",
+            "message": "Cannot be blank."
+          },
+          "native_language": {
+            "code": "validation_max_text_constraint",
+            "message": "Must be no more than 5 character(s).",
+            "params": {
+              "max": 5
+            }
+          },
+          "target_language": {
+            "code": "validation_max_text_constraint",
+            "message": "Must be no more than 5 character(s).",
+            "params": {
+              "max": 5
+            }
+          },
+          "total_chunks_encountered": {
+            "code": "validation_required",
+            "message": "Cannot be blank."
+          },
+          "total_sessions": {
+            "code": "validation_required",
+            "message": "Cannot be blank."
+          },
+          "total_time_minutes": {
+            "code": "validation_required",
+            "message": "Cannot be blank."
+          },
+          "user": {
+            "code": "validation_missing_rel_records",
+            "message": "Failed to find all relation records with the provided ids."
+          },
+          "wrong_answer_rate": {
+            "code": "validation_required",
+            "message": "Cannot be blank."
+          }
+        },
+        "message": "Failed to create record.",
+        "status": 400
+      }
+    },
+    {
+      "collection": "chunk_library",
+      "type": "create_failed",
+      "status": 400,
+      "error": {
+        "data": {
+          "native_language": {
+            "code": "validation_max_text_constraint",
+            "message": "Must be no more than 5 character(s).",
+            "params": {
+              "max": 5
+            }
+          },
+          "target_language": {
+            "code": "validation_max_text_constraint",
+            "message": "Must be no more than 5 character(s).",
+            "params": {
+              "max": 5
+            }
+          }
+        },
+        "message": "Failed to create record.",
+        "status": 400
+      }
+    }
+  ],
+  "fixes": [
+    {
+      "collection": "learner_profiles",
+      "action": "add_field",
+      "field": "user",
+      "type": "relation",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "action": "add_field",
+      "field": "native_language",
+      "type": "text",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "action": "add_field",
+      "field": "target_language",
+      "type": "text",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "action": "add_field",
+      "field": "current_level",
+      "type": "number",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "action": "add_field",
+      "field": "total_chunks_encountered",
+      "type": "number",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "action": "add_field",
+      "field": "chunks_acquired",
+      "type": "number",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "action": "add_field",
+      "field": "chunks_learning",
+      "type": "number",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "action": "add_field",
+      "field": "chunks_fragile",
+      "type": "number",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "action": "add_field",
+      "field": "average_confidence",
+      "type": "number",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "action": "add_field",
+      "field": "total_sessions",
+      "type": "number",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "action": "add_field",
+      "field": "total_time_minutes",
+      "type": "number",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "action": "add_field",
+      "field": "average_session_length",
+      "type": "number",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "action": "add_field",
+      "field": "help_request_rate",
+      "type": "number",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "action": "add_field",
+      "field": "wrong_answer_rate",
+      "type": "number",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "action": "add_field",
+      "field": "preferred_session_length",
+      "type": "number",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "action": "add_field",
+      "field": "filter_risk_score",
+      "type": "number",
+      "required": true
+    },
+    {
+      "collection": "learner_profiles",
+      "action": "add_field",
+      "field": "level_history",
+      "type": "json",
+      "required": false
+    },
+    {
+      "collection": "learner_profiles",
+      "action": "add_field",
+      "field": "explicit_interests",
+      "type": "json",
+      "required": false
+    },
+    {
+      "collection": "learner_profiles",
+      "action": "add_field",
+      "field": "detected_interests",
+      "type": "json",
+      "required": false
+    },
+    {
+      "collection": "learner_profiles",
+      "action": "add_field",
+      "field": "confidence_history",
+      "type": "json",
+      "required": false
+    },
+    {
+      "collection": "learner_profiles",
+      "action": "add_field",
+      "field": "preferred_activity_types",
+      "type": "json",
+      "required": false
+    },
+    {
+      "collection": "learner_profiles",
+      "action": "add_field",
+      "field": "last_reflection_prompt",
+      "type": "text",
+      "required": false
+    },
+    {
+      "collection": "learner_profiles",
+      "action": "add_field",
+      "field": "coaching_notes",
+      "type": "text",
+      "required": false
+    },
+    {
+      "collection": "learner_profiles",
+      "action": "add_field",
+      "field": "last_struggle_date",
+      "type": "text",
+      "required": false
+    },
+    {
+      "collection": "chunk_library",
+      "action": "add_field",
+      "field": "text",
+      "type": "text",
+      "required": true
+    },
+    {
+      "collection": "chunk_library",
+      "action": "add_field",
+      "field": "translation",
+      "type": "text",
+      "required": true
+    },
+    {
+      "collection": "chunk_library",
+      "action": "add_field",
+      "field": "chunk_type",
+      "type": "select",
+      "required": true
+    },
+    {
+      "collection": "chunk_library",
+      "action": "add_field",
+      "field": "target_language",
+      "type": "text",
+      "required": true
+    },
+    {
+      "collection": "chunk_library",
+      "action": "add_field",
+      "field": "native_language",
+      "type": "text",
+      "required": true
+    },
+    {
+      "collection": "chunk_library",
+      "action": "add_field",
+      "field": "difficulty",
+      "type": "number",
+      "required": true
+    },
+    {
+      "collection": "chunk_library",
+      "action": "add_field",
+      "field": "topics",
+      "type": "json",
+      "required": true
+    },
+    {
+      "collection": "chunk_library",
+      "action": "add_field",
+      "field": "frequency",
+      "type": "number",
+      "required": true
+    },
+    {
+      "collection": "chunk_library",
+      "action": "add_field",
+      "field": "base_interval",
+      "type": "number",
+      "required": true
+    },
+    {
+      "collection": "chunk_library",
+      "action": "add_field",
+      "field": "age_appropriate",
+      "type": "json",
+      "required": true
+    },
+    {
+      "collection": "chunk_library",
+      "action": "add_field",
+      "field": "slots",
+      "type": "json",
+      "required": false
+    },
+    {
+      "collection": "chunk_library",
+      "action": "add_field",
+      "field": "notes",
+      "type": "text",
+      "required": false
+    },
+    {
+      "collection": "chunk_library",
+      "action": "add_field",
+      "field": "cultural_context",
+      "type": "text",
+      "required": false
+    },
+    {
+      "collection": "chunk_library",
+      "action": "add_field",
+      "field": "audio_url",
+      "type": "text",
+      "required": false
+    },
+    {
+      "collection": "user_chunks",
+      "action": "add_field",
+      "field": "user",
+      "type": "relation",
+      "required": true
+    },
+    {
+      "collection": "user_chunks",
+      "action": "add_field",
+      "field": "chunk",
+      "type": "relation",
+      "required": true
+    },
+    {
+      "collection": "user_chunks",
+      "action": "add_field",
+      "field": "status",
+      "type": "select",
+      "required": true
+    },
+    {
+      "collection": "user_chunks",
+      "action": "add_field",
+      "field": "ease_factor",
+      "type": "number",
+      "required": true
+    },
+    {
+      "collection": "user_chunks",
+      "action": "add_field",
+      "field": "interval",
+      "type": "number",
+      "required": true
+    },
+    {
+      "collection": "user_chunks",
+      "action": "add_field",
+      "field": "next_review_date",
+      "type": "text",
+      "required": true
+    },
+    {
+      "collection": "user_chunks",
+      "action": "add_field",
+      "field": "repetitions",
+      "type": "number",
+      "required": true
+    },
+    {
+      "collection": "user_chunks",
+      "action": "add_field",
+      "field": "total_encounters",
+      "type": "number",
+      "required": true
+    },
+    {
+      "collection": "user_chunks",
+      "action": "add_field",
+      "field": "correct_first_try",
+      "type": "number",
+      "required": true
+    },
+    {
+      "collection": "user_chunks",
+      "action": "add_field",
+      "field": "wrong_attempts",
+      "type": "number",
+      "required": true
+    },
+    {
+      "collection": "user_chunks",
+      "action": "add_field",
+      "field": "help_used_count",
+      "type": "number",
+      "required": true
+    },
+    {
+      "collection": "user_chunks",
+      "action": "add_field",
+      "field": "confidence_score",
+      "type": "number",
+      "required": true
+    },
+    {
+      "collection": "user_chunks",
+      "action": "add_field",
+      "field": "first_encountered_in",
+      "type": "text",
+      "required": false
+    },
+    {
+      "collection": "user_chunks",
+      "action": "add_field",
+      "field": "first_encountered_at",
+      "type": "text",
+      "required": false
+    },
+    {
+      "collection": "user_chunks",
+      "action": "add_field",
+      "field": "last_encountered_in",
+      "type": "text",
+      "required": false
+    },
+    {
+      "collection": "user_chunks",
+      "action": "add_field",
+      "field": "last_encountered_at",
+      "type": "text",
+      "required": false
+    },
+    {
+      "collection": "topics",
+      "action": "add_field",
+      "field": "name",
+      "type": "text",
+      "required": true
+    },
+    {
+      "collection": "topics",
+      "action": "add_field",
+      "field": "icon",
+      "type": "text",
+      "required": true
+    },
+    {
+      "collection": "topics",
+      "action": "add_field",
+      "field": "description",
+      "type": "text",
+      "required": true
+    },
+    {
+      "collection": "topics",
+      "action": "add_field",
+      "field": "target_language",
+      "type": "text",
+      "required": true
+    },
+    {
+      "collection": "topics",
+      "action": "add_field",
+      "field": "difficulty_range",
+      "type": "text",
+      "required": true
+    },
+    {
+      "collection": "topics",
+      "action": "add_field",
+      "field": "tags",
+      "type": "json",
+      "required": true
+    },
+    {
+      "collection": "topics",
+      "action": "add_field",
+      "field": "chunk_count",
+      "type": "number",
+      "required": true
+    },
+    {
+      "collection": "topics",
+      "action": "add_field",
+      "field": "parent_topic",
+      "type": "relation",
+      "required": false
+    }
+  ],
+  "timestamp": "2026-02-20T16:37:25.717Z"
+}

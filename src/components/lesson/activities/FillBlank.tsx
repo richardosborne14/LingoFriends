@@ -2,7 +2,8 @@
  * LingoFriends - Fill in the Blank Activity Component
  * 
  * Displays a sentence with a missing word that the user must fill in.
- * Text input with check button, hint support, and retry functionality.
+ * Text input with check button, hint support, retry functionality,
+ * and give-up option after 3 attempts.
  * 
  * @module FillBlank
  */
@@ -41,7 +42,15 @@ interface FillBlankState {
   usedHelp: boolean;
   /** Whether help panel is showing */
   showHelp: boolean;
+  /** Whether to show the answer (after give up) */
+  showAnswer: boolean;
 }
+
+// ============================================
+// CONSTANTS
+// ============================================
+
+const MAX_ATTEMPTS = 3;
 
 // ============================================
 // ANIMATION VARIANTS
@@ -66,22 +75,8 @@ const shakeVariants = {
  * - Text input for answer (auto-focused)
  * - "Check" button to submit
  * - Hint text below if provided
- * - Correct: Call onComplete()
- * - Wrong: Show "Not quite!", reveal correct answer, allow retry
- * 
- * @example
- * <FillBlank
- *   data={{
- *     type: GameActivityType.FILL_BLANK,
- *     sentence: "Je ___ français.",
- *     correctAnswer: "parle",
- *     hint: "to speak = parler",
- *     sunDrops: 3,
- *   }}
- *   helpText="What form of the verb?"
- *   onComplete={(correct, drops) => console.log(correct, drops)}
- *   onWrong={() => console.log('Wrong!')}
- * />
+ * - After 3 wrong attempts: Show "Give Up" option
+ * - Give Up reveals answer and allows continuation
  */
 export const FillBlank: React.FC<FillBlankProps> = ({
   data,
@@ -93,8 +88,19 @@ export const FillBlank: React.FC<FillBlankProps> = ({
   if (!data.sentence || !data.correctAnswer) {
     console.error('FillBlank: Missing required fields', data);
     return (
-      <div className="p-4 text-red-500">
-        Error: Missing activity data
+      <div className="bg-[#FCFFFE] rounded-2xl p-4 border-2 border-red-200 shadow-sm">
+        <div className="text-center">
+          <span className="text-4xl">😅</span>
+          <p className="text-red-600 font-medium mt-2">Oops! This question seems broken.</p>
+          <p className="text-slate-500 text-sm mt-1">Let's skip to the next one.</p>
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={() => onComplete(true, 0)}
+            className="mt-4 px-6 py-2 bg-green-500 text-white rounded-full font-bold text-sm hover:bg-green-600 transition"
+          >
+            Skip →
+          </motion.button>
+        </div>
       </div>
     );
   }
@@ -108,6 +114,7 @@ export const FillBlank: React.FC<FillBlankProps> = ({
     attempts: 0,
     usedHelp: false,
     showHelp: false,
+    showAnswer: false,
   });
 
   // Auto-focus input on mount
@@ -123,9 +130,13 @@ export const FillBlank: React.FC<FillBlankProps> = ({
     if (state.isComplete || !state.inputValue.trim()) return;
 
     const userAnswer = state.inputValue.trim().toLowerCase();
-    const correctAnswer = data.correctAnswer!.toLowerCase();
+    // Handle multiple accepted answers if available
+    const acceptedAnswers = data.acceptedAnswers || [data.correctAnswer!];
+    const isCorrect = acceptedAnswers.some(
+      answer => answer.toLowerCase() === userAnswer
+    );
 
-    if (userAnswer === correctAnswer) {
+    if (isCorrect) {
       // Correct answer
       const earned = calculateEarned(
         data.sunDrops,
@@ -145,15 +156,16 @@ export const FillBlank: React.FC<FillBlankProps> = ({
       }, 900);
     } else {
       // Wrong answer
+      const newAttempts = state.attempts + 1;
       setState(prev => ({
         ...prev,
         isCorrect: false,
-        attempts: prev.attempts + 1,
+        attempts: newAttempts,
       }));
 
       onWrong();
     }
-  }, [state.isComplete, state.inputValue, state.attempts, state.usedHelp, data.correctAnswer, data.sunDrops, onComplete, onWrong]);
+  }, [state.isComplete, state.inputValue, state.attempts, state.usedHelp, data, onComplete, onWrong]);
 
   /**
    * Handle retry after wrong answer.
@@ -170,6 +182,29 @@ export const FillBlank: React.FC<FillBlankProps> = ({
       inputRef.current?.focus();
     }, 100);
   }, []);
+
+  /**
+   * Handle give up - show answer and continue.
+   */
+  const handleGiveUp = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      showAnswer: true,
+      isComplete: true,
+    }));
+    
+    // Continue after showing answer
+    setTimeout(() => {
+      onComplete(false, 0);
+    }, 2000);
+  }, [onComplete]);
+
+  /**
+   * Skip this question entirely.
+   */
+  const handleSkip = useCallback(() => {
+    onComplete(false, 0);
+  }, [onComplete]);
 
   /**
    * Handle Enter key press.
@@ -208,11 +243,15 @@ export const FillBlank: React.FC<FillBlankProps> = ({
   // Split sentence for display
   const parts = data.sentence.split('___');
   const reduced = state.usedHelp || state.attempts > 0;
+  const canGiveUp = state.attempts >= MAX_ATTEMPTS && !state.isComplete;
 
   // Determine input styling based on state
   const getInputStyle = (): string => {
     const baseStyle = 'border-b-3 outline-none bg-transparent text-center font-bold text-lg px-2 py-1 transition-colors';
     
+    if (state.showAnswer) {
+      return `${baseStyle} border-amber-500 bg-amber-100 text-amber-800 rounded-lg`;
+    }
     if (state.isComplete && state.isCorrect) {
       return `${baseStyle} border-green-500 bg-green-100 text-green-800 rounded-lg`;
     }
@@ -226,7 +265,7 @@ export const FillBlank: React.FC<FillBlankProps> = ({
     <div className="bg-[#FCFFFE] rounded-2xl p-4 border-2 border-green-200 shadow-sm">
       {/* Header */}
       <div className="flex justify-between items-center mb-3">
-        {/* Only show help button if helpText is available */}
+        {/* Help button */}
         {helpText ? (
           <motion.button
             whileTap={{ scale: 0.95 }}
@@ -241,18 +280,26 @@ export const FillBlank: React.FC<FillBlankProps> = ({
             💬 Help
           </motion.button>
         ) : (
-          <div /> // Empty placeholder to maintain flex layout
+          <div />
         )}
         
-        <span className="bg-amber-100 border border-amber-300 rounded-md px-2 py-1 font-extrabold text-xs text-amber-700 flex items-center gap-1">
-          <SunDropIcon size={14} />
-          <span>{reduced ? Math.ceil(data.sunDrops / 2) : data.sunDrops}</span>
-          {reduced && (
-            <span className="text-[10px] text-amber-600 font-medium ml-0.5">
-              (retry)
+        {/* Attempt counter and sun drops */}
+        <div className="flex items-center gap-2">
+          {state.attempts > 0 && !state.isComplete && (
+            <span className="text-xs text-slate-500">
+              {state.attempts}/{MAX_ATTEMPTS} tries
             </span>
           )}
-        </span>
+          <span className="bg-amber-100 border border-amber-300 rounded-md px-2 py-1 font-extrabold text-xs text-amber-700 flex items-center gap-1">
+            <SunDropIcon size={14} />
+            <span>{reduced ? Math.ceil(data.sunDrops / 2) : data.sunDrops}</span>
+            {reduced && (
+              <span className="text-[10px] text-amber-600 font-medium ml-0.5">
+                (retry)
+              </span>
+            )}
+          </span>
+        </div>
       </div>
 
       {/* Help panel */}
@@ -299,52 +346,109 @@ export const FillBlank: React.FC<FillBlankProps> = ({
         <input
           ref={inputRef}
           type="text"
-          value={state.inputValue}
+          value={state.showAnswer ? data.correctAnswer : state.inputValue}
           onChange={(e) => {
-            setState(prev => ({
-              ...prev,
-              inputValue: e.target.value,
-              isCorrect: prev.isCorrect === false ? null : prev.isCorrect,
-            }));
+            if (!state.showAnswer) {
+              setState(prev => ({
+                ...prev,
+                inputValue: e.target.value,
+                isCorrect: prev.isCorrect === false ? null : prev.isCorrect,
+              }));
+            }
           }}
           onKeyDown={handleKeyDown}
-          disabled={state.isComplete}
+          disabled={state.isComplete || state.showAnswer}
           placeholder="?"
           className={getInputStyle()}
           style={{
             minWidth: '100px',
-            width: `${Math.max(100, state.inputValue.length * 12 + 40)}px`,
+            width: `${Math.max(100, (state.showAnswer ? data.correctAnswer : state.inputValue).length * 12 + 40)}px`,
           }}
         />
         {parts[1] && <span>{parts[1]}</span>}
       </motion.div>
 
       {/* Wrong answer feedback */}
-      {state.isCorrect === false && (
+      {state.isCorrect === false && !canGiveUp && (
         <motion.p
           initial={{ opacity: 0, y: -5 }}
           animate={{ opacity: 1, y: 0 }}
           className="font-bold text-sm text-red-500 mt-3"
         >
-          Not quite! 💪
+          Not quite! {MAX_ATTEMPTS - state.attempts} tries left 💪
         </motion.p>
+      )}
+
+      {/* Give up option */}
+      {canGiveUp && !state.showAnswer && (
+        <motion.div
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-3 p-3 bg-amber-50 border-2 border-amber-200 rounded-xl"
+        >
+          <p className="font-bold text-sm text-amber-700 mb-2">
+            Need help? The answer is: <span className="text-amber-900">{data.correctAnswer}</span>
+          </p>
+          <div className="flex gap-2">
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={handleRetry}
+              className="px-4 py-2 bg-sky-500 text-white rounded-full font-bold text-sm hover:bg-sky-600 transition"
+            >
+              Try Again 🔄
+            </motion.button>
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={handleGiveUp}
+              className="px-4 py-2 bg-amber-500 text-white rounded-full font-bold text-sm hover:bg-amber-600 transition"
+            >
+              Got It, Continue →
+            </motion.button>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Show answer after give up */}
+      {state.showAnswer && (
+        <motion.div
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-3 p-3 bg-amber-50 border-2 border-amber-200 rounded-xl"
+        >
+          <p className="font-bold text-sm text-amber-700">
+            ✓ The answer is: <span className="text-amber-900">{data.correctAnswer}</span>
+          </p>
+          <p className="text-xs text-amber-600 mt-1">Continuing...</p>
+        </motion.div>
       )}
 
       {/* Action buttons */}
       <div className="flex gap-2 mt-4">
-        {state.isCorrect === null && !state.isComplete && (
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={handleCheck}
-            disabled={!state.inputValue.trim()}
-            className="bg-[#58CC02] text-white px-6 py-3 rounded-2xl font-bold text-base disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
-            style={{ boxShadow: '0 4px 0 0 rgba(88, 204, 2, 0.3)' }}
-          >
-            Check ✓
-          </motion.button>
+        {/* Check button */}
+        {state.isCorrect === null && !state.isComplete && !state.showAnswer && (
+          <>
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={handleCheck}
+              disabled={!state.inputValue.trim()}
+              className="bg-[#58CC02] text-white px-6 py-3 rounded-2xl font-bold text-base disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+              style={{ boxShadow: '0 4px 0 0 rgba(88, 204, 2, 0.3)' }}
+            >
+              Check ✓
+            </motion.button>
+            {/* Skip button */}
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={handleSkip}
+              className="bg-slate-100 text-slate-500 px-4 py-3 rounded-2xl font-bold text-sm hover:bg-slate-200 transition"
+            >
+              Skip
+            </motion.button>
+          </>
         )}
         
-        {state.isCorrect === false && (
+        {/* Retry button */}
+        {state.isCorrect === false && !canGiveUp && (
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={handleRetry}

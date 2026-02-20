@@ -1,30 +1,75 @@
 /**
- * Lesson Plan Service — V2 wiring (Task E)
+ * Lesson Plan Service — V2 Production Pipeline
  *
- * Replaces the Phase 1.1 mock stub with the full Phase 1.2 pedagogy pipeline:
+ * Uses the Phase 1.2 pedagogy pipeline with proper language handling:
  *
  *   SkillPathLesson
  *       ↓
  *   pedagogyEngine.prepareSession()  — i+1 targeting, chunk selection
  *       ↓  SessionPlan
  *   lessonGeneratorV2.generateLesson()  — AI-generated activities via Groq
- *       ↓  LessonPlan
+ *       ↓  LessonPlan (with built-in fallback for language-appropriate content)
+ *       ↓
  *   LessonView  — renders the lesson to the user
  *
- * Falls back to the mock generator if:
- *   - User is not authenticated (development / tests)
- *   - PocketBase or Groq is unreachable
- *   - Any step of the pedagogy pipeline throws
+ * The lessonGeneratorV2 has its own fallback mechanism that generates
+ * language-appropriate content. We do NOT use mock data - all lessons
+ * are generated based on user's target language.
  *
  * @module lessonPlanService
  */
 
 import type { SkillPathLesson, LessonPlan } from '../types/game';
-import { generateMockLessonPlan } from '../data/mockGameData';
+import type { LearnerProfile } from '../types/pedagogy';
 import { getCurrentUserId } from '../../services/pocketbaseService';
 import { pedagogyEngine } from './pedagogyEngine';
 import { learnerProfileService } from './learnerProfileService';
 import lessonGeneratorV2 from './lessonGeneratorV2';
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+/**
+ * Create a minimal default learner profile for unauthenticated/fallback scenarios.
+ * This matches the structure from learnerProfileService.createDefaultProfile.
+ */
+function createDefaultProfile(
+  userId: string,
+  nativeLanguage: string = 'English',
+  targetLanguage: string = 'German'
+): LearnerProfile {
+  const now = new Date().toISOString();
+  
+  return {
+    id: `temp-${userId}`,
+    userId,
+    nativeLanguage: nativeLanguage.toLowerCase().substring(0, 2),
+    targetLanguage: targetLanguage.toLowerCase().substring(0, 2),
+    currentLevel: 0,
+    levelHistory: [{ date: now, value: 0 }],
+    totalChunksEncountered: 0,
+    chunksAcquired: 0,
+    chunksLearning: 0,
+    chunksFragile: 0,
+    explicitInterests: [],
+    detectedInterests: [],
+    averageConfidence: 0.5,
+    confidenceHistory: [{ date: now, value: 0.5 }],
+    totalSessions: 0,
+    totalTimeMinutes: 0,
+    averageSessionLength: 0,
+    helpRequestRate: 0,
+    wrongAnswerRate: 0,
+    preferredActivityTypes: [],
+    preferredSessionLength: 10,
+    lastReflectionPrompt: '',
+    coachingNotes: '',
+    filterRiskScore: 0,
+    created: now,
+    updated: now,
+  };
+}
 
 // ============================================
 // TYPES
@@ -110,18 +155,55 @@ export async function generateLessonPlan(
       return result.lesson;
 
     } catch (error) {
-      // Non-fatal: log and fall through to mock
+      // Re-throw with more context - the lessonGeneratorV2 has its own fallback
       const msg = error instanceof Error ? error.message : String(error);
-      console.warn('[lessonPlanService] V2 pipeline failed, using mock fallback:', msg);
+      console.error('[lessonPlanService] V2 pipeline failed:', msg);
+      throw new Error(`Failed to generate lesson: ${msg}`);
     }
-  } else {
-    console.log('[lessonPlanService] No authenticated user — using mock lesson (dev mode)');
   }
 
-  // ── Fallback: mock generator ─────────────────────────────────────
-  // Slight delay to simulate async for consistent UX (loading state shows)
-  await new Promise(resolve => setTimeout(resolve, 100));
-  return generateMockLessonPlan(lesson);
+  // No authenticated user - create a temporary profile for V2 generator
+  // The V2 generator has built-in fallback with language-appropriate content
+  console.log('[lessonPlanService] No authenticated user — generating lesson with defaults');
+  
+  // Use the helper function to create a properly-typed profile
+  const tempProfile = createDefaultProfile(
+    'temp-user',
+    'English',
+    targetLanguage || 'German'
+  );
+
+  // Build session plan with target language
+  const topicWithLanguage = targetLanguage
+    ? `${lesson.title} (${targetLanguage})`
+    : lesson.title;
+
+  try {
+    const sessionPlan = await pedagogyEngine.prepareSession('temp-user', {
+      topic: topicWithLanguage,
+      duration: durationMinutes,
+    });
+
+    const result = await lessonGeneratorV2.generateLesson({
+      userId: 'temp-user',
+      sessionPlan,
+      profile: tempProfile,
+      additionalContext: {
+        focusArea: lesson.title,
+      },
+    });
+
+    console.log(
+      `[lessonPlanService] Generated lesson in ${result.meta.generationTimeMs}ms`,
+      `(fallback: ${result.meta.usedFallback ? 'yes' : 'no'})`
+    );
+
+    return result.lesson;
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('[lessonPlanService] Failed to generate lesson:', msg);
+    throw new Error(`Failed to generate lesson: ${msg}`);
+  }
 }
 
 /**

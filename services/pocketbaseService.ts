@@ -150,29 +150,72 @@ export async function signup(
     // Log them in immediately
     await pb.collection('users').authWithPassword(email, password);
 
-    // Create their profile with defaults
-    // display_name is the "username" kids see throughout the app
-    const profile = await pb.collection('profiles').create<PBProfile>({
-      user: user.id,
-      display_name: displayName,
-      native_language: nativeLanguage,
-      target_language: 'English',
-      age_group: '11-14', // Default to middle age group - can be updated during onboarding
-      level: 'A1',
+    // Create their profile with defaults.
+    // display_name is the "username" kids see throughout the app.
+    // Profile creation is a best-effort step — if it fails (e.g. schema mismatch),
+    // the onboarding flow's updateProfile() auto-create will repair it.
+    // We NEVER let a profile create failure block the user from signing up.
+    let profile: PBProfile | null = null;
+    try {
+      profile = await pb.collection('profiles').create<PBProfile>({
+        user: user.id,
+        display_name: displayName,
+        native_language: nativeLanguage,
+        target_language: 'English',
+        age_group: '11-14',
+        level: 'A1',
+        goals: [],
+        interests: [],
+        traits: [],
+        xp: 0,
+        streak: 0,
+        daily_xp_today: 0,
+        daily_cap: 100,
+        // onboarding_complete is intentionally omitted here.
+        // PocketBase treats boolean `false` as "blank" when the field has
+        // "Required" enabled, causing a 400 validation error.
+        // The real value (true) is set by updateProfile() at onboarding end.
+        sunDrops: 0,
+        giftsReceived: 0,
+      });
+    } catch (profileErr: unknown) {
+      // Log details so we can diagnose remaining required fields
+      const pErr = profileErr as { data?: { data?: Record<string, unknown> } };
+      if (pErr.data?.data) {
+        console.error('[PB] signup() profile create validation errors:', JSON.stringify(pErr.data.data, null, 2));
+      } else {
+        console.error('[PB] signup() profile create failed (non-fatal):', profileErr);
+      }
+      // Non-fatal: user IS authenticated. updateProfile() during onboarding
+      // will auto-create the profile with full data. Return a stub so the
+      // auth hook can proceed and render the onboarding flow.
+    }
+
+    if (profile) {
+      return pbProfileToUserProfile(profile);
+    }
+
+    // Return stub profile — full data will be written by updateProfile() in onboarding
+    return {
+      name: displayName,
+      targetLanguage: 'English' as TargetLanguage,
+      level: 'A1' as CEFRLevel,
+      nativeLanguage,
+      ageGroup: '11-14' as AgeGroup,
       goals: [],
       interests: [],
       traits: [],
-      xp: 0,
       streak: 0,
-      daily_xp_today: 0,
-      daily_cap: 100,
-      onboarding_complete: false,
-    });
+      lastLessonDate: new Date().toISOString(),
+      completedLessons: 0,
+      xp: 0,
+      onboardingComplete: false,
+      selectedInterests: [],
+    };
 
-    return pbProfileToUserProfile(profile);
   } catch (error: unknown) {
-    const err = error as { data?: { data?: Record<string, { message: string }> }; message?: string };
-    // Handle specific Pocketbase errors with kid-friendly messages
+    const err = error as { data?: { data?: Record<string, { message: string }> }; message?: string; status?: number };
+    // Handle specific Pocketbase auth errors with kid-friendly messages
     if (err.data?.data?.email) {
       throw new Error('That email is already registered. Try logging in instead!');
     }
@@ -363,6 +406,10 @@ export async function updateProfile(updates: Partial<UserProfile>): Promise<User
       subject_type: updates.subjectType ?? null,
       target_subject: updates.targetSubject ?? null,
       selected_interests: updates.selectedInterests ?? [],
+      // Both are number fields (camelCase). PB required+min:0 treats 0 as "blank"
+      // → run scripts/migrate-fix-profile-required-fields.cjs to make them optional.
+      sunDrops: 0,
+      giftsReceived: 0,
     };
     
     console.log('[PB] Creating profile with data:', JSON.stringify(profileData, null, 2));

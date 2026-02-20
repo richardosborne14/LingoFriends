@@ -20,6 +20,7 @@ import { StepIndicator } from './StepIndicator';
 import { Step0DisplayName } from './Step0DisplayName';
 import { Step1Language } from './Step1Language';
 import { Step2Subject } from './Step2Subject';
+import { Step2_5Proficiency, ProficiencyLevel } from './Step2_5Proficiency';
 import { Step3Interests } from './Step3Interests';
 import { OnboardingComplete } from './OnboardingComplete';
 import { getOnboardingTranslations } from './translations';
@@ -43,6 +44,7 @@ export interface OnboardingData {
   nativeLanguage: NativeLanguage;
   subjectType: SubjectType;
   targetSubject: TargetSubject;
+  proficiencyLevel: ProficiencyLevel;
   selectedInterests: string[];
 }
 
@@ -52,6 +54,7 @@ interface OnboardingState {
   nativeLanguage: NativeLanguage | null;
   subjectType: SubjectType | null;
   targetSubject: TargetSubject | null;
+  proficiencyLevel: ProficiencyLevel;
   selectedInterests: string[];
 }
 
@@ -59,7 +62,9 @@ interface OnboardingState {
 // CONSTANTS
 // ============================================
 
-const TOTAL_STEPS = 3;
+// Total steps: DisplayName(0) -> Language(1) -> Subject(2) -> Proficiency(3) -> Interests(4) -> Complete(5)
+// Without DisplayName: Language(1) -> Subject(2) -> Proficiency(3) -> Interests(4) -> Complete(5)
+const TOTAL_STEPS = 4; // Language, Subject, Proficiency, Interests
 
 // Animation variants for step transitions
 const stepVariants = {
@@ -105,6 +110,7 @@ export function OnboardingContainer({
     nativeLanguage: initialNativeLanguage,
     subjectType: null,
     targetSubject: null,
+    proficiencyLevel: 'A1', // Default to beginner
     selectedInterests: [],
   });
 
@@ -198,6 +204,7 @@ export function OnboardingContainer({
         nativeLanguage: state.nativeLanguage,
         subjectType: state.subjectType,
         targetSubject: state.targetSubject,
+        proficiencyLevel: state.proficiencyLevel,
         selectedInterests: state.selectedInterests,
       });
     } catch (error) {
@@ -207,6 +214,16 @@ export function OnboardingContainer({
       setIsSubmitting(false);
     }
   }, [state, onComplete]);
+
+  /**
+   * Update proficiency level selection
+   */
+  const handleProficiencySelect = useCallback((level: ProficiencyLevel) => {
+    setState(prev => ({
+      ...prev,
+      proficiencyLevel: level,
+    }));
+  }, []);
 
   /**
    * Check if current step can proceed to next
@@ -220,6 +237,8 @@ export function OnboardingContainer({
       case 2:
         return state.targetSubject !== null && state.subjectType !== null;
       case 3:
+        return state.proficiencyLevel !== null; // Proficiency required
+      case 4:
         return true; // Interests are optional
       default:
         return false;
@@ -258,13 +277,21 @@ export function OnboardingContainer({
         );
       case 3:
         return (
+          <Step2_5Proficiency
+            selectedLevel={state.proficiencyLevel}
+            onSelect={handleProficiencySelect}
+            displayLanguage={displayLanguage}
+          />
+        );
+      case 4:
+        return (
           <Step3Interests
             selectedInterests={state.selectedInterests}
             onSelect={handleInterestsSelect}
             displayLanguage={displayLanguage}
           />
         );
-      case 4:
+      case 5:
         return (
           <OnboardingComplete
             displayLanguage={displayLanguage}

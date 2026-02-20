@@ -15,6 +15,7 @@ import { WordArrange } from './WordArrange';
 import { TrueFalse } from './TrueFalse';
 import { MatchingPairs } from './MatchingPairs';
 import { Translate } from './Translate';
+import { InfoDisplay } from './InfoDisplay';
 
 // ============================================
 // TYPES
@@ -126,6 +127,15 @@ export const ActivityRouter: React.FC<ActivityProps> = ({
         />
       );
 
+    case GameActivityType.INFO:
+      // INFO is a teaching step - always completes with 0 sunDrops (no quiz)
+      return (
+        <InfoDisplay
+          data={data}
+          onComplete={() => onComplete(true, 0)}
+        />
+      );
+
     default:
       // Fallback for unknown types - should not happen in production
       console.error(`Unknown activity type: ${data.type}`);
@@ -144,6 +154,7 @@ export const ActivityRouter: React.FC<ActivityProps> = ({
  */
 export function getActivityTypeName(type: GameActivityType): string {
   const names: Record<GameActivityType, string> = {
+    [GameActivityType.INFO]: 'Learn',
     [GameActivityType.MULTIPLE_CHOICE]: 'Multiple Choice',
     [GameActivityType.FILL_BLANK]: 'Fill in the Blank',
     [GameActivityType.WORD_ARRANGE]: 'Word Arrange',
@@ -168,12 +179,13 @@ export function requiresTextInput(type: GameActivityType): boolean {
  */
 export function getActivityDifficultyRange(type: GameActivityType): [number, number] {
   const ranges: Record<GameActivityType, [number, number]> = {
-    [GameActivityType.MULTIPLE_CHOICE]: [1, 2],  // Easier, options given
-    [GameActivityType.TRUE_FALSE]: [1, 1],        // Easiest, 50/50 chance
-    [GameActivityType.MATCHING]: [2, 3],          // Medium, visual matching
-    [GameActivityType.FILL_BLANK]: [2, 3],        // Medium, recall required
-    [GameActivityType.WORD_ARRANGE]: [3, 4],      // Harder, construction
-    [GameActivityType.TRANSLATE]: [3, 4],         // Harder, production
+    [GameActivityType.INFO]: [0, 0],               // No quiz, no sun drops
+    [GameActivityType.MULTIPLE_CHOICE]: [1, 2],    // Easier, options given
+    [GameActivityType.TRUE_FALSE]: [1, 1],          // Easiest, 50/50 chance
+    [GameActivityType.MATCHING]: [2, 3],            // Medium, visual matching
+    [GameActivityType.FILL_BLANK]: [2, 3],          // Medium, recall required
+    [GameActivityType.WORD_ARRANGE]: [3, 4],        // Harder, construction
+    [GameActivityType.TRANSLATE]: [3, 4],           // Harder, production
   };
   return ranges[type] || [1, 2];
 }

@@ -58,6 +58,17 @@ interface TutorialContextValue {
   skipTutorial: () => void;
   /** Force-start tutorial (e.g. from Settings → "Replay tutorial") */
   startTutorial: () => void;
+  /**
+   * Call this when the user completes their very first lesson.
+   * Sets the `lf_first_lesson_done` flag. Tutorial starts later when
+   * GardenReveal dismisses via startTutorialIfPending().
+   */
+  onFirstLessonComplete: () => void;
+  /**
+   * Start the tutorial after GardenReveal dismisses.
+   * Only starts if first lesson is done and tutorial not yet complete.
+   */
+  startTutorialIfPending: () => void;
 }
 
 // ============================================
@@ -66,6 +77,13 @@ interface TutorialContextValue {
 
 /** localStorage key for fast first-paint check */
 const LS_KEY = 'lf_tutorial_complete';
+
+/**
+ * localStorage key that gates the tutorial on first lesson completion.
+ * Tutorial only fires AFTER the user has returned from their first ever lesson —
+ * at that point the garden context is meaningful and the "well done" intro makes sense.
+ */
+const LS_FIRST_LESSON_KEY = 'lf_first_lesson_done';
 
 /** Ordered steps the user walks through */
 const TUTORIAL_STEPS: TutorialStep[] = [
@@ -90,6 +108,9 @@ const TutorialContext = createContext<TutorialContextValue | null>(null);
 /**
  * Mark tutorial complete in both localStorage and PocketBase profile.
  * Non-fatal — if PB fails, localStorage still suppresses re-showing.
+ *
+ * IMPORTANT: The profiles collection has its OWN record ID separate from the
+ * auth user ID. We must query by `user` relation field, not use getOne(userId).
  */
 async function persistComplete(): Promise<void> {
   localStorage.setItem(LS_KEY, 'true');
@@ -97,9 +118,16 @@ async function persistComplete(): Promise<void> {
   if (isAuthenticated()) {
     try {
       const userId = pb.authStore.record?.id;
-      if (userId) {
-        await pb.collection('profiles').update(userId, { tutorialComplete: true });
-      }
+      if (!userId) return;
+
+      // Look up the profile record ID via the `user` relation filter
+      const records = await pb.collection('profiles').getList(1, 1, {
+        filter: `user = "${userId}"`,
+        fields: 'id',
+      });
+      if (records.items.length === 0) return; // Profile not created yet — localStorage covers this
+
+      await pb.collection('profiles').update(records.items[0].id, { tutorialComplete: true });
     } catch (err) {
       // Non-fatal — tutorial won't show again because of localStorage
       console.warn('[Tutorial] Failed to save tutorialComplete to PB:', err);
@@ -131,37 +159,38 @@ export const TutorialProvider: React.FC<TutorialProviderProps> = ({ children }) 
 
   // On mount: check if the user needs the tutorial.
   // We check localStorage first (fast, no async) then PB for cross-device sync.
+  // GATE: tutorial only fires AFTER the user's first lesson is complete
+  // (LS_FIRST_LESSON_KEY must be set). This ensures the garden tour is contextually
+  // meaningful — they've seen a lesson and now need to learn how to navigate.
   useEffect(() => {
     const locallyComplete = localStorage.getItem(LS_KEY) === 'true';
     if (locallyComplete) return;
 
-    // Check PB profile for tutorialComplete flag (cross-device)
+    // If first lesson hasn't happened yet, do nothing — onFirstLessonComplete will trigger.
+    const firstLessonDone = localStorage.getItem(LS_FIRST_LESSON_KEY) === 'true';
+    if (!firstLessonDone) return;
+
+    // Check PB profile for tutorialComplete flag (cross-device).
+    // IMPORTANT: profiles have their own record ID — query by `user` relation,
+    // not getOne(userId) which would try to find a record with the auth user's ID.
     const checkProfile = async () => {
-      if (!isAuthenticated()) {
-        // Not logged in — defer until auth resolves
-        return;
-      }
+      if (!isAuthenticated()) return;
       try {
         const userId = pb.authStore.record?.id;
         if (!userId) return;
-        const profile = await pb.collection('profiles').getOne(userId, {
-          // Fetch both fields: tutorialComplete is the definitive flag;
-          // onboardingComplete is the fallback for users who existed before
-          // the tutorialComplete field was added (pre-migration period).
-          fields: 'tutorialComplete,onboardingComplete',
+
+        const records = await pb.collection('profiles').getList(1, 1, {
+          filter: `user = "${userId}"`,
+          fields: 'id,tutorialComplete',
         });
 
-        // tutorialComplete is the authoritative "seen tutorial" flag.
-        // If null/false, the tutorial will show (correct for new users).
-        // Run scripts/migrate-tutorial-field.cjs once to backfill existing users.
-        if (profile.tutorialComplete === true) {
+        if (records.items.length > 0 && records.items[0].tutorialComplete === true) {
           localStorage.setItem(LS_KEY, 'true');
           return;
         }
       } catch {
-        // Ignore — if PB unreachable we still want to show tutorial for new users
+        // Ignore — if PB unreachable we still want to show tutorial
       }
-      // Show tutorial
       setCurrentStep('welcome');
       setIsActive(true);
     };
@@ -221,8 +250,44 @@ export const TutorialProvider: React.FC<TutorialProviderProps> = ({ children }) 
     setIsActive(true);
   }, []);
 
+  /**
+   * Called when the user completes their very first lesson.
+   * Marks first-lesson-done in localStorage so the tutorial gate passes.
+   * Does NOT start the tutorial immediately — that happens after GardenReveal
+   * dismisses, via startTutorialIfPending().
+   * 
+   * This separation ensures the GardenReveal celebration isn't blocked by
+   * the tutorial overlay.
+   */
+  const onFirstLessonComplete = useCallback(() => {
+    // Mark first lesson done — the useEffect gate now passes on future mounts
+    localStorage.setItem(LS_FIRST_LESSON_KEY, 'true');
+    // NOTE: Tutorial starts after GardenReveal dismisses, not here
+  }, []);
+
+  /**
+   * Start the tutorial if the user has completed their first lesson
+   * but hasn't seen the tutorial yet. Called from GardenReveal's onEnterGarden.
+   * 
+   * This ensures the tutorial appears AFTER the lesson complete celebration,
+   * not during it.
+   */
+  const startTutorialIfPending = useCallback(() => {
+    // If already completed the tutorial, do nothing
+    const alreadyComplete = localStorage.getItem(LS_KEY) === 'true';
+    if (alreadyComplete) return;
+
+    // Only start if first lesson was completed
+    const firstLessonDone = localStorage.getItem(LS_FIRST_LESSON_KEY) === 'true';
+    if (!firstLessonDone) return;
+
+    // Start the garden tour now — user has dismissed GardenReveal
+    setCurrentStep('welcome');
+    setIsActive(true);
+  }, []);
+
   return (
-    <TutorialContext.Provider value={{ isActive, currentStep, nextStep, skipTutorial, startTutorial }}>
+    <TutorialContext.Provider value={{ isActive, currentStep, nextStep, skipTutorial, startTutorial, onFirstLessonComplete, startTutorialIfPending }}>
       {children}
     </TutorialContext.Provider>
   );

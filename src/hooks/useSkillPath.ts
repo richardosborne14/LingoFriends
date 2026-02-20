@@ -31,6 +31,9 @@ import { pb, getCurrentUserId } from '../../services/pocketbaseService';
 // K3: Replaced synchronous mock lookup with async PB-backed service.
 // skillPathService has the same function name so the diff is minimal.
 import { getSkillPathById } from '../services/skillPathService';
+// G: When a path has 0 lesson titles, auto-generate them via Groq.
+// ensurePathGenerated is idempotent and non-fatal.
+import { ensurePathGenerated } from '../services/pathGeneratorService';
 import type { SkillPath, SkillPathLesson } from '../types/game';
 import { LessonStatus } from '../types/game';
 
@@ -196,6 +199,56 @@ export function useSkillPath(skillPathId: string, refreshKey = 0): UseSkillPathR
         setSkillPath(template);
         setIsLoading(false);
         return;
+      }
+
+      // ── Step 1b: Auto-generate lesson titles if path has none ────────────
+      // Happens when a brand-new skill_path record was just created by
+      // createInitialTree() but hasn't gone through the generation step yet.
+      // ensurePathGenerated calls Groq, patches the PB record, and busts the
+      // skillPathService cache — then we re-fetch the template so this render
+      // shows the freshly generated lesson list.
+      if (template.lessons.length === 0) {
+        console.log(`[useSkillPath] Path "${skillPathId}" has 0 lessons — triggering generation…`);
+
+        // ensurePathGenerated now returns the titles it generated (or [] on failure).
+        // We capture them so we can build an in-memory lesson list if the PB write
+        // fails with 403 (collection update rule blocks regular users).
+        const generatedTitles = await ensurePathGenerated(userId, skillPathId);
+        if (cancelled || !isMountedRef.current) return;
+
+        // Re-fetch from PB in case the write succeeded and cache was busted
+        const refreshedTemplate = await getSkillPathById(skillPathId);
+        if (cancelled || !isMountedRef.current) return;
+
+        if (refreshedTemplate && refreshedTemplate.lessons.length > 0) {
+          // PB write succeeded — use the freshly persisted template
+          Object.assign(template, refreshedTemplate);
+        } else if (generatedTitles.length > 0) {
+          // PB write failed (e.g. 403) but Groq generated titles successfully.
+          // Synthesize an in-memory lesson list so the path renders immediately.
+          // These lessons are functional for this session; the PB write failure
+          // is a collection-rule issue that should be fixed in the admin panel.
+          console.log(
+            `[useSkillPath] PB write blocked — using ${generatedTitles.length} in-memory lessons for "${skillPathId}"`,
+          );
+          const syntheticLessons: SkillPathLesson[] = generatedTitles.map((title, i) => ({
+            id: `${skillPathId}-lesson-${i}`,
+            title,
+            status: i === 0 ? LessonStatus.CURRENT : LessonStatus.LOCKED,
+            stars: 0 as 0 | 1 | 2 | 3,
+            sunDropsMax: 10,
+            sunDropsEarned: 0,
+            icon: '📖',
+          }));
+          // Patch the template in-place so the progress overlay below uses it
+          template.lessons = syntheticLessons;
+        } else {
+          // Both Groq and PB failed — show a kid-friendly "still loading" message
+          console.warn(`[useSkillPath] Generation produced 0 lessons for ${skillPathId}`);
+          setError('Still setting up your lessons — please wait a moment and refresh.');
+          setIsLoading(false);
+          return;
+        }
       }
 
       // ── Step 2: Fetch user progress from PB user_trees ──────────────────

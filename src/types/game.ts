@@ -50,6 +50,7 @@
  * Phase 2 will add LISTEN_TYPE and SPEAK for voice activities.
  */
 export enum GameActivityType {
+  INFO = 'info',                 // Information/teaching step (no quiz)
   MULTIPLE_CHOICE = 'multiple_choice',
   FILL_BLANK = 'fill_blank',
   WORD_ARRANGE = 'word_arrange',
@@ -207,6 +208,16 @@ export interface ActivityConfig {
   // Translate
   /** Source phrase to translate */
   sourcePhrase?: string;
+  
+  // INFO (teaching step)
+  /** Title for info display */
+  title?: string;
+  /** Main content for info display */
+  content?: string;
+  /** Additional explanation */
+  explanation?: string;
+  /** Example usage */
+  example?: string;
   
   // Common
   /** Hint shown below question when user taps "Help" */
@@ -692,6 +703,7 @@ export function getTreeCareItemById(id: string): TreeCareItem | undefined {
  * @deprecated Use GameActivityType for new code
  */
 export const ACTIVITY_TYPE_MAP: Record<GameActivityType, string> = {
+  [GameActivityType.INFO]: 'info',
   [GameActivityType.MULTIPLE_CHOICE]: 'quiz',
   [GameActivityType.FILL_BLANK]: 'fill_blank',
   [GameActivityType.WORD_ARRANGE]: 'word_arrange',

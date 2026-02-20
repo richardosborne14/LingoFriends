@@ -69,6 +69,12 @@ export interface GardenWorldProps {
   onPlacementEnd?: (placed: boolean) => void;
   /** Avatar position override */
   avatarPosition?: { gx: number; gz: number };
+  /**
+   * User ID used to seed the ambient decoration RNG.
+   * Passed straight through to GardenRenderer — same user always sees the
+   * same flowers/plants layout so it feels like their personal garden.
+   */
+  seedUserId?: string;
 }
 
 /**
@@ -130,12 +136,23 @@ export const GardenWorld3D = React.forwardRef<GardenWorldHandle, GardenWorldProp
       placementModeItem,
       onPlacementEnd,
       avatarPosition,
+      seedUserId,
     },
     ref
   ) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const rendererRef = useRef<GardenRenderer | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
+    
+    // Ref to track placement mode item - avoids stale closure in onTileClick callback.
+    // The callback is created once in useEffect(() => {}, []) but we need access
+    // to the current placementModeItem value on every click.
+    const placementModeItemRef = useRef<ShopItem | null>(null);
+    
+    // Keep the ref in sync with the prop
+    useEffect(() => {
+      placementModeItemRef.current = placementModeItem ?? null;
+    }, [placementModeItem]);
 
     // ==========================================================================
     // RENDERER INITIALIZATION
@@ -144,11 +161,13 @@ export const GardenWorld3D = React.forwardRef<GardenWorldHandle, GardenWorldProp
     useEffect(() => {
       if (!canvasRef.current) return;
 
-      // Create renderer
+      // Create renderer — pass seedUserId so ambient flowers/plants are seeded
+      // from the user's ID giving each user a unique-but-consistent garden layout.
       const renderer = new GardenRenderer({
         canvas: canvasRef.current,
         avatarOptions,
         initialObjects,
+        seedUserId,
         onAvatarMove: (gx, gz) => {
           onAvatarMove?.(gx, gz);
         },
@@ -161,9 +180,10 @@ export const GardenWorld3D = React.forwardRef<GardenWorldHandle, GardenWorldProp
           }
         },
         onTileClick: (gx, gz, isOccupied) => {
-          // Handle shop placement mode
-          if (placementModeItem && !isOccupied) {
-            const placed = renderer.placeObject(placementModeItem.id, gx, gz);
+          // Handle shop placement mode - use ref to avoid stale closure
+          const currentItem = placementModeItemRef.current;
+          if (currentItem && !isOccupied) {
+            const placed = renderer.placeObject(currentItem.id, gx, gz);
             if (placed) {
               onPlacementEnd?.(true);
             }
