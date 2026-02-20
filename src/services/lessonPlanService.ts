@@ -121,8 +121,14 @@ export async function generateLessonPlan(
     try {
       console.log('[lessonPlanService] Using V2 pedagogy pipeline for lesson:', lesson.title);
 
-      // Step 1: Load learner profile (creates one if first time)
-      const profile = await learnerProfileService.getOrCreateProfile(userId);
+      // Step 1: Load learner profile (creates one if first time).
+      // Pass targetLanguage as a default so the in-memory fallback (used when
+      // PocketBase learner_profiles schema isn't set up yet) uses the correct
+      // language instead of the hard-coded 'French' default.
+      const profile = await learnerProfileService.getOrCreateProfile(userId, {
+        targetLanguage: targetLanguage,
+        nativeLanguage: 'English',
+      });
 
       // Step 2: Build a SessionPlan — the engine picks target chunks,
       //         review chunks, i+1 difficulty, and recommended activity types

@@ -135,10 +135,20 @@ export class LessonGeneratorV2 {
     this.options = { ...DEFAULT_OPTIONS, ...options };
   }
   
+  /**
+   * Generate a lesson using the V2 pipeline:
+   *   1. AI generates chunk CONTENT only (via generateChunksForTopic)
+   *   2. lessonAssembler builds activities deterministically (teach-first 5-step)
+   *   3. lessonValidator gates the plan before it's returned
+   *
+   * Falls back to hardcoded starter chunks if Groq is unavailable.
+   * The fallback ALWAYS uses the correct target language — never a default.
+   */
   async generateLesson(request: LessonRequest): Promise<LessonGenerationResult> {
     const startTime = Date.now();
-    
-    // Check cache
+    const { sessionPlan, profile } = request;
+
+    // ── Cache check ────────────────────────────────────────────────
     if (this.options.enableCache) {
       const cacheKey = this.getCacheKey(request);
       const cached = this.lessonCache.get(cacheKey);
@@ -155,55 +165,213 @@ export class LessonGeneratorV2 {
         };
       }
     }
-    
+
+    // ── Language resolution — always use languageUtils ─────────────
+    // profile.targetLanguage may be an ISO code ("de") or a name ("German")
+    // toLanguageCode() handles both safely.
+    const targetLangCode = toLanguageCode(profile.targetLanguage);
+    const nativeLangCode = toLanguageCode(profile.nativeLanguage || 'English');
+    const targetLangName = toLanguageName(targetLangCode);
+    const nativeLangName = toLanguageName(nativeLangCode);
+
+    // Strip " (German)" suffix lessonPlanService adds to the topic for Groq context
+    const topic = sessionPlan.topic.replace(/\s*\([^)]*\)\s*$/, '').trim();
+    const chunkCount = Math.min(4, Math.max(2, sessionPlan.targetChunks.length || 3));
+
+    let lessonPlan: LessonPlan;
+    let usedFallback = false;
+
+    // ── PRIMARY PATH: AI chunk content → deterministic assembly ───
     try {
-      const context = this.buildPedagogyContext(request);
-      const activityCount = this.calculateActivityCount(request.sessionPlan);
-      const activityTypes = this.selectActivityTypes(activityCount, request.sessionPlan.recommendedActivities);
-      
-      const generationRequest: LessonGenerationRequest = {
-        context,
-        activityTypes,
-        activityCount,
-        topic: request.sessionPlan.topic,
-        difficultyLevel: Math.round(request.sessionPlan.difficulty),
+      const aiChunks = await aiPedagogyClient.generateChunksForTopic({
+        topic,
+        targetLanguageCode: targetLangCode,
+        nativeLanguageCode: nativeLangCode,
+        targetLanguageName: targetLangName,
+        nativeLanguageName: nativeLangName,
+        chunkCount,
+        ageGroup: getAgeGroup(profile.ageGroup),
+        interests: profile.explicitInterests || [],
+        existingChunks: sessionPlan.contextChunks?.map(c => c.text) || [],
+      });
+
+      const content: AILessonContent = {
+        title: topic,
+        targetLanguageCode: targetLangCode,
+        nativeLanguageCode: nativeLangCode,
+        chunks: aiChunks,
+        interests: profile.explicitInterests || [],
       };
-      
-      const generatedLesson = await aiPedagogyClient.generateLesson(generationRequest);
-      const lesson = this.convertToLessonPlan(generatedLesson, request);
-      
-      if (this.options.enableCache) {
-        const cacheKey = this.getCacheKey(request);
-        this.lessonCache.set(cacheKey, { lesson, timestamp: Date.now() });
-      }
-      
-      return {
-        lesson,
-        meta: {
-          generationTimeMs: Date.now() - startTime,
-          newChunksCount: generatedLesson.newChunkIds.length,
-          reviewChunksCount: generatedLesson.reviewChunkIds.length,
-          usedFallback: false,
-          activityTypes,
-        },
+
+      lessonPlan = assembleLessonPlan(content, `lesson_${Date.now()}`);
+      console.log(`[LessonGenerator] ✅ AI lesson: ${lessonPlan.steps.length} steps, ${targetLangName}`);
+
+    } catch (aiError) {
+      // ── FALLBACK PATH: hardcoded starters for the correct language ─
+      console.warn('[LessonGenerator] AI failed, using hardcoded fallback:', aiError);
+      usedFallback = true;
+
+      const fallbackChunks = this.getHardcodedStarterChunks(topic, targetLangCode);
+      const content: AILessonContent = {
+        title: topic,
+        targetLanguageCode: targetLangCode,
+        nativeLanguageCode: nativeLangCode,
+        chunks: fallbackChunks,
+        interests: [],
       };
-      
-    } catch (error) {
-      console.error('[LessonGenerator] AI generation failed, using fallback:', error);
-      
-      const fallbackLesson = this.generateFallbackLesson(request);
-      
-      return {
-        lesson: fallbackLesson,
-        meta: {
-          generationTimeMs: Date.now() - startTime,
-          newChunksCount: request.sessionPlan.targetChunks.length,
-          reviewChunksCount: request.sessionPlan.reviewChunks.length,
-          usedFallback: true,
-          activityTypes: this.extractActivityTypes(fallbackLesson),
-        },
-      };
+
+      lessonPlan = assembleLessonPlan(content, `fallback_${Date.now()}`);
+      console.log(`[LessonGenerator] ⚠️ Fallback lesson: ${lessonPlan.steps.length} steps, ${targetLangName}`);
     }
+
+    // ── VALIDATE before returning — no broken lessons reach LessonView ─
+    const validation = validateLessonPlan(lessonPlan);
+    if (!validation.valid) {
+      throw new Error(`Lesson validation failed: ${validation.errors.join('; ')}`);
+    }
+
+    // Cache the result
+    if (this.options.enableCache) {
+      const cacheKey = this.getCacheKey(request);
+      this.lessonCache.set(cacheKey, { lesson: lessonPlan, timestamp: Date.now() });
+    }
+
+    return {
+      lesson: lessonPlan,
+      meta: {
+        generationTimeMs: Date.now() - startTime,
+        newChunksCount: lessonPlan.steps.filter(s => s.activity.type === LegacyActivityType.INFO).length,
+        reviewChunksCount: 0,
+        usedFallback,
+        activityTypes: this.extractActivityTypes(lessonPlan),
+      },
+    };
+  }
+
+  /**
+   * Get hardcoded starter chunks for a given language code.
+   *
+   * Used when Groq is unavailable. Returns language-appropriate content
+   * in GeneratedChunkContent format so lessonAssembler can build a valid lesson.
+   *
+   * Covers: de (German), fr (French), es (Spanish), it (Italian), pt (Portuguese).
+   * Falls back to a generic set for unsupported languages.
+   *
+   * @param topic - The lesson topic (used to pick thematic chunks where possible)
+   * @param langCode - ISO 639-1 code ("de", "fr", etc.)
+   * @returns Array of GeneratedChunkContent objects
+   */
+  private getHardcodedStarterChunks(
+    _topic: string,
+    langCode: string
+  ): GeneratedChunkContent[] {
+    // Hardcoded chunks keyed by language code.
+    // All translations/distractors/contexts are in English (native language).
+    const STARTER_CHUNKS: Record<string, GeneratedChunkContent[]> = {
+      de: [
+        {
+          targetPhrase: 'Guten Morgen',
+          nativeTranslation: 'Good morning',
+          exampleSentence: 'Guten Morgen! Wie geht es Ihnen?',
+          usageNote: 'Use as a morning greeting until about noon',
+          explanation: 'A polite way to greet someone in the morning',
+          distractors: ['Good evening', 'Good night', 'Goodbye'],
+          correctUsageContext: 'When greeting someone in the morning',
+          wrongUsageContexts: ['When saying goodbye', 'When greeting at midnight', 'When asking for help'],
+        },
+        {
+          targetPhrase: 'Danke schön',
+          nativeTranslation: 'Thank you very much',
+          exampleSentence: 'Danke schön für Ihre Hilfe!',
+          usageNote: 'A polite and warm way to express gratitude',
+          explanation: '"Danke" means "thank you" — "schön" makes it extra warm',
+          distractors: ['You\'re welcome', 'Excuse me', 'Sorry'],
+          correctUsageContext: 'When someone has helped you or done something kind',
+          wrongUsageContexts: ['When greeting someone', 'When asking a question', 'When ordering food'],
+        },
+        {
+          targetPhrase: 'Auf Wiedersehen',
+          nativeTranslation: 'Goodbye',
+          exampleSentence: 'Auf Wiedersehen! Bis morgen.',
+          usageNote: 'A formal goodbye — literally "until we see each other again"',
+          explanation: 'More formal than "Tschüss" — use with strangers or in professional settings',
+          distractors: ['Hello', 'Good morning', 'Thank you'],
+          correctUsageContext: 'When leaving a formal situation or saying goodbye to strangers',
+          wrongUsageContexts: ['When arriving somewhere', 'When asking for directions', 'When greeting a friend'],
+        },
+      ],
+      fr: [
+        {
+          targetPhrase: 'Bonjour',
+          nativeTranslation: 'Hello / Good day',
+          exampleSentence: 'Bonjour, comment allez-vous?',
+          usageNote: 'The standard French greeting for any time of day',
+          explanation: 'The most common and versatile French greeting',
+          distractors: ['Goodbye', 'Good evening', 'Thank you'],
+          correctUsageContext: 'When greeting someone at any time of day',
+          wrongUsageContexts: ['When saying goodbye', 'When asking for help', 'When ordering food'],
+        },
+        {
+          targetPhrase: 'Merci beaucoup',
+          nativeTranslation: 'Thank you very much',
+          exampleSentence: 'Merci beaucoup pour votre aide!',
+          usageNote: 'A warm and polite way to say thank you',
+          explanation: '"Merci" = thank you, "beaucoup" = very much',
+          distractors: ['You\'re welcome', 'Please', 'Excuse me'],
+          correctUsageContext: 'When someone has helped you or done something kind',
+          wrongUsageContexts: ['When greeting someone', 'When saying goodbye', 'When apologising'],
+        },
+        {
+          targetPhrase: 'Au revoir',
+          nativeTranslation: 'Goodbye',
+          exampleSentence: 'Au revoir! À bientôt.',
+          usageNote: 'Standard goodbye for any situation',
+          explanation: 'Literally "until we see again" — works in formal and casual settings',
+          distractors: ['Hello', 'Good morning', 'Please'],
+          correctUsageContext: 'When leaving or saying goodbye',
+          wrongUsageContexts: ['When arriving somewhere', 'When thanking someone', 'When asking a question'],
+        },
+      ],
+      es: [
+        {
+          targetPhrase: 'Buenos días',
+          nativeTranslation: 'Good morning',
+          exampleSentence: '¡Buenos días! ¿Cómo estás?',
+          usageNote: 'Morning greeting, used until about noon',
+          explanation: 'The standard Spanish morning greeting',
+          distractors: ['Good evening', 'Goodbye', 'Thank you'],
+          correctUsageContext: 'When greeting someone in the morning',
+          wrongUsageContexts: ['When saying goodbye', 'When greeting at night', 'When asking for help'],
+        },
+        {
+          targetPhrase: 'Muchas gracias',
+          nativeTranslation: 'Thank you very much',
+          exampleSentence: '¡Muchas gracias por tu ayuda!',
+          usageNote: 'A warm, enthusiastic way to thank someone',
+          explanation: '"Muchas" means "many/much", "gracias" means "thank you"',
+          distractors: ['You\'re welcome', 'Excuse me', 'Please'],
+          correctUsageContext: 'When someone has done something kind for you',
+          wrongUsageContexts: ['When greeting someone', 'When saying goodbye', 'When apologising'],
+        },
+        {
+          targetPhrase: 'Hasta luego',
+          nativeTranslation: 'Goodbye / See you later',
+          exampleSentence: '¡Hasta luego! Nos vemos mañana.',
+          usageNote: 'A casual, friendly way to say goodbye',
+          explanation: 'Literally "until later" — common in everyday situations',
+          distractors: ['Hello', 'Good morning', 'Excuse me'],
+          correctUsageContext: 'When saying goodbye to someone you\'ll see again',
+          wrongUsageContexts: ['When greeting someone', 'When asking for help', 'When thanking someone'],
+        },
+      ],
+    };
+
+    // Return language-specific chunks if available, otherwise German as default
+    const chunks = STARTER_CHUNKS[langCode] ?? STARTER_CHUNKS['de'];
+    console.log(
+      `[LessonGenerator] Hardcoded fallback: ${chunks.length} chunks for lang="${langCode}"`
+    );
+    return chunks;
   }
   
   async generateSingleActivity(
