@@ -234,6 +234,12 @@ function validateActivity(
       if (!activity.sourcePhrase) {
         errors.push(`${stepLabel} (TR): Missing sourcePhrase`);
       }
+      // correctAnswer is required — Translate.tsx uses it for its guard check
+      // and for displaying the answer after multiple failed attempts.
+      // It should equal acceptedAnswers[0] (the canonical form).
+      if (!activity.correctAnswer) {
+        errors.push(`${stepLabel} (TR): Missing correctAnswer (Translate.tsx requires it)`);
+      }
       if (!activity.acceptedAnswers || activity.acceptedAnswers.length === 0) {
         errors.push(`${stepLabel} (TR): Missing acceptedAnswers (need at least 1)`);
       }

@@ -274,6 +274,10 @@ function buildRecallStep(chunk: GeneratedChunkContent, targetLangName: string): 
     activity: {
       type: GameActivityType.TRANSLATE,
       sourcePhrase: chunk.nativeTranslation,
+      // correctAnswer is the canonical form — Translate.tsx requires this for its
+      // validation check and "show answer after X wrong attempts" feature.
+      // acceptedAnswers includes lowercase/punctuation variants so kids aren't penalised.
+      correctAnswer: chunk.targetPhrase,
       acceptedAnswers,
       hint: `It starts with "${chunk.targetPhrase.substring(0, 3)}..."`,
       sunDrops: 3,
