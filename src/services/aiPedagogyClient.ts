@@ -23,6 +23,7 @@ import type {
   GameActivityType,
   CEFRSubLevel,
 } from '../types/pedagogy';
+import type { GeneratedChunkContent } from './lessonAssembler';
 
 // ============================================================================
 // CONFIGURATION
@@ -272,11 +273,229 @@ async function retryWithBackoff<T>(
 export class AIPedagogyClient {
   
   /**
-   * Generate a complete lesson with activities.
-   * 
-   * This is the main entry point for lesson generation.
-   * It builds a pedagogically-aware prompt and calls the AI.
-   * 
+   * Generate chunk content for a topic.
+   *
+   * The AI generates ONLY pedagogical content:
+   *   - Target phrases with native-language translations
+   *   - Example sentences and usage notes
+   *   - Plausible distractors (ALWAYS in the native language)
+   *   - Correct and wrong usage contexts (in the native language)
+   *
+   * The AI does NOT generate activities, ActivityConfig, or any UI structure.
+   * Activity assembly happens in lessonAssembler.ts.
+   *
+   * @param params - Topic, language info, and learner context
+   * @returns Array of GeneratedChunkContent objects ready for lessonAssembler
+   */
+  async generateChunksForTopic(params: {
+    topic: string;
+    targetLanguageCode: string;
+    nativeLanguageCode: string;
+    targetLanguageName: string;
+    nativeLanguageName: string;
+    chunkCount: number;
+    ageGroup: '7-10' | '11-14' | '15-18';
+    interests: string[];
+    existingChunks?: string[];
+  }): Promise<GeneratedChunkContent[]> {
+    const systemPrompt = `You are a language education content creator for children.
+Your job is to generate vocabulary content for a ${params.targetLanguageName} lesson.
+The learner's native language is ${params.nativeLanguageName}.
+Age group: ${params.ageGroup}.
+
+STRICT RULES:
+1. Generate exactly ${params.chunkCount} lexical chunks (whole phrases, not isolated words).
+2. All chunks (targetPhrase, exampleSentence) must be in ${params.targetLanguageName}.
+3. ALL translations, explanations, usageNotes, and distractors MUST be in ${params.nativeLanguageName}.
+4. Distractors MUST be plausible but clearly wrong. They MUST be in ${params.nativeLanguageName} — NEVER in ${params.targetLanguageName}.
+5. Usage contexts (correctUsageContext, wrongUsageContexts) MUST be in ${params.nativeLanguageName}.
+6. Keep content age-appropriate, encouraging, and positive.
+${params.interests.length > 0 ? `7. Learner interests: ${params.interests.join(', ')} — connect chunks where natural.` : ''}
+${params.existingChunks?.length ? `8. Do NOT repeat these phrases: ${params.existingChunks.join(', ')}` : ''}
+
+Respond with ONLY a JSON object with a "chunks" array. No markdown, no extra text.`;
+
+    const userPrompt = `Generate ${params.chunkCount} ${params.targetLanguageName} chunks for the topic: "${params.topic}"
+
+Return a JSON object with this exact structure:
+{
+  "chunks": [
+    {
+      "targetPhrase": "phrase in ${params.targetLanguageName}",
+      "nativeTranslation": "translation in ${params.nativeLanguageName}",
+      "exampleSentence": "short sentence using the phrase in ${params.targetLanguageName}",
+      "usageNote": "when/how to use this phrase — in ${params.nativeLanguageName}",
+      "explanation": "simple explanation for kids — in ${params.nativeLanguageName}",
+      "distractors": ["wrong1 in ${params.nativeLanguageName}", "wrong2 in ${params.nativeLanguageName}", "wrong3 in ${params.nativeLanguageName}"],
+      "correctUsageContext": "correct situation to use this phrase — in ${params.nativeLanguageName}",
+      "wrongUsageContexts": ["wrong situation 1 in ${params.nativeLanguageName}", "wrong situation 2", "wrong situation 3"]
+    }
+  ]
+}
+
+Return exactly ${params.chunkCount} chunks in the array. Nothing else.`;
+
+    console.log(`[AIPedagogyClient] Generating ${params.chunkCount} chunks for topic: "${params.topic}"`);
+
+    const response = await this.callGroq(systemPrompt, userPrompt, 3000);
+    return this.parseChunkContentResponse(response, params.chunkCount);
+  }
+
+  /**
+   * Parse and validate chunk content from an AI response.
+   *
+   * Handles both:
+   *   { "chunks": [...] }  — preferred format
+   *   [...]                — bare array (legacy)
+   *
+   * Invalid chunks are skipped with a warning. If ALL chunks fail
+   * validation, throws an Error so the caller can fall back.
+   *
+   * @param content - Raw string from Groq
+   * @param expectedCount - How many chunks we asked for (for logging)
+   * @returns Array of validated GeneratedChunkContent objects
+   */
+  private parseChunkContentResponse(
+    content: string,
+    expectedCount: number
+  ): GeneratedChunkContent[] {
+    let jsonStr = content.trim();
+
+    // Strip markdown fences if present
+    const fenceMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (fenceMatch) {
+      jsonStr = fenceMatch[1].trim();
+    }
+
+    let parsed: unknown[];
+    try {
+      const raw: unknown = JSON.parse(jsonStr);
+      if (Array.isArray(raw)) {
+        // Bare array
+        parsed = raw;
+      } else if (raw && typeof raw === 'object') {
+        // { "chunks": [...] } or { "data": [...] }
+        const obj = raw as Record<string, unknown>;
+        const arr = obj['chunks'] ?? obj['data'] ?? obj['items'] ?? null;
+        if (Array.isArray(arr)) {
+          parsed = arr;
+        } else {
+          throw new Error('Could not find a chunks array in the response object');
+        }
+      } else {
+        throw new Error('Unexpected JSON structure from AI');
+      }
+    } catch (e) {
+      console.error('[AIPedagogyClient] Failed to parse chunk JSON:', e);
+      console.error('[AIPedagogyClient] Raw response:', content.substring(0, 500));
+      throw new Error('AI returned invalid JSON for chunk content');
+    }
+
+    if (parsed.length === 0) {
+      throw new Error('AI returned an empty chunks array');
+    }
+
+    // Validate each chunk — skip bad ones, warn loudly
+    const validated: GeneratedChunkContent[] = [];
+    for (let i = 0; i < parsed.length; i++) {
+      const chunk = this.validateChunkContent(parsed[i], i + 1);
+      if (chunk) {
+        validated.push(chunk);
+      }
+    }
+
+    if (validated.length === 0) {
+      throw new Error('All AI-generated chunks failed validation — cannot build lesson');
+    }
+
+    if (validated.length < expectedCount) {
+      console.warn(
+        `[AIPedagogyClient] Only ${validated.length}/${expectedCount} chunks passed validation`
+      );
+    }
+
+    console.log(`[AIPedagogyClient] ✅ ${validated.length} chunks validated`);
+    return validated;
+  }
+
+  /**
+   * Validate a single raw chunk object from the AI.
+   *
+   * Returns null (with a console.warn) if required fields are missing.
+   * Attempts to salvage non-critical missing fields with safe defaults.
+   *
+   * @param raw - The raw parsed object
+   * @param index - 1-based position for logging
+   * @returns Validated GeneratedChunkContent or null
+   */
+  private validateChunkContent(raw: unknown, index: number): GeneratedChunkContent | null {
+    if (!raw || typeof raw !== 'object') {
+      console.warn(`[AIPedagogyClient] Chunk ${index}: not an object`);
+      return null;
+    }
+
+    const obj = raw as Record<string, unknown>;
+
+    // Critical fields — cannot salvage
+    const criticalFields = ['targetPhrase', 'nativeTranslation', 'distractors', 'correctUsageContext', 'wrongUsageContexts'];
+    for (const field of criticalFields) {
+      if (!obj[field]) {
+        console.warn(`[AIPedagogyClient] Chunk ${index}: missing critical field "${field}"`, obj);
+        return null;
+      }
+    }
+
+    // Validate array fields
+    if (!Array.isArray(obj['distractors']) || (obj['distractors'] as unknown[]).length < 3) {
+      console.warn(`[AIPedagogyClient] Chunk ${index}: distractors must be array of 3`);
+      return null;
+    }
+    if (!Array.isArray(obj['wrongUsageContexts']) || (obj['wrongUsageContexts'] as unknown[]).length < 3) {
+      console.warn(`[AIPedagogyClient] Chunk ${index}: wrongUsageContexts must be array of 3`);
+      return null;
+    }
+
+    const targetPhrase = String(obj['targetPhrase']).trim();
+    const nativeTranslation = String(obj['nativeTranslation']).trim();
+
+    // Salvageable optional fields
+    const exampleSentence = obj['exampleSentence'] ? String(obj['exampleSentence']).trim() : targetPhrase;
+    const usageNote = obj['usageNote'] ? String(obj['usageNote']).trim() : 'Use in conversation';
+    const explanation = obj['explanation'] ? String(obj['explanation']).trim() : `"${targetPhrase}" means "${nativeTranslation}"`;
+
+    const distractors = obj['distractors'] as unknown[];
+    const wrongUsageContexts = obj['wrongUsageContexts'] as unknown[];
+
+    return {
+      targetPhrase,
+      nativeTranslation,
+      exampleSentence,
+      usageNote,
+      explanation,
+      distractors: [
+        String(distractors[0]).trim(),
+        String(distractors[1]).trim(),
+        String(distractors[2]).trim(),
+      ],
+      correctUsageContext: String(obj['correctUsageContext']).trim(),
+      wrongUsageContexts: [
+        String(wrongUsageContexts[0]).trim(),
+        String(wrongUsageContexts[1]).trim(),
+        String(wrongUsageContexts[2]).trim(),
+      ],
+    };
+  }
+
+  // ============================================================================
+  // DEPRECATED METHODS — kept for backward compatibility, do not use in new code
+  // ============================================================================
+
+  /**
+   * @deprecated Use generateChunksForTopic() + lessonAssembler instead.
+   * This method asks the AI to generate full activity JSON which frequently
+   * produces wrong field names, missing fields, and language errors.
+   * It will be removed in a future refactor.
+   *
    * @param request - Lesson generation request
    * @returns Generated lesson with activities
    */

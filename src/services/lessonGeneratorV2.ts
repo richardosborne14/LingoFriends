@@ -38,6 +38,13 @@ import {
 } from './aiPedagogyClient';
 import type { LessonPlan, LessonStep, ActivityConfig } from '../types/game';
 import { GameActivityType as LegacyActivityType } from '../types/game';
+import { toLanguageCode, toLanguageName } from '../utils/languageUtils';
+import {
+  assembleLessonPlan,
+  type AILessonContent,
+  type GeneratedChunkContent,
+} from './lessonAssembler';
+import { validateLessonPlan } from './lessonValidator';
 
 // ============================================
 // TYPES

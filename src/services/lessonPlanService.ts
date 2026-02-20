@@ -25,6 +25,8 @@ import { getCurrentUserId } from '../../services/pocketbaseService';
 import { pedagogyEngine } from './pedagogyEngine';
 import { learnerProfileService } from './learnerProfileService';
 import lessonGeneratorV2 from './lessonGeneratorV2';
+// Rule 3 (.clinerules): ALL language name ↔ code conversion MUST use languageUtils
+import { toLanguageCode } from '../utils/languageUtils';
 
 // ============================================
 // HELPER FUNCTIONS
@@ -44,8 +46,8 @@ function createDefaultProfile(
   return {
     id: `temp-${userId}`,
     userId,
-    nativeLanguage: nativeLanguage.toLowerCase().substring(0, 2),
-    targetLanguage: targetLanguage.toLowerCase().substring(0, 2),
+    nativeLanguage: toLanguageCode(nativeLanguage),
+    targetLanguage: toLanguageCode(targetLanguage),
     currentLevel: 0,
     levelHistory: [{ date: now, value: 0 }],
     totalChunksEncountered: 0,

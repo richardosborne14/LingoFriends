@@ -104,6 +104,11 @@ export interface LearnerProfileService {
  * Convert language name to ISO 639-1 code.
  * The PocketBase schema has a 5-char max constraint on language fields.
  */
+/**
+ * @deprecated Import toLanguageCode from '../utils/languageUtils' instead.
+ * This local copy is kept temporarily as a safety net but should not be extended.
+ * Rule 3 in .clinerules: ALL language code conversion MUST use languageUtils.ts.
+ */
 function toLanguageCode(language: string): string {
   const codes: Record<string, string> = {
     'english': 'en',
