@@ -115,6 +115,7 @@ export function buildAvatar(options: AvatarOptions = DEFAULT_AVATAR): THREE.Grou
   // ===== Mouth (cute smile arc) =====
   const mouthGeometry = new THREE.BoxGeometry(0.08, 0.018, 0.01);
   const mouth = new THREE.Mesh(mouthGeometry, blackMaterial);
+  mouth.name = 'mouth';  // Named for animation in EncounterScene
   mouth.position.set(0, TH / 2 + 0.76, 0.23);
   group.add(mouth);
   

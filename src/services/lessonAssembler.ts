@@ -8,12 +8,15 @@
  *   This module builds ACTIVITIES (ActivityConfig objects).
  *   These two concerns are NEVER mixed.
  *
- * Every chunk goes through the teach-first 5-step progression:
- *   1. INTRODUCE — Show chunk + translation (INFO, 0 SunDrops)
- *   2. RECOGNIZE — "What does X mean?" MC in native language (1 SunDrop)
- *   3. PRACTICE  — Fill blank with last word (2 SunDrops)
- *   4. RECALL    — Translate native → target (3 SunDrops)
- *   5. APPLY     — "When would you say X?" context MC (2 SunDrops)
+ * ACTIVITY VARIETY (Phase 1.3):
+ *   Instead of a fixed 5-step sequence, each chunk now goes through:
+ *   1. INTRODUCE — INFO step (always first, teaches the chunk)
+ *   2-5. VARIED QUIZZES — Activity types chosen by activitySequencer
+ *
+ * The sequencer ensures:
+ *   - No consecutive duplicate activity types
+ *   - Minimum variety (3+ types for 5+ quiz steps)
+ *   - Tier progression (recognition → production)
  *
  * This module has ZERO dependency on the AI client. It is pure TypeScript
  * and always produces valid, fully-populated ActivityConfig objects.
@@ -24,6 +27,11 @@
 import { GameActivityType } from '../types/game';
 import type { ActivityConfig, LessonStep, LessonPlan } from '../types/game';
 import { toLanguageName } from '../utils/languageUtils';
+import {
+  planActivitySequence,
+  getSunDropsForType,
+  type SequencePlan,
+} from './activitySequencer';
 
 // ============================================================================
 // TYPES — THE ONLY INTERFACE BETWEEN AI OUTPUT AND LESSON ASSEMBLY
@@ -106,20 +114,58 @@ export interface AILessonContent {
  * This function is DETERMINISTIC — same input always produces same output.
  * It NEVER calls the AI or makes any network requests.
  *
+ * ACTIVITY VARIETY:
+ * Instead of fixed types for each step, we use the activitySequencer to
+ * plan varied activity types before building the activities.
+ *
  * @param content - AI-generated chunk content (from generateChunksForTopic)
  * @param lessonId - Unique lesson ID supplied by the caller
+ * @param options - Optional settings including difficulty level
  * @returns A fully populated LessonPlan ready for LessonView
  */
 export function assembleLessonPlan(
   content: AILessonContent,
-  lessonId: string
+  lessonId: string,
+  options?: { difficulty?: number; seed?: number }
 ): LessonPlan {
   const targetLangName = toLanguageName(content.targetLanguageCode);
-  const steps: LessonStep[] = [];
+  const difficulty = options?.difficulty ?? 2;
+  const seed = options?.seed;
 
-  // Each chunk contributes exactly 5 steps
-  for (const chunk of content.chunks) {
-    steps.push(...assembleTeachFirstSteps(chunk, targetLangName));
+  // Calculate total steps: 5 steps per chunk (1 INFO + 4 quiz)
+  const stepsPerChunk = 5;
+  const totalSteps = content.chunks.length * stepsPerChunk;
+
+  // INFO step positions: first step of each chunk (0, 5, 10, ...)
+  const infoStepIndices: number[] = [];
+  for (let i = 0; i < content.chunks.length; i++) {
+    infoStepIndices.push(i * stepsPerChunk);
+  }
+
+  // Plan the activity sequence for variety
+  const sequencePlan = planActivitySequence(totalSteps, infoStepIndices, {
+    difficulty,
+    seed,
+  });
+
+  // Build steps using the planned sequence
+  const steps: LessonStep[] = [];
+  let quizTypeIndex = 0;
+
+  for (let chunkIndex = 0; chunkIndex < content.chunks.length; chunkIndex++) {
+    const chunk = content.chunks[chunkIndex];
+
+    // Step 1: INFO (always first for each chunk)
+    steps.push(buildIntroduceStep(chunk));
+
+    // Steps 2-5: Varied quiz activities based on the sequence plan
+    for (let stepOffset = 1; stepOffset < stepsPerChunk; stepOffset++) {
+      const plannedType = sequencePlan.quizTypes[quizTypeIndex];
+      quizTypeIndex++;
+
+      const step = buildQuizStep(chunk, plannedType, targetLangName);
+      steps.push(step);
+    }
   }
 
   // Sum sunDrops from all steps
@@ -127,7 +173,7 @@ export function assembleLessonPlan(
 
   console.log(
     `[lessonAssembler] Assembled ${steps.length} steps for ${content.chunks.length} chunks ` +
-    `(${totalSunDrops} SunDrops total)`
+    `(${totalSunDrops} SunDrops, ${sequencePlan.distinctTypeCount} distinct types)`
   );
 
   return {
@@ -139,6 +185,42 @@ export function assembleLessonPlan(
     steps,
     totalSunDrops,
   };
+}
+
+/**
+ * Build a quiz step for a specific activity type.
+ *
+ * This is the core of activity variety — instead of always building
+ * the same 4 quiz types for each chunk, we build whatever type
+ * the sequencer planned.
+ *
+ * @param chunk - The chunk content to build an activity for
+ * @param type - The planned activity type
+ * @param targetLangName - Target language name for tutor text
+ * @returns A complete LessonStep with the specified activity type
+ */
+function buildQuizStep(
+  chunk: GeneratedChunkContent,
+  type: GameActivityType,
+  targetLangName: string
+): LessonStep {
+  switch (type) {
+    case GameActivityType.MULTIPLE_CHOICE:
+      return buildRecognizeStep(chunk);
+    case GameActivityType.TRUE_FALSE:
+      return buildTrueFalseStep(chunk);
+    case GameActivityType.FILL_BLANK:
+      return buildPracticeStep(chunk);
+    case GameActivityType.MATCHING:
+      return buildMatchingStep(chunk);
+    case GameActivityType.TRANSLATE:
+      return buildRecallStep(chunk, targetLangName);
+    case GameActivityType.WORD_ARRANGE:
+      return buildWordArrangeStep(chunk);
+    default:
+      // Fallback to multiple choice for safety
+      return buildRecognizeStep(chunk);
+  }
 }
 
 /**
@@ -307,6 +389,138 @@ function buildApplyStep(chunk: GeneratedChunkContent): LessonStep {
       sunDrops: 2,
     },
   };
+}
+
+// ============================================================================
+// ADDITIONAL ACTIVITY BUILDERS FOR VARIETY
+// ============================================================================
+
+/**
+ * Build a TRUE_FALSE activity for a chunk.
+ *
+ * The learner evaluates whether a statement about the phrase is true.
+ * This is a recognition-tier activity (easiest).
+ */
+function buildTrueFalseStep(chunk: GeneratedChunkContent): LessonStep {
+  // Randomly decide whether to show a true or false statement
+  // Use deterministic "randomness" based on phrase length
+  const showTrue = chunk.targetPhrase.length % 2 === 0;
+
+  let statement: string;
+  let isTrue: boolean;
+
+  if (showTrue) {
+    statement = `"${chunk.targetPhrase}" means "${chunk.nativeTranslation}"`;
+    isTrue = true;
+  } else {
+    // Create a false statement using a wrong translation
+    const wrongTranslation = chunk.distractors[0];
+    statement = `"${chunk.targetPhrase}" means "${wrongTranslation}"`;
+    isTrue = false;
+  }
+
+  return {
+    tutorText: `Quick check: Is this statement true or false?`,
+    helpText: `Think about what "${chunk.targetPhrase}" means...`,
+    activity: {
+      type: GameActivityType.TRUE_FALSE,
+      statement,
+      isTrue,
+      hint: `"${chunk.targetPhrase}" = "${chunk.nativeTranslation}"`,
+      sunDrops: 1,
+    },
+  };
+}
+
+/**
+ * Build a MATCHING activity for a chunk.
+ *
+ * The learner matches the target phrase with its translation.
+ * We include the correct chunk + 3 distractors for a 4-pair matching game.
+ *
+ * Note: This activity works best when we have multiple chunks available.
+ * For a single chunk, we generate pseudo-distractors from the chunk's distractors.
+ */
+function buildMatchingStep(chunk: GeneratedChunkContent): LessonStep {
+  // Build pairs: correct pair + 3 distractor pairs
+  // For matching, we need target phrases paired with native translations
+  const pairs = [
+    { left: chunk.targetPhrase, right: chunk.nativeTranslation },
+    // Create distractor pairs (wrong pairings)
+    { left: chunk.distractors[0], right: chunk.distractors[1] },
+    { left: chunk.distractors[1], right: chunk.distractors[2] },
+    { left: chunk.distractors[2], right: chunk.distractors[0] },
+  ];
+
+  // Shuffle the pairs for variety
+  const shuffledPairs = shufflePairs(pairs);
+
+  return {
+    tutorText: `Match the phrases with their meanings!`,
+    helpText: `Find the pair: "${chunk.targetPhrase}" = "${chunk.nativeTranslation}"`,
+    activity: {
+      type: GameActivityType.MATCHING,
+      pairs: shuffledPairs,
+      hint: `"${chunk.targetPhrase}" means "${chunk.nativeTranslation}"`,
+      sunDrops: 2,
+    },
+  };
+}
+
+/**
+ * Build a WORD_ARRANGE activity for a chunk.
+ *
+ * The learner arranges scrambled words to form the target phrase.
+ * This is a production-tier activity (harder).
+ */
+function buildWordArrangeStep(chunk: GeneratedChunkContent): LessonStep {
+  // Split the phrase into words
+  const words = chunk.targetPhrase.split(/\s+/);
+
+  // Create a scrambled version (shuffled array)
+  const scrambledWords = shuffleWords(words);
+
+  return {
+    tutorText: `Arrange the words to form: "${chunk.nativeTranslation}"`,
+    helpText: `The correct phrase is: "${chunk.targetPhrase}"`,
+    activity: {
+      type: GameActivityType.WORD_ARRANGE,
+      targetSentence: chunk.targetPhrase,
+      scrambledWords,
+      hint: `"${chunk.targetPhrase}" = "${chunk.nativeTranslation}"`,
+      sunDrops: 3,
+    },
+  };
+}
+
+// ============================================================================
+// ADDITIONAL HELPERS FOR VARIETY ACTIVITIES
+// ============================================================================
+
+/**
+ * Shuffle an array of words using Fisher-Yates algorithm.
+ * Uses deterministic randomness based on the words themselves.
+ */
+function shuffleWords(words: string[]): string[] {
+  const result = [...words];
+  // Simple shuffle - swap each element with a random position
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor((i + words[i].length) % (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+/**
+ * Shuffle pairs array for variety in matching activities.
+ */
+function shufflePairs(pairs: Array<{ left: string; right: string }>): Array<{ left: string; right: string }> {
+  const result = [...pairs];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = (i * 3) % (i + 1);
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
 }
 
 // ============================================================================

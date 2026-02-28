@@ -127,6 +127,11 @@ export function validateLessonPlan(plan: LessonPlan): ValidationResult {
     );
   }
 
+  // ── Activity variety check ───────────────────────────────────────────────
+  const varietyResult = validateActivityVariety(plan.steps);
+  errors.push(...varietyResult.errors);
+  warnings.push(...varietyResult.warnings);
+
   const valid = errors.length === 0;
 
   if (valid && warnings.length === 0) {
@@ -283,6 +288,76 @@ function validateActivity(
 
     default:
       errors.push(`${stepLabel}: Unknown activity type "${type}"`);
+  }
+
+  return { errors, warnings };
+}
+
+// ============================================================================
+// ACTIVITY VARIETY VALIDATOR
+// ============================================================================
+
+/**
+ * Validate that a lesson has sufficient activity variety.
+ *
+ * This implements the Phase 1.3 variety rules:
+ * - NO two consecutive quiz steps should have the same activity type
+ * - Lessons with 5+ quiz steps should use at least 3 distinct types
+ * - Lessons with 7+ quiz steps should use at least 4 distinct types
+ * - ALL quiz steps being the same type is a blocking ERROR
+ *
+ * @param steps - The lesson steps to validate
+ * @returns Errors (blocking) and warnings (non-blocking)
+ */
+function validateActivityVariety(steps: LessonStep[]): { errors: string[]; warnings: string[] } {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+
+  // Get quiz step types (exclude INFO)
+  const quizTypes = steps
+    .filter(s => s.activity?.type !== GameActivityType.INFO)
+    .map(s => s.activity?.type)
+    .filter(Boolean) as GameActivityType[];
+
+  if (quizTypes.length === 0) {
+    // No quiz steps - that's a different problem, caught elsewhere
+    return { errors, warnings };
+  }
+
+  // ── Check for consecutive duplicates ──────────────────────────────────────
+  for (let i = 1; i < quizTypes.length; i++) {
+    if (quizTypes[i] === quizTypes[i - 1]) {
+      warnings.push(
+        `Consecutive duplicate activity type: steps ${i} and ${i + 1} are both ${quizTypes[i]}`
+      );
+    }
+  }
+
+  // ── Check minimum variety ─────────────────────────────────────────────────
+  const distinctTypes = new Set(quizTypes);
+
+  // 5+ quiz steps → at least 3 distinct types
+  if (quizTypes.length >= 5 && distinctTypes.size < 3) {
+    warnings.push(
+      `Low variety: only ${distinctTypes.size} distinct type(s) in ${quizTypes.length} quiz steps ` +
+      `(recommended: at least 3). Types used: ${[...distinctTypes].join(', ')}`
+    );
+  }
+
+  // 7+ quiz steps → at least 4 distinct types
+  if (quizTypes.length >= 7 && distinctTypes.size < 4) {
+    warnings.push(
+      `Low variety for long lesson: only ${distinctTypes.size} distinct type(s) in ${quizTypes.length} quiz steps ` +
+      `(recommended: at least 4). Consider adding more variety.`
+    );
+  }
+
+  // ── ALL same type is a BLOCKING error ────────────────────────────────────
+  if (distinctTypes.size === 1 && quizTypes.length > 2) {
+    errors.push(
+      `All ${quizTypes.length} quiz steps use the same activity type: ${quizTypes[0]}. ` +
+      `This violates variety requirements. Lessons must include multiple activity types.`
+    );
   }
 
   return { errors, warnings };

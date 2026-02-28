@@ -104,6 +104,28 @@ export interface ProfileRecord extends RecordModel {
   /** Avatar emoji for display */
   avatarEmoji?: string;
   
+  // Avatar customization options (Phase 1.3 Task 3)
+  /** Avatar gender for body/hair geometry */
+  avatarGender?: 'boy' | 'girl';
+  
+  /** Shirt color as hex number */
+  avatarShirtColor?: number;
+  
+  /** Pants color as hex number */
+  avatarPantsColor?: number;
+  
+  /** Hair color as hex number */
+  avatarHairColor?: number;
+  
+  /** Skin tone as hex number */
+  avatarSkinTone?: number;
+  
+  /** Hat style selection */
+  avatarHat?: 'none' | 'cap' | 'wizard' | 'crown' | 'flower';
+  
+  /** Hat color as hex number */
+  avatarHatColor?: number;
+  
   /** Total Sun Drops balance */
   sunDrops: number;
   

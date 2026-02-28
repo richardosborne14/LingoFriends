@@ -21,6 +21,11 @@ import { LessonComplete } from './LessonComplete';
 import { ActivityRouter, ActivityProps } from './activities/ActivityRouter';
 import { ProgressBar } from '../../../components/ui/ProgressBar';
 import { LessonPlan, LessonStep } from '../../types/game';
+import { GameActivityType } from '../../types/game';
+import { useLessonAudio } from '../../hooks/useLessonAudio';
+import { AudioReplayButton } from './AudioReplayButton';
+import { EncounterView } from './EncounterView';
+import type { TargetLanguage } from '../../../types';
 
 // ============================================
 // TYPES
@@ -36,6 +41,8 @@ export interface LessonViewProps {
   onComplete: (result: LessonResult) => void;
   /** Callback when user exits early */
   onExit: () => void;
+  /** Target language for TTS audio playback */
+  targetLanguage?: TargetLanguage;
 }
 
 /**
@@ -119,6 +126,7 @@ export const LessonView: React.FC<LessonViewProps> = ({
   lesson,
   onComplete,
   onExit,
+  targetLanguage = 'French', // Default to French if not provided
 }) => {
   // Track lesson state
   const [state, setState] = useState<LessonState>({
@@ -142,6 +150,34 @@ export const LessonView: React.FC<LessonViewProps> = ({
   
   // Progress percentage
   const progress = ((state.currentStepIndex + 1) / lesson.steps.length) * 100;
+
+  // ============================================
+  // AUDIO MANAGEMENT
+  // ============================================
+  
+  /**
+   * Audio hook for TTS playback during lessons.
+   * - Pre-generates audio for all chunks on mount
+   * - Auto-plays on INFO steps
+   * - Provides replay functionality
+   */
+  const {
+    isAudioPlaying,
+    isAudioLoading,
+    isPregenComplete,
+    playChunkAudio,
+    stopChunkAudio,
+    hasAudio,
+  } = useLessonAudio({
+    lesson,
+    currentStepIndex: state.currentStepIndex,
+    targetLanguage,
+    autoPlay: true,
+    autoPlayDelay: 800, // 800ms delay before auto-play on INFO steps
+  });
+
+  // Determine if current step is INFO type for button sizing
+  const isInfoStep = currentStep?.activity?.type === GameActivityType.INFO;
 
   // ============================================
   // HANDLERS
@@ -301,6 +337,14 @@ export const LessonView: React.FC<LessonViewProps> = ({
         />
       </div>
 
+      {/* NPC Avatar Encounter Scene — RPG-style character meeting */}
+      <EncounterView
+        stepIndex={state.currentStepIndex}
+        totalSteps={lesson.steps.length}
+        lessonId={lesson.id}
+        isAudioPlaying={isAudioPlaying}
+      />
+
       {/* Main content area */}
       <main className="p-6 max-w-lg mx-auto">
         {/* Tutor bubble with guidance */}
@@ -310,6 +354,31 @@ export const LessonView: React.FC<LessonViewProps> = ({
             animate={{ opacity: 1 }}
           >
             <TutorBubble text={currentStep.tutorText} />
+          </motion.div>
+        )}
+
+        {/* Audio replay button — prominent on INFO steps, compact on quiz steps */}
+        {hasAudio && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className={`flex justify-center ${
+              isInfoStep
+                ? 'my-6'  // Large gap on INFO steps — it's the main interaction
+                : 'my-2'  // Compact on quiz steps — secondary to the activity
+            }`}
+          >
+            <AudioReplayButton
+              isPlaying={isAudioPlaying}
+              isLoading={isAudioLoading}
+              onPress={playChunkAudio}
+              size={isInfoStep ? 'lg' : 'sm'}
+              label={isInfoStep
+                ? (isAudioPlaying ? 'Playing...' : 'Tap to hear again')
+                : undefined
+              }
+            />
           </motion.div>
         )}
 

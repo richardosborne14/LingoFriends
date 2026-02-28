@@ -759,6 +759,7 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile, i
                 lesson={state.activeLessonPlan}
                 onComplete={handleLessonComplete}
                 onExit={handleLessonExitWithTransition}
+                targetLanguage={profile.targetLanguage}
               />
             </motion.div>
           )}
