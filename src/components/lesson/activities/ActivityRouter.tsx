@@ -17,6 +17,7 @@ import { TrueFalse } from './TrueFalse';
 import { MatchingPairs } from './MatchingPairs';
 import { Translate } from './Translate';
 import { InfoDisplay } from './InfoDisplay';
+import { CoachingChat } from './CoachingChat';
 
 // ============================================
 // TYPES
@@ -181,23 +182,15 @@ export const ActivityRouter: React.FC<ActivityProps> = ({
       );
 
     case GameActivityType.COACHING_CHAT:
-      // Phase 3: Coached discovery step.
-      // The CoachingChat component is implemented in Task 3.4.
-      // Until then, fall through to the default error display.
-      // This case is here to satisfy exhaustive Record checks in TypeScript.
-      console.warn('[ActivityRouter] COACHING_CHAT should be rendered by CoachingChat component, not ActivityRouter');
-      // Fallthrough intentional — show error until Task 3.4 wires CoachingChat
+      // Phase 3 (Task 3.4): Guided discovery step — non-graded.
+      // CoachingChat handles all four sub-phases internally:
+      //   INTRO → DISCOVER → REVEAL → READY
+      // onWrong is intentionally NOT passed — there are no wrong answers here.
       return (
-        <div className="p-4 bg-amber-50 border-2 border-amber-300 rounded-xl text-amber-700">
-          <p className="font-bold">🚧 Coaching step coming soon!</p>
-          <p className="text-sm">This feature is being implemented in Task 3.4.</p>
-          <button
-            className="mt-2 px-4 py-2 bg-amber-400 rounded-lg text-white text-sm"
-            onClick={() => onComplete(true, 0)}
-          >
-            Continue →
-          </button>
-        </div>
+        <CoachingChat
+          data={data}
+          onComplete={onComplete}
+        />
       );
 
     default:

@@ -29,6 +29,7 @@ import { WorldMapView } from './src/components/world';
 import { DEFAULT_AVATAR, ShopItem } from './src/renderer';
 import { PathView } from './src/components/path';
 import { LessonView } from './src/components/lesson';
+import { PreLessonChat } from './src/components/lesson/PreLessonChat';
 import { generateLessonPlan } from './src/services/lessonPlanService';
 import {
   saveLessonCompletion,
@@ -198,6 +199,16 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile, i
   // Lesson state (for generating lesson plan when starting)
   const [lessonLoading, setLessonLoading] = useState(false);
 
+  /**
+   * Phase 3 (Task 3.3): Pre-lesson chat gate.
+   *
+   * When the learner taps a lesson node, we store the lesson here FIRST and
+   * show the PreLessonChat screen. Once the chat completes (or is skipped),
+   * we run lesson generation with the returned personalContext (may be null).
+   * pendingLessonNode === null means "no pre-lesson chat is showing".
+   */
+  const [pendingLessonNode, setPendingLessonNode] = useState<SkillPathLesson | null>(null);
+
   // ── First-run state ────────────────────────────────────────────────────────
   // GardenReveal data — set when the first lesson completes on a first-run session.
   // null = not showing; non-null = show the GardenReveal overlay with these props.
@@ -251,9 +262,38 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile, i
    *   pedagogyEngine.prepareSession()               → i+1 calibration + chunk selection
    *   lessonGeneratorV2.generateLesson()            → Groq-powered activity generation
    */
-  const handleStartLesson = useCallback(async (lesson: SkillPathLesson) => {
-    console.log('[GameApp] Starting lesson:', lesson.title);
+  /**
+   * Phase 3 (Task 3.3): Step 1 of lesson start.
+   *
+   * Show the pre-lesson personalisation chat BEFORE generating the lesson.
+   * The actual generation runs in handlePreLessonChatComplete once the chat
+   * finishes (or is skipped). Rule 9: skip is always available.
+   */
+  const handleStartLesson = useCallback((lesson: SkillPathLesson) => {
+    console.log('[GameApp] Starting lesson (pre-lesson chat):', lesson.title);
+    // Store the pending lesson — triggers PreLessonChat overlay to show
+    setPendingLessonNode(lesson);
+  }, []);
+
+  /**
+   * Phase 3 (Task 3.3): Step 2 of lesson start.
+   *
+   * Called by PreLessonChat when the learner finishes (or skips) the chat.
+   * personalContext is null when the user tapped "Skip personalisation".
+   * RULE 9: We NEVER fail if personalContext is null — generation always proceeds.
+   */
+  const handlePreLessonChatComplete = useCallback(async (personalContext: string | null) => {
+    const lesson = pendingLessonNode;
+    if (!lesson) return; // Shouldn't happen, but be safe
+
+    // Clear the pre-lesson chat overlay immediately
+    setPendingLessonNode(null);
     setLessonLoading(true);
+
+    console.log(
+      '[GameApp] Pre-lesson chat complete. personalContext:',
+      personalContext ? `"${personalContext.substring(0, 60)}..."` : 'null (skipped)'
+    );
 
     try {
       let lessonPlan: LessonPlan | null = null;
@@ -262,57 +302,49 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile, i
       // ── V2 path ─────────────────────────────────────────────────────────
       if (userId) {
         try {
-          // Get or create learner profile — first lesson initialises the record.
           const learnerProfile = await learnerProfileService.getOrCreateProfile(userId, {
             targetLanguage: profile.targetLanguage ?? 'French',
             nativeLanguage: profile.nativeLanguage ?? 'English',
           });
 
-          // Run i+1 calibration and select appropriate chunks.
-          // topic: lesson.title gives the engine a human-readable context hint
-          // (e.g. "Greetings & Basics") so chunk generation is topic-aware.
           const sessionPlan = await pedagogyEngine.prepareSession(userId, {
             topic: lesson.title,
             maxNewChunks: 5,
-            duration: 10, // minutes — default session length
+            duration: 10,
           });
 
-          // Generate chunk-based activities via Groq.
           const { lesson: generatedPlan } = await lessonGeneratorV2.generateLesson({
             userId,
             sessionPlan,
             profile: learnerProfile,
+            // Pass personal context from the pre-lesson chat (Rule 9: may be null)
+            personalContext,
           });
 
           lessonPlan = generatedPlan;
-          // Store the plan so handleLessonComplete can run chunk-level SRS.
-          // Cleared to null after lesson completes or if the lesson is exited.
           activePlanRef.current = sessionPlan;
-          console.log('[GameApp] V2 lesson generated successfully');
+          console.log('[GameApp] V2 lesson generated with personalContext:', personalContext !== null);
         } catch (v2Error) {
-          // Non-fatal: cold start (no chunks yet) or network failure.
-          // Fall through to v1.
           console.warn('[GameApp] V2 generation failed, falling back to v1:', v2Error);
         }
       }
 
       // ── V1 fallback ──────────────────────────────────────────────────────
-      // Used when: user has no chunks yet, Groq is unavailable, or not authed.
       if (!lessonPlan) {
         lessonPlan = await generateLessonPlan({
           lesson,
           targetLanguage: profile.targetLanguage,
+          personalContext,
         });
       }
 
       actions.goToLesson(lesson, lessonPlan);
     } catch (error) {
       console.error('[GameApp] Failed to generate lesson:', error);
-      // TODO (Task D): Show kid-friendly error toast
     } finally {
       setLessonLoading(false);
     }
-  }, [actions, profile.targetLanguage, profile.nativeLanguage]);
+  }, [actions, pendingLessonNode, profile.targetLanguage, profile.nativeLanguage]);
 
   /**
    * Handle lesson completion — saves progress to Pocketbase.
@@ -768,6 +800,33 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile, i
                 onComplete={handleLessonComplete}
                 onExit={handleLessonExitWithTransition}
                 targetLanguage={profile.targetLanguage}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Phase 3 (Task 3.3): Pre-lesson personalisation chat overlay.
+            Shown when the learner taps a lesson node — BEFORE generation.
+            Full-screen overlay, dismissible via "Skip personalisation" button.
+            Rule 9: Always completable with null context — never blocking. */}
+        <AnimatePresence>
+          {pendingLessonNode && (
+            <motion.div
+              key="pre-lesson-chat"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-gradient-to-b from-amber-50 to-white flex items-center justify-center z-50 px-4 py-8"
+            >
+              <PreLessonChat
+                lessonTopic={pendingLessonNode.title}
+                targetLanguageName={
+                  typeof profile.targetLanguage === 'string'
+                    ? profile.targetLanguage
+                    : 'your language'
+                }
+                ageGroup="11-14"
+                onComplete={handlePreLessonChatComplete}
               />
             </motion.div>
           )}

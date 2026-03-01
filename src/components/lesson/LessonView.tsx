@@ -540,11 +540,16 @@ export const LessonView: React.FC<LessonViewProps> = ({
           </button>
         </div>
 
+        {/* Phase 3 (Task 3.6): Pass coreFrame + coreFrameTranslation so the
+            intro card shows the shared sentence pattern prominently.
+            Both fields are optional — falls back to plain chunk list if absent. */}
         <LessonIntroCard
           lessonTitle={lesson.title}
           chunks={lesson.introChunks}
           onStart={() => setShowIntroCard(false)}
           onSkip={() => setShowIntroCard(false)}
+          coreFrame={lesson.coreFrame}
+          coreFrameTranslation={lesson.coreFrameTranslation}
         />
       </div>
     );

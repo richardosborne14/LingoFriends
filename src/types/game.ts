@@ -225,7 +225,45 @@ export interface ActivityConfig {
   explanation?: string;
   /** Example usage */
   example?: string;
-  
+
+  // COACHING_CHAT (Phase 3 coached discovery step — Task 3.4)
+  /**
+   * The NPC's warm spoken introduction (native language with target examples).
+   * Pre-generated during lesson creation; played via TTS when step begins.
+   * This is distinct from the LessonStep.coachingText field — here it is
+   * embedded in the ActivityConfig so the CoachingChat component can read
+   * it directly without going up to the parent step.
+   */
+  coachingText?: string;
+  /** The target-language phrase being discovered */
+  targetPhrase?: string;
+  /** Native-language translation of targetPhrase */
+  nativeTranslation?: string;
+  /** Discovery question the NPC asks, e.g. "Which word means 'cat'?" */
+  discoveryQuestion?: string;
+  /**
+   * Tap-to-choose options for the discovery question (7-14 age groups).
+   * 3 items: correct answer + 2 distractors.
+   * Absent for 15-18 who use free-text input.
+   */
+  discoveryOptions?: string[];
+  /**
+   * Index of the correct option in discoveryOptions (0-based).
+   * Used to show which option was right after discovery, regardless
+   * of whether the learner got it correct or not.
+   */
+  discoveryCorrectIndex?: number;
+  /**
+   * Encouraging follow-up text shown after the learner answers.
+   * Always warm — wrong answers never trigger failure.
+   */
+  discoveryFollowUp?: string;
+  /**
+   * Highlights the reusable frame pattern, e.g. "Notice 'Ich habe' stays the same!"
+   * Shown after discovery to reinforce the chunk family concept.
+   */
+  patternHighlight?: string;
+
   // Common
   /** Hint shown below question when user taps "Help" */
   hint?: string;
@@ -295,6 +333,29 @@ export interface LessonPlan {
     /** Translation in the native language, e.g. "Hello" */
     nativeTranslation: string;
   }>;
+
+  // ── Phase 3 metadata (Task 3.2, 3.6) ─────────────────────────────────────
+  /**
+   * The core sentence frame in the target language, e.g. "Ich habe ___".
+   * When present, LessonIntroCard shows this frame prominently so the learner
+   * can see the reusable pattern before any quiz starts.
+   * Absent for fallback/legacy lessons.
+   */
+  coreFrame?: string;
+
+  /**
+   * The core frame translated to the native language, e.g. "I have ___".
+   * Displayed alongside coreFrame on the intro card.
+   */
+  coreFrameTranslation?: string;
+
+  /**
+   * Personal context gathered from the pre-lesson chat (Task 3.3).
+   * e.g. "User has a cat named Luna and loves drawing".
+   * Used by LessonIntroCard to show a personalisation note.
+   * Absent when user skipped the pre-lesson chat.
+   */
+  personalContext?: string;
 }
 
 // ============================================================================

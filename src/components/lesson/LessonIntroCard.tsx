@@ -49,6 +49,17 @@ export interface LessonIntroCardProps {
   onStart: () => void;
   /** Optional skip — for returning learners who know the material */
   onSkip?: () => void;
+  /**
+   * Phase 3 (Task 3.6): The core sentence frame shared by all chunks.
+   * E.g. "Ich habe ___" — shown prominently as the lesson's learning pattern.
+   * When absent, falls back to a plain chunk list (same as Phase 2 behaviour).
+   */
+  coreFrame?: string;
+  /**
+   * Native-language translation of the core frame.
+   * E.g. "I have ___" — shown below the coreFrame for comprehension.
+   */
+  coreFrameTranslation?: string;
 }
 
 // ============================================================================
@@ -73,7 +84,13 @@ export const LessonIntroCard: React.FC<LessonIntroCardProps> = ({
   chunks,
   onStart,
   onSkip,
+  coreFrame,
+  coreFrameTranslation,
 }) => {
+  // When a coreFrame is present, show each chunk as a slot-filler variation.
+  // This visually communicates that all phrases share the same pattern.
+  const showFrameLayout = Boolean(coreFrame);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
@@ -97,13 +114,36 @@ export const LessonIntroCard: React.FC<LessonIntroCardProps> = ({
               </h1>
             </div>
           </div>
-          <p className="text-sm text-amber-800 mt-2 font-medium">
-            In this lesson you'll learn to say:
-          </p>
+
+          {/* Phase 3 (Task 3.6): Core frame banner — highlights the pattern */}
+          {showFrameLayout ? (
+            <div className="mt-3 bg-white/40 rounded-xl px-4 py-3 text-center">
+              <p className="text-2xl font-extrabold text-amber-900 tracking-tight">
+                {coreFrame}
+              </p>
+              {coreFrameTranslation && (
+                <p className="text-sm text-amber-700 mt-0.5 font-medium">
+                  "{coreFrameTranslation}"
+                </p>
+              )}
+              <p className="text-xs text-amber-700 mt-1 opacity-75">
+                You'll learn {chunks.length} ways to fill the blank!
+              </p>
+            </div>
+          ) : (
+            <p className="text-sm text-amber-800 mt-2 font-medium">
+              In this lesson you'll learn to say:
+            </p>
+          )}
         </div>
 
         {/* Chunk list */}
         <div className="px-5 py-4 space-y-3">
+          {!showFrameLayout && (
+            <p className="text-xs text-stone-400 font-medium uppercase tracking-wide mb-1">
+              Phrases you'll learn
+            </p>
+          )}
           {chunks.map((chunk, index) => (
             <motion.div
               key={chunk.targetPhrase}

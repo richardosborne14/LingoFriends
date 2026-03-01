@@ -87,6 +87,13 @@ export interface GenerateLessonPlanOptions {
   targetLanguage?: string;
   /** Desired session duration in minutes (default: 10) */
   durationMinutes?: number;
+  /**
+   * Optional personal context from the pre-lesson chat (Task 3.3).
+   * Passed straight through to the AI chunk generator for personalisation.
+   * Absent when user skipped the pre-lesson chat.
+   * RULE 9: never blocking — always `string | null`, never required.
+   */
+  personalContext?: string | null;
 }
 
 // ============================================
@@ -112,7 +119,7 @@ export interface GenerateLessonPlanOptions {
 export async function generateLessonPlan(
   options: GenerateLessonPlanOptions
 ): Promise<LessonPlan> {
-  const { lesson, targetLanguage, durationMinutes = 10 } = options;
+  const { lesson, targetLanguage, durationMinutes = 10, personalContext } = options;
 
   // ── Try V2 pipeline ─────────────────────────────────────────────
   const userId = getCurrentUserId();
@@ -153,6 +160,8 @@ export async function generateLessonPlan(
           // SkillPathLesson has no description field — use title as focus area
           focusArea: lesson.title,
         },
+        // Rule 9: personalContext is optional — pass null when absent, never undefined-coerce
+        personalContext: personalContext ?? null,
       });
 
       console.log(

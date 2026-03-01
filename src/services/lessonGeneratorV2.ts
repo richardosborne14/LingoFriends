@@ -62,6 +62,13 @@ export interface LessonRequest {
     previousTopics?: string[];
     mood?: 'focused' | 'casual' | 'tired';
   };
+  /**
+   * Optional personal context from the pre-lesson chat (Task 3.3).
+   * Passed straight through to the AI for chunk personalisation.
+   * When null or absent, the AI generates warm but generic examples.
+   * RULE 9: never blocking — lesson must work without this.
+   */
+  personalContext?: string | null;
 }
 
 /**
@@ -183,7 +190,13 @@ export class LessonGeneratorV2 {
 
     // ── PRIMARY PATH: AI chunk content → deterministic assembly ───
     try {
-      const aiChunks = await aiPedagogyClient.generateChunksForTopic({
+      // Destructure the chunk family result — includes Phase 3 metadata (Task 3.2)
+      const {
+        chunks: aiChunks,
+        coreFrame,
+        coreFrameTranslation,
+        title: aiTitle,
+      } = await aiPedagogyClient.generateChunksForTopic({
         topic,
         targetLanguageCode: targetLangCode,
         nativeLanguageCode: nativeLangCode,
@@ -193,14 +206,22 @@ export class LessonGeneratorV2 {
         ageGroup: getAgeGroup(profile.ageGroup),
         interests: profile.explicitInterests || [],
         existingChunks: sessionPlan.contextChunks?.map(c => c.text) || [],
+        // Rule 9: personalContext is optional — pass through safely
+        personalContext: request.personalContext ?? null,
       });
 
       const content: AILessonContent = {
-        title: topic,
+        // AI-supplied title is better (e.g. "Talking About What You Have")
+        // Fall back to the raw topic name if the AI didn't provide one
+        title: aiTitle || topic,
         targetLanguageCode: targetLangCode,
         nativeLanguageCode: nativeLangCode,
         chunks: aiChunks,
         interests: profile.explicitInterests || [],
+        // Phase 3 chunk family metadata — assembled into LessonPlan by assembler
+        coreFrame,
+        coreFrameTranslation,
+        personalContext: request.personalContext ?? undefined,
       };
 
       lessonPlan = assembleLessonPlan(content, `lesson_${Date.now()}`);
