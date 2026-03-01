@@ -1,0 +1,676 @@
+{
+  "scenario": {
+    "targetLanguage": "German",
+    "nativeLanguage": "English",
+    "topic": "Family & Friends",
+    "ageGroup": "11-14",
+    "level": "A1"
+  },
+  "score": {
+    "provider": "groq",
+    "lessonTitle": "Test: Family & Friends",
+    "combination": {
+      "targetLanguage": "German",
+      "nativeLanguage": "English",
+      "topic": "Family & Friends",
+      "ageGroup": "11-14",
+      "level": "A1"
+    },
+    "responseTimeMs": 3746,
+    "parseSuccess": true,
+    "assemblySuccess": true,
+    "validationResult": {
+      "valid": true,
+      "errors": [],
+      "warnings": []
+    },
+    "scores": {
+      "languageCorrectness": 10,
+      "teachFirstEnforcement": 10,
+      "activityVariety": 10,
+      "chunkQuality": 10,
+      "distractorQuality": 10,
+      "ageAppropriateness": 10,
+      "interestPersonalisation": 5,
+      "fieldCompleteness": 10,
+      "i1Difficulty": 9,
+      "nativeLanguageInstructions": 10
+    },
+    "totalScore": 94,
+    "rawChunks": [
+      {
+        "targetPhrase": "Meine Familie ist sehr nett",
+        "nativeTranslation": "My family is very nice",
+        "exampleSentence": "Meine Familie ist sehr nett, sie spielen alle Fußball",
+        "usageNote": "Use this phrase to describe your family in a positive way",
+        "explanation": "You can say this when someone asks about your family, it's a nice way to talk about them",
+        "distractors": [
+          "My family is very bad",
+          "I don't have a family",
+          "My family is boring"
+        ],
+        "correctUsageContext": "When someone asks about your family during a first meeting",
+        "wrongUsageContexts": [
+          "When you're arguing with someone",
+          "When you're talking about a movie",
+          "When you're discussing a book"
+        ],
+        "coachingText": "Let's talk about your family, what can you say about them? Try to be positive and nice."
+      },
+      {
+        "targetPhrase": "Ich habe viele Freunde",
+        "nativeTranslation": "I have many friends",
+        "exampleSentence": "Ich habe viele Freunde, wir spielen alle zusammen Musik",
+        "usageNote": "Use this phrase to talk about your social life and friendships",
+        "explanation": "This phrase is great to use when you want to talk about the people you hang out with and have fun with",
+        "distractors": [
+          "I have no friends",
+          "I have one friend",
+          "I have enemies"
+        ],
+        "correctUsageContext": "When talking about what you like to do in your free time",
+        "wrongUsageContexts": [
+          "When you're talking about a test at school",
+          "When you're discussing a difficult topic",
+          "When you're saying goodbye to someone"
+        ],
+        "coachingText": "Who are the people that make you happy? Let's talk about your friends and what you do together."
+      },
+      {
+        "targetPhrase": "Mein bester Freund spielt Basketball",
+        "nativeTranslation": "My best friend plays basketball",
+        "exampleSentence": "Mein bester Freund spielt Basketball, er ist sehr gut",
+        "usageNote": "Use this phrase to talk about a specific friend and their interests",
+        "explanation": "This phrase is a great way to talk about someone you care about and what they're passionate about",
+        "distractors": [
+          "My best friend hates sports",
+          "My best friend is a doctor",
+          "My best friend is a teacher"
+        ],
+        "correctUsageContext": "When talking about your friends and their hobbies",
+        "wrongUsageContexts": [
+          "When discussing what you ate for breakfast",
+          "When talking about a historical event",
+          "When saying sorry to someone"
+        ],
+        "coachingText": "Think about your best friend, what do they like to do? Let's talk about their interests and hobbies."
+      }
+    ],
+    "rawLesson": {
+      "id": "test-1772363813945",
+      "title": "Test: Family & Friends",
+      "icon": "📚",
+      "skillPathId": "Test: Family & Friends",
+      "lessonIndex": 0,
+      "steps": [
+        {
+          "tutorText": "📚 New phrase: \"Meine Familie ist sehr nett\"",
+          "helpText": "You can say this when someone asks about your family, it's a nice way to talk about them",
+          "coachingText": "Let's talk about your family, what can you say about them? Try to be positive and nice.",
+          "activity": {
+            "type": "info",
+            "title": "Meine Familie ist sehr nett",
+            "content": "Meine Familie ist sehr nett = \"My family is very nice\"",
+            "explanation": "You can say this when someone asks about your family, it's a nice way to talk about them",
+            "example": "Meine Familie ist sehr nett, sie spielen alle Fußball",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Meine Familie ist sehr nett\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Meine Familie ist sehr nett\" means \"My family is very bad\"",
+            "isTrue": false,
+            "hint": "\"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Meine Familie ist sehr nett\" mean?",
+          "helpText": "Remember: \"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Meine Familie ist sehr nett\" mean?",
+            "options": [
+              "My family is very bad",
+              "I don't have a family",
+              "My family is very nice",
+              "My family is boring"
+            ],
+            "correctIndex": 2,
+            "hint": "\"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Meine Familie ist sehr nett\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Meine Familie ist sehr nett\" means \"My family is very bad\"",
+            "isTrue": false,
+            "hint": "\"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Meine Familie ist sehr nett\" mean?",
+          "helpText": "Remember: \"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Meine Familie ist sehr nett\" mean?",
+            "options": [
+              "My family is very bad",
+              "I don't have a family",
+              "My family is very nice",
+              "My family is boring"
+            ],
+            "correctIndex": 2,
+            "hint": "\"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "📚 New phrase: \"Ich habe viele Freunde\"",
+          "helpText": "This phrase is great to use when you want to talk about the people you hang out with and have fun with",
+          "coachingText": "Who are the people that make you happy? Let's talk about your friends and what you do together.",
+          "activity": {
+            "type": "info",
+            "title": "Ich habe viele Freunde",
+            "content": "Ich habe viele Freunde = \"I have many friends\"",
+            "explanation": "This phrase is great to use when you want to talk about the people you hang out with and have fun with",
+            "example": "Ich habe viele Freunde, wir spielen alle zusammen Musik",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Match the phrases with their meanings!",
+          "helpText": "Find the pair: \"Ich habe viele Freunde\" = \"I have many friends\"",
+          "activity": {
+            "type": "matching",
+            "pairs": [
+              {
+                "left": "I have one friend",
+                "right": "I have enemies"
+              },
+              {
+                "left": "I have enemies",
+                "right": "I have no friends"
+              },
+              {
+                "left": "Ich habe viele Freunde",
+                "right": "I have many friends"
+              },
+              {
+                "left": "I have no friends",
+                "right": "I have one friend"
+              }
+            ],
+            "hint": "\"Ich habe viele Freunde\" means \"I have many friends\"",
+            "sunDrops": 2
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"I have many friends\" in ge?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "I have many friends",
+            "correctAnswer": "Ich habe viele Freunde",
+            "acceptedAnswers": [
+              "Ich habe viele Freunde",
+              "ich habe viele freunde"
+            ],
+            "hint": "It starts with \"Ich...\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Match the phrases with their meanings!",
+          "helpText": "Find the pair: \"Ich habe viele Freunde\" = \"I have many friends\"",
+          "activity": {
+            "type": "matching",
+            "pairs": [
+              {
+                "left": "I have one friend",
+                "right": "I have enemies"
+              },
+              {
+                "left": "I have enemies",
+                "right": "I have no friends"
+              },
+              {
+                "left": "Ich habe viele Freunde",
+                "right": "I have many friends"
+              },
+              {
+                "left": "I have no friends",
+                "right": "I have one friend"
+              }
+            ],
+            "hint": "\"Ich habe viele Freunde\" means \"I have many friends\"",
+            "sunDrops": 2
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Ich habe viele Freunde\" mean?",
+          "helpText": "Remember: \"Ich habe viele Freunde\" = \"I have many friends\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Ich habe viele Freunde\" mean?",
+            "options": [
+              "I have no friends",
+              "I have one friend",
+              "I have enemies",
+              "I have many friends"
+            ],
+            "correctIndex": 3,
+            "hint": "\"Ich habe viele Freunde\" = \"I have many friends\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "📚 New phrase: \"Mein bester Freund spielt Basketball\"",
+          "helpText": "This phrase is a great way to talk about someone you care about and what they're passionate about",
+          "coachingText": "Think about your best friend, what do they like to do? Let's talk about their interests and hobbies.",
+          "activity": {
+            "type": "info",
+            "title": "Mein bester Freund spielt Basketball",
+            "content": "Mein bester Freund spielt Basketball = \"My best friend plays basketball\"",
+            "explanation": "This phrase is a great way to talk about someone you care about and what they're passionate about",
+            "example": "Mein bester Freund spielt Basketball, er ist sehr gut",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"My best friend plays basketball\" in ge?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "My best friend plays basketball",
+            "correctAnswer": "Mein bester Freund spielt Basketball",
+            "acceptedAnswers": [
+              "Mein bester Freund spielt Basketball",
+              "mein bester freund spielt basketball"
+            ],
+            "hint": "It starts with \"Mei...\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"My best friend plays basketball\"",
+          "helpText": "The correct phrase is: \"Mein bester Freund spielt Basketball\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "Mein bester Freund spielt Basketball",
+            "scrambledWords": [
+              "Mein",
+              "spielt",
+              "Freund",
+              "bester",
+              "Basketball"
+            ],
+            "hint": "\"Mein bester Freund spielt Basketball\" = \"My best friend plays basketball\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"My best friend plays basketball\" in ge?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "My best friend plays basketball",
+            "correctAnswer": "Mein bester Freund spielt Basketball",
+            "acceptedAnswers": [
+              "Mein bester Freund spielt Basketball",
+              "mein bester freund spielt basketball"
+            ],
+            "hint": "It starts with \"Mei...\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"My best friend plays basketball\"",
+          "helpText": "The correct phrase is: \"Mein bester Freund spielt Basketball\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "Mein bester Freund spielt Basketball",
+            "scrambledWords": [
+              "Mein",
+              "spielt",
+              "Freund",
+              "bester",
+              "Basketball"
+            ],
+            "hint": "\"Mein bester Freund spielt Basketball\" = \"My best friend plays basketball\"",
+            "sunDrops": 3
+          }
+        }
+      ],
+      "totalSunDrops": 24
+    },
+    "notes": [
+      "Distractor \"I have no friends\" appears to be in target language (de), not native",
+      "Distractor \"I have one friend\" appears to be in target language (de), not native",
+      "Distractor \"I have enemies\" appears to be in target language (de), not native",
+      "Distractor \"My best friend hates sports\" appears to be in target language (de), not native",
+      "No interests provided to check against"
+    ]
+  },
+  "rawChunks": [
+    {
+      "targetPhrase": "Meine Familie ist sehr nett",
+      "nativeTranslation": "My family is very nice",
+      "exampleSentence": "Meine Familie ist sehr nett, sie spielen alle Fußball",
+      "usageNote": "Use this phrase to describe your family in a positive way",
+      "explanation": "You can say this when someone asks about your family, it's a nice way to talk about them",
+      "distractors": [
+        "My family is very bad",
+        "I don't have a family",
+        "My family is boring"
+      ],
+      "correctUsageContext": "When someone asks about your family during a first meeting",
+      "wrongUsageContexts": [
+        "When you're arguing with someone",
+        "When you're talking about a movie",
+        "When you're discussing a book"
+      ],
+      "coachingText": "Let's talk about your family, what can you say about them? Try to be positive and nice."
+    },
+    {
+      "targetPhrase": "Ich habe viele Freunde",
+      "nativeTranslation": "I have many friends",
+      "exampleSentence": "Ich habe viele Freunde, wir spielen alle zusammen Musik",
+      "usageNote": "Use this phrase to talk about your social life and friendships",
+      "explanation": "This phrase is great to use when you want to talk about the people you hang out with and have fun with",
+      "distractors": [
+        "I have no friends",
+        "I have one friend",
+        "I have enemies"
+      ],
+      "correctUsageContext": "When talking about what you like to do in your free time",
+      "wrongUsageContexts": [
+        "When you're talking about a test at school",
+        "When you're discussing a difficult topic",
+        "When you're saying goodbye to someone"
+      ],
+      "coachingText": "Who are the people that make you happy? Let's talk about your friends and what you do together."
+    },
+    {
+      "targetPhrase": "Mein bester Freund spielt Basketball",
+      "nativeTranslation": "My best friend plays basketball",
+      "exampleSentence": "Mein bester Freund spielt Basketball, er ist sehr gut",
+      "usageNote": "Use this phrase to talk about a specific friend and their interests",
+      "explanation": "This phrase is a great way to talk about someone you care about and what they're passionate about",
+      "distractors": [
+        "My best friend hates sports",
+        "My best friend is a doctor",
+        "My best friend is a teacher"
+      ],
+      "correctUsageContext": "When talking about your friends and their hobbies",
+      "wrongUsageContexts": [
+        "When discussing what you ate for breakfast",
+        "When talking about a historical event",
+        "When saying sorry to someone"
+      ],
+      "coachingText": "Think about your best friend, what do they like to do? Let's talk about their interests and hobbies."
+    }
+  ],
+  "rawLesson": {
+    "id": "test-1772363813945",
+    "title": "Test: Family & Friends",
+    "icon": "📚",
+    "skillPathId": "Test: Family & Friends",
+    "lessonIndex": 0,
+    "steps": [
+      {
+        "tutorText": "📚 New phrase: \"Meine Familie ist sehr nett\"",
+        "helpText": "You can say this when someone asks about your family, it's a nice way to talk about them",
+        "coachingText": "Let's talk about your family, what can you say about them? Try to be positive and nice.",
+        "activity": {
+          "type": "info",
+          "title": "Meine Familie ist sehr nett",
+          "content": "Meine Familie ist sehr nett = \"My family is very nice\"",
+          "explanation": "You can say this when someone asks about your family, it's a nice way to talk about them",
+          "example": "Meine Familie ist sehr nett, sie spielen alle Fußball",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Meine Familie ist sehr nett\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Meine Familie ist sehr nett\" means \"My family is very bad\"",
+          "isTrue": false,
+          "hint": "\"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Meine Familie ist sehr nett\" mean?",
+        "helpText": "Remember: \"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Meine Familie ist sehr nett\" mean?",
+          "options": [
+            "My family is very bad",
+            "I don't have a family",
+            "My family is very nice",
+            "My family is boring"
+          ],
+          "correctIndex": 2,
+          "hint": "\"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Meine Familie ist sehr nett\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Meine Familie ist sehr nett\" means \"My family is very bad\"",
+          "isTrue": false,
+          "hint": "\"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Meine Familie ist sehr nett\" mean?",
+        "helpText": "Remember: \"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Meine Familie ist sehr nett\" mean?",
+          "options": [
+            "My family is very bad",
+            "I don't have a family",
+            "My family is very nice",
+            "My family is boring"
+          ],
+          "correctIndex": 2,
+          "hint": "\"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "📚 New phrase: \"Ich habe viele Freunde\"",
+        "helpText": "This phrase is great to use when you want to talk about the people you hang out with and have fun with",
+        "coachingText": "Who are the people that make you happy? Let's talk about your friends and what you do together.",
+        "activity": {
+          "type": "info",
+          "title": "Ich habe viele Freunde",
+          "content": "Ich habe viele Freunde = \"I have many friends\"",
+          "explanation": "This phrase is great to use when you want to talk about the people you hang out with and have fun with",
+          "example": "Ich habe viele Freunde, wir spielen alle zusammen Musik",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Match the phrases with their meanings!",
+        "helpText": "Find the pair: \"Ich habe viele Freunde\" = \"I have many friends\"",
+        "activity": {
+          "type": "matching",
+          "pairs": [
+            {
+              "left": "I have one friend",
+              "right": "I have enemies"
+            },
+            {
+              "left": "I have enemies",
+              "right": "I have no friends"
+            },
+            {
+              "left": "Ich habe viele Freunde",
+              "right": "I have many friends"
+            },
+            {
+              "left": "I have no friends",
+              "right": "I have one friend"
+            }
+          ],
+          "hint": "\"Ich habe viele Freunde\" means \"I have many friends\"",
+          "sunDrops": 2
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"I have many friends\" in ge?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "I have many friends",
+          "correctAnswer": "Ich habe viele Freunde",
+          "acceptedAnswers": [
+            "Ich habe viele Freunde",
+            "ich habe viele freunde"
+          ],
+          "hint": "It starts with \"Ich...\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Match the phrases with their meanings!",
+        "helpText": "Find the pair: \"Ich habe viele Freunde\" = \"I have many friends\"",
+        "activity": {
+          "type": "matching",
+          "pairs": [
+            {
+              "left": "I have one friend",
+              "right": "I have enemies"
+            },
+            {
+              "left": "I have enemies",
+              "right": "I have no friends"
+            },
+            {
+              "left": "Ich habe viele Freunde",
+              "right": "I have many friends"
+            },
+            {
+              "left": "I have no friends",
+              "right": "I have one friend"
+            }
+          ],
+          "hint": "\"Ich habe viele Freunde\" means \"I have many friends\"",
+          "sunDrops": 2
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Ich habe viele Freunde\" mean?",
+        "helpText": "Remember: \"Ich habe viele Freunde\" = \"I have many friends\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Ich habe viele Freunde\" mean?",
+          "options": [
+            "I have no friends",
+            "I have one friend",
+            "I have enemies",
+            "I have many friends"
+          ],
+          "correctIndex": 3,
+          "hint": "\"Ich habe viele Freunde\" = \"I have many friends\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "📚 New phrase: \"Mein bester Freund spielt Basketball\"",
+        "helpText": "This phrase is a great way to talk about someone you care about and what they're passionate about",
+        "coachingText": "Think about your best friend, what do they like to do? Let's talk about their interests and hobbies.",
+        "activity": {
+          "type": "info",
+          "title": "Mein bester Freund spielt Basketball",
+          "content": "Mein bester Freund spielt Basketball = \"My best friend plays basketball\"",
+          "explanation": "This phrase is a great way to talk about someone you care about and what they're passionate about",
+          "example": "Mein bester Freund spielt Basketball, er ist sehr gut",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"My best friend plays basketball\" in ge?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "My best friend plays basketball",
+          "correctAnswer": "Mein bester Freund spielt Basketball",
+          "acceptedAnswers": [
+            "Mein bester Freund spielt Basketball",
+            "mein bester freund spielt basketball"
+          ],
+          "hint": "It starts with \"Mei...\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"My best friend plays basketball\"",
+        "helpText": "The correct phrase is: \"Mein bester Freund spielt Basketball\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "Mein bester Freund spielt Basketball",
+          "scrambledWords": [
+            "Mein",
+            "spielt",
+            "Freund",
+            "bester",
+            "Basketball"
+          ],
+          "hint": "\"Mein bester Freund spielt Basketball\" = \"My best friend plays basketball\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"My best friend plays basketball\" in ge?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "My best friend plays basketball",
+          "correctAnswer": "Mein bester Freund spielt Basketball",
+          "acceptedAnswers": [
+            "Mein bester Freund spielt Basketball",
+            "mein bester freund spielt basketball"
+          ],
+          "hint": "It starts with \"Mei...\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"My best friend plays basketball\"",
+        "helpText": "The correct phrase is: \"Mein bester Freund spielt Basketball\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "Mein bester Freund spielt Basketball",
+          "scrambledWords": [
+            "Mein",
+            "spielt",
+            "Freund",
+            "bester",
+            "Basketball"
+          ],
+          "hint": "\"Mein bester Freund spielt Basketball\" = \"My best friend plays basketball\"",
+          "sunDrops": 3
+        }
+      }
+    ],
+    "totalSunDrops": 24
+  }
+}

@@ -1079,3 +1079,58 @@ export function learnerProfileRecordToLearnerProfile(record: LearnerProfileRecor
     updated: record.updated,
   };
 }
+
+// ============================================================================
+// LESSON HISTORY
+// ============================================================================
+
+/**
+ * Record of a completed lesson, stored in lesson_history collection.
+ * Append-only — records are never updated after creation.
+ */
+export interface LessonHistoryRecord extends RecordModel {
+  /** Relation → users */
+  user: string;
+  lesson_title: string;
+  target_language: string;
+  native_language: string;
+  /** XP awarded for this lesson */
+  xp_earned: number;
+  /** SunDrops earned in this lesson */
+  sun_drops_earned: number;
+  total_steps: number;
+  completed_steps: number;
+  /** 0-100 */
+  score_percentage: number;
+  /** ISO date string of when the lesson was finished */
+  completed_at: string;
+  created: string;
+  updated: string;
+}
+
+// ============================================================================
+// QUESTION REPORTS
+// ============================================================================
+
+/**
+ * A user's report of a broken or problematic question.
+ * Used by the help system to trigger question regeneration.
+ */
+export interface QuestionReportRecord extends RecordModel {
+  /** Relation → users (the person who filed the report) */
+  user: string;
+  /** The lesson ID where the issue occurred */
+  lesson_id: string;
+  /** Step index within the lesson */
+  step_index: number;
+  /** Activity type: "multiple_choice", "fill_blank", etc. */
+  activity_type: string;
+  /** Issue type: "wrong_answer", "unclear", "inappropriate" */
+  issue_type: string;
+  /** User's free-text description of the problem */
+  description: string;
+  /** Serialised activity JSON for debugging */
+  activity_data: string;
+  created: string;
+  updated: string;
+}

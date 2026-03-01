@@ -10,11 +10,32 @@
 import type { GeneratedChunk, LessonQualityScore, LessonCombination, ProviderKey } from './types.js';
 
 // ── Language detection markers ────────────────────────────────────────────────
+// German word list is large because German shares short words with Spanish/English.
+// Umlauts (ü/ö/ä/ß) score much higher to be near-conclusive — false positives
+// were the #1 evaluator bug, caused by Spanish markers matching German prepositions.
 const LANG_MARKERS: Record<string, { chars: string[]; words: string[] }> = {
-  de: { chars: ['ü','ö','ä','ß'], words: ['der','die','das','ist','und','ich','ein','eine','nicht','mit','zu','auf','für','von'] },
-  fr: { chars: ['ç','é','è','ê','ë','î','ï','ô','û','ù'], words: ['le','la','les','est','et','des','un','une','je','tu','nous','vous'] },
-  en: { chars: [], words: ['the','is','and','of','to','a','in','that','it','you','he','she','they','we'] },
-  es: { chars: ['ñ','¿','¡'], words: ['el','la','los','es','y','de','que','en','un','una','con','por'] },
+  de: {
+    chars: ['ü','ö','ä','ß'],
+    words: [
+      'der','die','das','ist','und','ich','ein','eine','nicht','mit',
+      'zu','auf','für','von','hallo','bitte','danke','wie','geht','sie',
+      'mein','dein','wir','ihr','haben','sein','werden','kann','guten',
+      'morgen','abend','nacht','tag','bitte','schön','sprechen','lernen',
+      'heißen','kommen','gehen','machen','sagen','sehen','wissen','mögen',
+    ],
+  },
+  fr: {
+    chars: ['ç','é','è','ê','ë','î','ï','ô','û','ù','à','â'],
+    words: ['le','la','les','est','et','des','un','une','je','tu','nous','vous','bonjour','merci','oui','non','avec','dans','sur','pour','mais','ou'],
+  },
+  en: {
+    chars: [],
+    words: ['the','is','and','of','to','a','in','that','it','you','he','she','they','we','hello','please','thank','good','morning','evening'],
+  },
+  es: {
+    chars: ['ñ','¿','¡'],
+    words: ['el','los','es','y','que','en','un','una','con','por','hola','gracias','buenos','días','cómo','estás'],
+  },
 };
 
 /** Detect language code from a text string using heuristics */
@@ -24,7 +45,8 @@ function detectLanguage(text: string): string {
 
   for (const [code, markers] of Object.entries(LANG_MARKERS)) {
     for (const ch of markers.chars) {
-      if (lower.includes(ch)) scores[code] += 3;
+      // Special chars (umlauts, ç, ñ) are near-conclusive — weight them heavily
+      if (lower.includes(ch)) scores[code] += 8;
     }
     for (const word of markers.words) {
       const regex = new RegExp(`\\b${word}\\b`, 'g');
@@ -61,11 +83,23 @@ function scoreLanguageCorrectness(chunks: GeneratedChunk[], targetLang: string, 
       notes.push(`targetPhrase "${chunk.targetPhrase}" detected as ${phraseDetected}, expected ${tCode}`);
     }
 
-    // Check distractors are in native language
+    // Check distractors are in native language.
+    // Special case: when native is English, don't use detectLanguage() on short phrases
+    // because short English phrases are easily misclassified as German/Spanish.
+    // Instead, only fail if the distractor contains unambiguous target-language chars (umlauts etc.)
     for (const d of chunk.distractors) {
-      const dLang = detectLanguage(d);
-      if (dLang === tCode && tCode !== nCode) {
-        notes.push(`Distractor "${d}" appears to be in target language (${tCode}), not native`);
+      if (nCode === 'en') {
+        // Only flag if distractor has obvious target-language special characters
+        const targetChars = LANG_MARKERS[tCode]?.chars ?? [];
+        const hasTargetChars = targetChars.some(ch => d.toLowerCase().includes(ch));
+        if (hasTargetChars && tCode !== nCode) {
+          notes.push(`Distractor "${d}" contains target-language characters (${tCode})`);
+        }
+      } else {
+        const dLang = detectLanguage(d);
+        if (dLang === tCode && tCode !== nCode) {
+          notes.push(`Distractor "${d}" appears to be in target language (${tCode}), not native`);
+        }
       }
     }
   }
@@ -181,11 +215,14 @@ function scoreAgeAppropriateness(chunks: GeneratedChunk[], ageGroup: string): { 
   let issues = 0;
 
   for (const chunk of chunks) {
-    const allText = [chunk.targetPhrase, chunk.nativeTranslation, chunk.explanation, chunk.usageNote].join(' ').toLowerCase();
+    // Only check native-language fields — the targetPhrase is in the target language
+    // and may legitimately contain English homophones (e.g. German "war" = "was" in English).
+    // Checking targetPhrase for English bad words causes false positives for German content.
+    const nativeText = [chunk.nativeTranslation, chunk.explanation, chunk.usageNote].join(' ').toLowerCase();
     for (const bad of badWords) {
-      if (allText.includes(bad)) {
+      if (nativeText.includes(bad)) {
         issues++;
-        notes.push(`Potentially inappropriate content: "${bad}" found`);
+        notes.push(`Potentially inappropriate content: "${bad}" found in native-language text`);
       }
     }
   }
@@ -287,6 +324,8 @@ export function scoreLessonQuality(params: {
   responseTimeMs: number;
   parseSuccess: boolean;
   assemblySuccess: boolean;
+  /** Learner interests used when generating chunks — passed to scoreInterestPersonalisation */
+  interests?: string[];
 }): LessonQualityScore {
   const { provider, combination, chunks, assembledPlan, validationResult, responseTimeMs, parseSuccess, assemblySuccess } = params;
 
@@ -317,7 +356,8 @@ export function scoreLessonQuality(params: {
   const r4 = scoreChunkQuality(chunks);
   const r5 = scoreDistractorQuality(chunks, combination.nativeLanguage);
   const r6 = scoreAgeAppropriateness(chunks, combination.ageGroup);
-  const r7 = scoreInterestPersonalisation(chunks, []);
+  // Use passed interests — previously hardcoded [] meant interest score was always 5
+  const r7 = scoreInterestPersonalisation(chunks, params.interests ?? []);
   const r8 = scoreFieldCompleteness(validationResult);
   const r9 = scoreDifficulty(chunks, combination.level);
   const r10 = assembledPlan ? scoreNativeLanguageInstructions(plan, combination.nativeLanguage) : { score: 5, notes: [] };

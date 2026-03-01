@@ -161,6 +161,11 @@ export interface ProviderConfig {
   openAICompatible: boolean;
   /** ms delay to add between calls for rate limiting */
   rateLimitDelayMs: number;
+  /**
+   * If true, this provider is excluded from getAvailableProviders().
+   * Used to temporarily disable providers without deleting config.
+   */
+  experimental?: boolean;
 }
 
 // ============================================================================
@@ -228,10 +233,12 @@ export interface TreeData {
   lastRefreshDate?: string;
   sunDropsEarned?: number;
   sunDropsTotal?: number;
-  growth_stage?: number;    // PocketBase column name
-  growthStage?: number;     // alias accepted by PB (legacy)
-  lessons_completed?: number; // PocketBase column name
-  lessonsCompleted?: number;  // alias (legacy)
+  // NOTE: growth_stage / growthStage do NOT exist in PocketBase user_trees.
+  // Growth stage is calculated client-side from sunDropsEarned.
+  // Accepted here so test helpers can pass it without TypeScript errors,
+  // but PocketBase silently ignores unknown fields on write.
+  growthStage?: number;
+  lessonsCompleted?: number;  // PB stores camelCase — do NOT use lessons_completed
   lessonsTotal?: number;
   gridPosition?: { gx: number; gz: number };
   bufferDays?: number;

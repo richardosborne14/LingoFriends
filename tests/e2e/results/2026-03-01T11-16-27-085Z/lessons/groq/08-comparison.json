@@ -1,0 +1,87 @@
+{
+  "benchmark": {
+    "targetLanguage": "German",
+    "nativeLanguage": "English",
+    "topic": "Greetings",
+    "ageGroup": "11-14",
+    "level": "A1"
+  },
+  "comparison": [
+    {
+      "provider": "anthropic",
+      "totalScore": 94,
+      "responseTimeMs": 16804,
+      "parseSuccess": true,
+      "assemblySuccess": true,
+      "validationPassed": true,
+      "scores": {
+        "languageCorrectness": 10,
+        "teachFirstEnforcement": 10,
+        "activityVariety": 10,
+        "chunkQuality": 10,
+        "distractorQuality": 10,
+        "ageAppropriateness": 10,
+        "interestPersonalisation": 5,
+        "fieldCompleteness": 10,
+        "i1Difficulty": 9,
+        "nativeLanguageInstructions": 10
+      },
+      "notes": [
+        "Distractor \"Good night!\" appears to be in target language (de), not native",
+        "Distractor \"Goodbye!\" appears to be in target language (de), not native",
+        "Distractor \"Good morning!\" appears to be in target language (de), not native",
+        "No interests provided to check against"
+      ]
+    },
+    {
+      "provider": "groq",
+      "totalScore": 88,
+      "responseTimeMs": 4221,
+      "parseSuccess": true,
+      "assemblySuccess": true,
+      "validationPassed": true,
+      "scores": {
+        "languageCorrectness": 7,
+        "teachFirstEnforcement": 10,
+        "activityVariety": 10,
+        "chunkQuality": 10,
+        "distractorQuality": 10,
+        "ageAppropriateness": 7,
+        "interestPersonalisation": 5,
+        "fieldCompleteness": 10,
+        "i1Difficulty": 9,
+        "nativeLanguageInstructions": 10
+      },
+      "notes": [
+        "targetPhrase \"Hallo, wie geht es dir?\" detected as es, expected de",
+        "Distractor \"What's your name?\" appears to be in target language (de), not native",
+        "Distractor \"I'm lost\" appears to be in target language (de), not native",
+        "Distractor \"I don't speak German\" appears to be in target language (de), not native",
+        "Potentially inappropriate content: \"war\" found"
+      ]
+    },
+    {
+      "provider": "deepinfra",
+      "totalScore": 0,
+      "responseTimeMs": 14231,
+      "parseSuccess": false,
+      "assemblySuccess": false,
+      "validationPassed": false,
+      "scores": {
+        "languageCorrectness": 0,
+        "teachFirstEnforcement": 0,
+        "activityVariety": 0,
+        "chunkQuality": 0,
+        "distractorQuality": 0,
+        "ageAppropriateness": 0,
+        "interestPersonalisation": 0,
+        "fieldCompleteness": 0,
+        "i1Difficulty": 0,
+        "nativeLanguageInstructions": 0
+      },
+      "notes": [
+        "Generation failed — zero scores"
+      ]
+    }
+  ]
+}

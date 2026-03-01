@@ -1,0 +1,638 @@
+{
+  "scenario": {
+    "targetLanguage": "German",
+    "nativeLanguage": "English",
+    "topic": "Greetings",
+    "ageGroup": "11-14",
+    "level": "A1"
+  },
+  "score": {
+    "provider": "groq",
+    "lessonTitle": "Test: Greetings",
+    "combination": {
+      "targetLanguage": "German",
+      "nativeLanguage": "English",
+      "topic": "Greetings",
+      "ageGroup": "11-14",
+      "level": "A1"
+    },
+    "responseTimeMs": 4183,
+    "parseSuccess": true,
+    "assemblySuccess": true,
+    "validationResult": {
+      "valid": true,
+      "errors": [],
+      "warnings": []
+    },
+    "scores": {
+      "languageCorrectness": 7,
+      "teachFirstEnforcement": 10,
+      "activityVariety": 10,
+      "chunkQuality": 10,
+      "distractorQuality": 10,
+      "ageAppropriateness": 7,
+      "interestPersonalisation": 5,
+      "fieldCompleteness": 10,
+      "i1Difficulty": 6,
+      "nativeLanguageInstructions": 10
+    },
+    "totalScore": 85,
+    "rawChunks": [
+      {
+        "targetPhrase": "Hallo, wie geht es dir?",
+        "nativeTranslation": "Hello, how are you?",
+        "exampleSentence": "Hallo, wie geht es dir? Ich bin froh, dich zu sehen.",
+        "usageNote": "Use this phrase when meeting a friend or acquaintance to show you care about their well-being.",
+        "explanation": "This is a friendly way to greet someone and ask about their day, it's like saying 'hello, how are you?' in English.",
+        "distractors": [
+          "Goodbye, see you later",
+          "What's your name?",
+          "I like your shirt"
+        ],
+        "correctUsageContext": "When you meet your friend before a soccer match",
+        "wrongUsageContexts": [
+          "When you're leaving a party",
+          "When you're talking to a pet",
+          "When you're in a hurry"
+        ],
+        "coachingText": "Let's practice some greetings, start with this one! It's a great way to show you care about how someone's doing."
+      },
+      {
+        "targetPhrase": "Guten Tag, ich freue mich, Sie kennenzulernen",
+        "nativeTranslation": "Good day, nice to meet you",
+        "exampleSentence": "Guten Tag, ich freue mich, Sie kennenzulernen, mein Name ist Max.",
+        "usageNote": "Use this phrase when meeting someone for the first time, like a teacher or a coach.",
+        "explanation": "This is a polite way to greet someone you don't know well, it shows respect and friendliness.",
+        "distractors": [
+          "I don't like you",
+          "My name is John",
+          "I'm tired today"
+        ],
+        "correctUsageContext": "When you meet your new music teacher",
+        "wrongUsageContexts": [
+          "When you're playing a game with friends",
+          "When you're arguing with someone",
+          "When you're watching TV"
+        ],
+        "coachingText": "Now let's try a more formal greeting, perfect for meeting a new teacher or coach!"
+      },
+      {
+        "targetPhrase": "Auf Wiedersehen, bis zum nächsten Mal",
+        "nativeTranslation": "Goodbye, see you next time",
+        "exampleSentence": "Auf Wiedersehen, bis zum nächsten Mal, ich hatte viel Spaß heute!",
+        "usageNote": "Use this phrase when saying goodbye to someone, like after a fun day at the park.",
+        "explanation": "This is a friendly way to say goodbye, it implies you're looking forward to seeing the person again.",
+        "distractors": [
+          "Hello, how are you?",
+          "What's your favorite color?",
+          "I'm hungry now"
+        ],
+        "correctUsageContext": "When you're leaving a sports practice and will see your friends again next week",
+        "wrongUsageContexts": [
+          "When you're meeting someone for the first time",
+          "When you're in the middle of a conversation",
+          "When you're going to bed"
+        ],
+        "coachingText": "Finally, let's practice a fun way to say goodbye, it's like saying 'see you later' to your friends after a great day!"
+      }
+    ],
+    "rawLesson": {
+      "id": "test-1772363795495",
+      "title": "Test: Greetings",
+      "icon": "📚",
+      "skillPathId": "Test: Greetings",
+      "lessonIndex": 0,
+      "steps": [
+        {
+          "tutorText": "📚 New phrase: \"Hallo, wie geht es dir?\"",
+          "helpText": "This is a friendly way to greet someone and ask about their day, it's like saying 'hello, how are you?' in English.",
+          "coachingText": "Let's practice some greetings, start with this one! It's a great way to show you care about how someone's doing.",
+          "activity": {
+            "type": "info",
+            "title": "Hallo, wie geht es dir?",
+            "content": "Hallo, wie geht es dir? = \"Hello, how are you?\"",
+            "explanation": "This is a friendly way to greet someone and ask about their day, it's like saying 'hello, how are you?' in English.",
+            "example": "Hallo, wie geht es dir? Ich bin froh, dich zu sehen.",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Hallo, wie geht es dir?\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Hallo, wie geht es dir?\" means \"Goodbye, see you later\"",
+            "isTrue": false,
+            "hint": "\"Hallo, wie geht es dir?\" = \"Hello, how are you?\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Hallo, wie geht es dir?\" mean?",
+          "helpText": "Remember: \"Hallo, wie geht es dir?\" = \"Hello, how are you?\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Hallo, wie geht es dir?\" mean?",
+            "options": [
+              "Goodbye, see you later",
+              "What's your name?",
+              "I like your shirt",
+              "Hello, how are you?"
+            ],
+            "correctIndex": 3,
+            "hint": "\"Hallo, wie geht es dir?\" = \"Hello, how are you?\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Hallo, wie geht es dir?\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Hallo, wie geht es dir?\" means \"Goodbye, see you later\"",
+            "isTrue": false,
+            "hint": "\"Hallo, wie geht es dir?\" = \"Hello, how are you?\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Hallo, wie geht es dir?\" mean?",
+          "helpText": "Remember: \"Hallo, wie geht es dir?\" = \"Hello, how are you?\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Hallo, wie geht es dir?\" mean?",
+            "options": [
+              "Goodbye, see you later",
+              "What's your name?",
+              "I like your shirt",
+              "Hello, how are you?"
+            ],
+            "correctIndex": 3,
+            "hint": "\"Hallo, wie geht es dir?\" = \"Hello, how are you?\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "📚 New phrase: \"Guten Tag, ich freue mich, Sie kennenzulernen\"",
+          "helpText": "This is a polite way to greet someone you don't know well, it shows respect and friendliness.",
+          "coachingText": "Now let's try a more formal greeting, perfect for meeting a new teacher or coach!",
+          "activity": {
+            "type": "info",
+            "title": "Guten Tag, ich freue mich, Sie kennenzulernen",
+            "content": "Guten Tag, ich freue mich, Sie kennenzulernen = \"Good day, nice to meet you\"",
+            "explanation": "This is a polite way to greet someone you don't know well, it shows respect and friendliness.",
+            "example": "Guten Tag, ich freue mich, Sie kennenzulernen, mein Name ist Max.",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Guten Tag, ich freue mich, Sie kennenzulernen\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Guten Tag, ich freue mich, Sie kennenzulernen\" means \"I don't like you\"",
+            "isTrue": false,
+            "hint": "\"Guten Tag, ich freue mich, Sie kennenzulernen\" = \"Good day, nice to meet you\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Practice time! Complete this phrase.",
+          "helpText": "The full phrase is: \"Guten Tag, ich freue mich, Sie kennenzulernen\"",
+          "activity": {
+            "type": "fill_blank",
+            "sentence": "Guten Tag, ich freue mich, Sie ___",
+            "correctAnswer": "kennenzulernen",
+            "acceptedAnswers": [
+              "kennenzulernen"
+            ],
+            "hint": "\"Guten Tag, ich freue mich, Sie kennenzulernen\" = \"Good day, nice to meet you\"",
+            "sunDrops": 2
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"Good day, nice to meet you\" in ge?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "Good day, nice to meet you",
+            "correctAnswer": "Guten Tag, ich freue mich, Sie kennenzulernen",
+            "acceptedAnswers": [
+              "Guten Tag, ich freue mich, Sie kennenzulernen",
+              "guten tag, ich freue mich, sie kennenzulernen",
+              "Guten Tag ich freue mich Sie kennenzulernen",
+              "guten tag ich freue mich sie kennenzulernen"
+            ],
+            "hint": "It starts with \"Gut...\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Guten Tag, ich freue mich, Sie kennenzulernen\" mean?",
+          "helpText": "Remember: \"Guten Tag, ich freue mich, Sie kennenzulernen\" = \"Good day, nice to meet you\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Guten Tag, ich freue mich, Sie kennenzulernen\" mean?",
+            "options": [
+              "I don't like you",
+              "My name is John",
+              "Good day, nice to meet you",
+              "I'm tired today"
+            ],
+            "correctIndex": 2,
+            "hint": "\"Guten Tag, ich freue mich, Sie kennenzulernen\" = \"Good day, nice to meet you\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "📚 New phrase: \"Auf Wiedersehen, bis zum nächsten Mal\"",
+          "helpText": "This is a friendly way to say goodbye, it implies you're looking forward to seeing the person again.",
+          "coachingText": "Finally, let's practice a fun way to say goodbye, it's like saying 'see you later' to your friends after a great day!",
+          "activity": {
+            "type": "info",
+            "title": "Auf Wiedersehen, bis zum nächsten Mal",
+            "content": "Auf Wiedersehen, bis zum nächsten Mal = \"Goodbye, see you next time\"",
+            "explanation": "This is a friendly way to say goodbye, it implies you're looking forward to seeing the person again.",
+            "example": "Auf Wiedersehen, bis zum nächsten Mal, ich hatte viel Spaß heute!",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"Goodbye, see you next time\"",
+          "helpText": "The correct phrase is: \"Auf Wiedersehen, bis zum nächsten Mal\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "Auf Wiedersehen, bis zum nächsten Mal",
+            "scrambledWords": [
+              "Auf",
+              "Wiedersehen,",
+              "zum",
+              "nächsten",
+              "Mal",
+              "bis"
+            ],
+            "hint": "\"Auf Wiedersehen, bis zum nächsten Mal\" = \"Goodbye, see you next time\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"Goodbye, see you next time\" in ge?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "Goodbye, see you next time",
+            "correctAnswer": "Auf Wiedersehen, bis zum nächsten Mal",
+            "acceptedAnswers": [
+              "Auf Wiedersehen, bis zum nächsten Mal",
+              "auf wiedersehen, bis zum nächsten mal",
+              "Auf Wiedersehen bis zum nächsten Mal",
+              "auf wiedersehen bis zum nächsten mal"
+            ],
+            "hint": "It starts with \"Auf...\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"Goodbye, see you next time\"",
+          "helpText": "The correct phrase is: \"Auf Wiedersehen, bis zum nächsten Mal\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "Auf Wiedersehen, bis zum nächsten Mal",
+            "scrambledWords": [
+              "Auf",
+              "Wiedersehen,",
+              "zum",
+              "nächsten",
+              "Mal",
+              "bis"
+            ],
+            "hint": "\"Auf Wiedersehen, bis zum nächsten Mal\" = \"Goodbye, see you next time\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"Goodbye, see you next time\" in ge?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "Goodbye, see you next time",
+            "correctAnswer": "Auf Wiedersehen, bis zum nächsten Mal",
+            "acceptedAnswers": [
+              "Auf Wiedersehen, bis zum nächsten Mal",
+              "auf wiedersehen, bis zum nächsten mal",
+              "Auf Wiedersehen bis zum nächsten Mal",
+              "auf wiedersehen bis zum nächsten mal"
+            ],
+            "hint": "It starts with \"Auf...\"",
+            "sunDrops": 3
+          }
+        }
+      ],
+      "totalSunDrops": 23
+    },
+    "notes": [
+      "targetPhrase \"Hallo, wie geht es dir?\" detected as es, expected de",
+      "Distractor \"What's your name?\" appears to be in target language (de), not native",
+      "Distractor \"I like your shirt\" appears to be in target language (de), not native",
+      "Distractor \"I'm tired today\" appears to be in target language (de), not native",
+      "Distractor \"What's your favorite color?\" appears to be in target language (de), not native",
+      "Distractor \"I'm hungry now\" appears to be in target language (de), not native",
+      "Potentially inappropriate content: \"war\" found",
+      "No interests provided to check against",
+      "Average phrase length 6.0 words — may be too complex for A1"
+    ]
+  },
+  "rawChunks": [
+    {
+      "targetPhrase": "Hallo, wie geht es dir?",
+      "nativeTranslation": "Hello, how are you?",
+      "exampleSentence": "Hallo, wie geht es dir? Ich bin froh, dich zu sehen.",
+      "usageNote": "Use this phrase when meeting a friend or acquaintance to show you care about their well-being.",
+      "explanation": "This is a friendly way to greet someone and ask about their day, it's like saying 'hello, how are you?' in English.",
+      "distractors": [
+        "Goodbye, see you later",
+        "What's your name?",
+        "I like your shirt"
+      ],
+      "correctUsageContext": "When you meet your friend before a soccer match",
+      "wrongUsageContexts": [
+        "When you're leaving a party",
+        "When you're talking to a pet",
+        "When you're in a hurry"
+      ],
+      "coachingText": "Let's practice some greetings, start with this one! It's a great way to show you care about how someone's doing."
+    },
+    {
+      "targetPhrase": "Guten Tag, ich freue mich, Sie kennenzulernen",
+      "nativeTranslation": "Good day, nice to meet you",
+      "exampleSentence": "Guten Tag, ich freue mich, Sie kennenzulernen, mein Name ist Max.",
+      "usageNote": "Use this phrase when meeting someone for the first time, like a teacher or a coach.",
+      "explanation": "This is a polite way to greet someone you don't know well, it shows respect and friendliness.",
+      "distractors": [
+        "I don't like you",
+        "My name is John",
+        "I'm tired today"
+      ],
+      "correctUsageContext": "When you meet your new music teacher",
+      "wrongUsageContexts": [
+        "When you're playing a game with friends",
+        "When you're arguing with someone",
+        "When you're watching TV"
+      ],
+      "coachingText": "Now let's try a more formal greeting, perfect for meeting a new teacher or coach!"
+    },
+    {
+      "targetPhrase": "Auf Wiedersehen, bis zum nächsten Mal",
+      "nativeTranslation": "Goodbye, see you next time",
+      "exampleSentence": "Auf Wiedersehen, bis zum nächsten Mal, ich hatte viel Spaß heute!",
+      "usageNote": "Use this phrase when saying goodbye to someone, like after a fun day at the park.",
+      "explanation": "This is a friendly way to say goodbye, it implies you're looking forward to seeing the person again.",
+      "distractors": [
+        "Hello, how are you?",
+        "What's your favorite color?",
+        "I'm hungry now"
+      ],
+      "correctUsageContext": "When you're leaving a sports practice and will see your friends again next week",
+      "wrongUsageContexts": [
+        "When you're meeting someone for the first time",
+        "When you're in the middle of a conversation",
+        "When you're going to bed"
+      ],
+      "coachingText": "Finally, let's practice a fun way to say goodbye, it's like saying 'see you later' to your friends after a great day!"
+    }
+  ],
+  "rawLesson": {
+    "id": "test-1772363795495",
+    "title": "Test: Greetings",
+    "icon": "📚",
+    "skillPathId": "Test: Greetings",
+    "lessonIndex": 0,
+    "steps": [
+      {
+        "tutorText": "📚 New phrase: \"Hallo, wie geht es dir?\"",
+        "helpText": "This is a friendly way to greet someone and ask about their day, it's like saying 'hello, how are you?' in English.",
+        "coachingText": "Let's practice some greetings, start with this one! It's a great way to show you care about how someone's doing.",
+        "activity": {
+          "type": "info",
+          "title": "Hallo, wie geht es dir?",
+          "content": "Hallo, wie geht es dir? = \"Hello, how are you?\"",
+          "explanation": "This is a friendly way to greet someone and ask about their day, it's like saying 'hello, how are you?' in English.",
+          "example": "Hallo, wie geht es dir? Ich bin froh, dich zu sehen.",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Hallo, wie geht es dir?\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Hallo, wie geht es dir?\" means \"Goodbye, see you later\"",
+          "isTrue": false,
+          "hint": "\"Hallo, wie geht es dir?\" = \"Hello, how are you?\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Hallo, wie geht es dir?\" mean?",
+        "helpText": "Remember: \"Hallo, wie geht es dir?\" = \"Hello, how are you?\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Hallo, wie geht es dir?\" mean?",
+          "options": [
+            "Goodbye, see you later",
+            "What's your name?",
+            "I like your shirt",
+            "Hello, how are you?"
+          ],
+          "correctIndex": 3,
+          "hint": "\"Hallo, wie geht es dir?\" = \"Hello, how are you?\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Hallo, wie geht es dir?\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Hallo, wie geht es dir?\" means \"Goodbye, see you later\"",
+          "isTrue": false,
+          "hint": "\"Hallo, wie geht es dir?\" = \"Hello, how are you?\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Hallo, wie geht es dir?\" mean?",
+        "helpText": "Remember: \"Hallo, wie geht es dir?\" = \"Hello, how are you?\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Hallo, wie geht es dir?\" mean?",
+          "options": [
+            "Goodbye, see you later",
+            "What's your name?",
+            "I like your shirt",
+            "Hello, how are you?"
+          ],
+          "correctIndex": 3,
+          "hint": "\"Hallo, wie geht es dir?\" = \"Hello, how are you?\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "📚 New phrase: \"Guten Tag, ich freue mich, Sie kennenzulernen\"",
+        "helpText": "This is a polite way to greet someone you don't know well, it shows respect and friendliness.",
+        "coachingText": "Now let's try a more formal greeting, perfect for meeting a new teacher or coach!",
+        "activity": {
+          "type": "info",
+          "title": "Guten Tag, ich freue mich, Sie kennenzulernen",
+          "content": "Guten Tag, ich freue mich, Sie kennenzulernen = \"Good day, nice to meet you\"",
+          "explanation": "This is a polite way to greet someone you don't know well, it shows respect and friendliness.",
+          "example": "Guten Tag, ich freue mich, Sie kennenzulernen, mein Name ist Max.",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Guten Tag, ich freue mich, Sie kennenzulernen\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Guten Tag, ich freue mich, Sie kennenzulernen\" means \"I don't like you\"",
+          "isTrue": false,
+          "hint": "\"Guten Tag, ich freue mich, Sie kennenzulernen\" = \"Good day, nice to meet you\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Practice time! Complete this phrase.",
+        "helpText": "The full phrase is: \"Guten Tag, ich freue mich, Sie kennenzulernen\"",
+        "activity": {
+          "type": "fill_blank",
+          "sentence": "Guten Tag, ich freue mich, Sie ___",
+          "correctAnswer": "kennenzulernen",
+          "acceptedAnswers": [
+            "kennenzulernen"
+          ],
+          "hint": "\"Guten Tag, ich freue mich, Sie kennenzulernen\" = \"Good day, nice to meet you\"",
+          "sunDrops": 2
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"Good day, nice to meet you\" in ge?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "Good day, nice to meet you",
+          "correctAnswer": "Guten Tag, ich freue mich, Sie kennenzulernen",
+          "acceptedAnswers": [
+            "Guten Tag, ich freue mich, Sie kennenzulernen",
+            "guten tag, ich freue mich, sie kennenzulernen",
+            "Guten Tag ich freue mich Sie kennenzulernen",
+            "guten tag ich freue mich sie kennenzulernen"
+          ],
+          "hint": "It starts with \"Gut...\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Guten Tag, ich freue mich, Sie kennenzulernen\" mean?",
+        "helpText": "Remember: \"Guten Tag, ich freue mich, Sie kennenzulernen\" = \"Good day, nice to meet you\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Guten Tag, ich freue mich, Sie kennenzulernen\" mean?",
+          "options": [
+            "I don't like you",
+            "My name is John",
+            "Good day, nice to meet you",
+            "I'm tired today"
+          ],
+          "correctIndex": 2,
+          "hint": "\"Guten Tag, ich freue mich, Sie kennenzulernen\" = \"Good day, nice to meet you\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "📚 New phrase: \"Auf Wiedersehen, bis zum nächsten Mal\"",
+        "helpText": "This is a friendly way to say goodbye, it implies you're looking forward to seeing the person again.",
+        "coachingText": "Finally, let's practice a fun way to say goodbye, it's like saying 'see you later' to your friends after a great day!",
+        "activity": {
+          "type": "info",
+          "title": "Auf Wiedersehen, bis zum nächsten Mal",
+          "content": "Auf Wiedersehen, bis zum nächsten Mal = \"Goodbye, see you next time\"",
+          "explanation": "This is a friendly way to say goodbye, it implies you're looking forward to seeing the person again.",
+          "example": "Auf Wiedersehen, bis zum nächsten Mal, ich hatte viel Spaß heute!",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"Goodbye, see you next time\"",
+        "helpText": "The correct phrase is: \"Auf Wiedersehen, bis zum nächsten Mal\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "Auf Wiedersehen, bis zum nächsten Mal",
+          "scrambledWords": [
+            "Auf",
+            "Wiedersehen,",
+            "zum",
+            "nächsten",
+            "Mal",
+            "bis"
+          ],
+          "hint": "\"Auf Wiedersehen, bis zum nächsten Mal\" = \"Goodbye, see you next time\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"Goodbye, see you next time\" in ge?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "Goodbye, see you next time",
+          "correctAnswer": "Auf Wiedersehen, bis zum nächsten Mal",
+          "acceptedAnswers": [
+            "Auf Wiedersehen, bis zum nächsten Mal",
+            "auf wiedersehen, bis zum nächsten mal",
+            "Auf Wiedersehen bis zum nächsten Mal",
+            "auf wiedersehen bis zum nächsten mal"
+          ],
+          "hint": "It starts with \"Auf...\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"Goodbye, see you next time\"",
+        "helpText": "The correct phrase is: \"Auf Wiedersehen, bis zum nächsten Mal\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "Auf Wiedersehen, bis zum nächsten Mal",
+          "scrambledWords": [
+            "Auf",
+            "Wiedersehen,",
+            "zum",
+            "nächsten",
+            "Mal",
+            "bis"
+          ],
+          "hint": "\"Auf Wiedersehen, bis zum nächsten Mal\" = \"Goodbye, see you next time\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"Goodbye, see you next time\" in ge?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "Goodbye, see you next time",
+          "correctAnswer": "Auf Wiedersehen, bis zum nächsten Mal",
+          "acceptedAnswers": [
+            "Auf Wiedersehen, bis zum nächsten Mal",
+            "auf wiedersehen, bis zum nächsten mal",
+            "Auf Wiedersehen bis zum nächsten Mal",
+            "auf wiedersehen bis zum nächsten mal"
+          ],
+          "hint": "It starts with \"Auf...\"",
+          "sunDrops": 3
+        }
+      }
+    ],
+    "totalSunDrops": 23
+  }
+}

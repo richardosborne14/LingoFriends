@@ -1,0 +1,116 @@
+{
+  "suiteName": "Cross-LLM Quality Comparison",
+  "provider": "deepinfra",
+  "timestamp": "2026-03-01T11:17:41.335Z",
+  "totalTests": 1,
+  "passed": 0,
+  "failed": 1,
+  "warnings": 0,
+  "duration": 38306,
+  "tests": [
+    {
+      "testId": "08-cross-llm",
+      "testName": "Cross-LLM Quality Comparison",
+      "status": "FAIL",
+      "duration": 38303,
+      "assertions": [
+        {
+          "description": "[deepinfra] parse success",
+          "passed": false,
+          "expected": true,
+          "actual": false,
+          "severity": "error"
+        },
+        {
+          "description": "[deepinfra] response < 15s",
+          "passed": true,
+          "expected": "<15s",
+          "actual": "14231ms",
+          "severity": "error"
+        },
+        {
+          "description": "[groq] parse success",
+          "passed": true,
+          "expected": true,
+          "actual": true,
+          "severity": "error"
+        },
+        {
+          "description": "[groq] response < 15s",
+          "passed": true,
+          "expected": "<15s",
+          "actual": "4221ms",
+          "severity": "error"
+        },
+        {
+          "description": "[groq] assembly OK",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "[groq] validation passed",
+          "passed": true,
+          "expected": true,
+          "actual": true,
+          "severity": "warning"
+        },
+        {
+          "description": "[anthropic] parse success",
+          "passed": true,
+          "expected": true,
+          "actual": true,
+          "severity": "error"
+        },
+        {
+          "description": "[anthropic] response < 15s",
+          "passed": false,
+          "expected": "<15s",
+          "actual": "16804ms",
+          "severity": "error"
+        },
+        {
+          "description": "[anthropic] assembly OK",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "[anthropic] validation passed",
+          "passed": true,
+          "expected": true,
+          "actual": true,
+          "severity": "warning"
+        },
+        {
+          "description": "Winner score ≥ 40/100",
+          "passed": true,
+          "expected": "≥40",
+          "actual": 94,
+          "severity": "warning"
+        },
+        {
+          "description": "[anthropic] score ≥ 20/100",
+          "passed": true,
+          "expected": "≥20",
+          "actual": 94,
+          "severity": "warning"
+        },
+        {
+          "description": "[groq] score ≥ 20/100",
+          "passed": true,
+          "expected": "≥20",
+          "actual": 88,
+          "severity": "warning"
+        },
+        {
+          "description": "[deepinfra] score ≥ 20/100",
+          "passed": false,
+          "expected": "≥20",
+          "actual": 0,
+          "severity": "warning"
+        }
+      ],
+      "errors": [],
+      "warnings": []
+    }
+  ]
+}

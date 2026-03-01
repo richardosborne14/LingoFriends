@@ -203,13 +203,16 @@ export const LessonView: React.FC<LessonViewProps> = ({
   
   /**
    * Sound effects hook for lesson feedback.
-   * - Reward sound on correct answer
-   * - Penalty sound on wrong answer
-   * - Skip sound when skipping a question
+   * - Reward chime on correct answer / quiz steps
+   * - Penalty bonk on wrong answer
+   * - Celebration fanfare on lesson complete
+   * - Skip whoosh when skipping a question
    */
-  const { playReward, playPenalty, playSkip, unlock } = useSounds();
+  const { playReward, playPenalty, playCelebrate, playSkip, unlock } = useSounds();
 
-  // Unlock audio context on first user interaction (iOS Safari requirement)
+  // Unlock audio context on first user interaction (iOS Safari requirement).
+  // Browsers block audio until a user gesture — this one-time listener catches
+  // the first click/tap anywhere in the lesson to unblock the audio context.
   useEffect(() => {
     const handleUnlock = () => {
       unlock();
@@ -226,47 +229,81 @@ export const LessonView: React.FC<LessonViewProps> = ({
     };
   }, [unlock]);
 
+  // 2.3.12: Play celebration fanfare when lesson completes.
+  // Fires exactly once — when isComplete transitions false → true.
+  // Separate effect so it doesn't couple with the render path or animations.
+  useEffect(() => {
+    if (state.isComplete) {
+      playCelebrate();
+    }
+    // playCelebrate is stable (useCallback in useSounds), so this only fires on isComplete change
+  }, [state.isComplete, playCelebrate]);
+
   // ============================================
   // HANDLERS
   // ============================================
 
   /**
    * Handle when activity is completed correctly.
-   * Plays reward sound on correct answer, penalty sound on wrong.
+   *
+   * 2.3.5 bug fix: INFO steps earn 0 SunDrops. Showing "+0 Sun Drops" burst
+   * confuses kids — it looks like a broken reward. When sunDropsEarned === 0
+   * we skip the animation entirely and advance the step directly.
+   *
+   * 2.3.12 bug fix: Only play reward chime for actual quiz steps (>0 drops).
+   * INFO steps are a teaching moment, not an achievement.
    */
   const handleActivityComplete = useCallback((correct: boolean, sunDropsEarned: number) => {
     if (correct) {
-      // Play reward sound
-      playReward();
-      // Show reward animation
-      setState(prev => ({
-        ...prev,
-        sunDropsEarned: prev.sunDropsEarned + sunDropsEarned,
-        showReward: true,
-        rewardAmount: sunDropsEarned,
-      }));
+      if (sunDropsEarned > 0) {
+        // Quiz step with reward — play chime and show burst animation.
+        // handleRewardDone advances to the next step once animation finishes.
+        playReward();
+        setState(prev => ({
+          ...prev,
+          sunDropsEarned: prev.sunDropsEarned + sunDropsEarned,
+          showReward: true,
+          rewardAmount: sunDropsEarned,
+        }));
+      } else {
+        // INFO step (0 SunDrops) — advance immediately, no animation, no sound.
+        // Prevents the confusing "+0 Sun Drops" burst on teaching cards.
+        setState(prev => {
+          const nextIndex = prev.currentStepIndex + 1;
+          const isComplete = nextIndex >= lesson.steps.length;
+          return {
+            ...prev,
+            currentStepIndex: nextIndex,
+            isComplete,
+          };
+        });
+      }
     } else {
-      // Play penalty sound
+      // Wrong answer from ActivityRouter's onComplete(false) path (legacy/fallback).
+      // Most wrong answers come through handleWrongAnswer (onWrong callback).
       playPenalty();
-      // Show penalty animation
       setState(prev => ({
         ...prev,
         showPenalty: true,
       }));
     }
-  }, [playReward, playPenalty]);
+  }, [playReward, playPenalty, lesson.steps.length]);
 
   /**
    * Handle when wrong answer is given.
-   * Shows penalty animation (but allows retry - doesn't advance).
+   * Shows penalty animation (but allows retry — doesn't advance the step).
+   *
+   * 2.3.12 bug fix: was missing playPenalty() call entirely.
    */
   const handleWrongAnswer = useCallback(() => {
-    // Show penalty animation but don't advance - let user retry
+    // Play penalty sound (bonk) so kids get immediate audio feedback
+    playPenalty();
+    // Show penalty burst animation but don't advance — let user retry
     setState(prev => ({
       ...prev,
       showPenalty: true,
     }));
-  }, []);
+  }, [playPenalty]);
 
   /**
    * Handle when user skips a question.

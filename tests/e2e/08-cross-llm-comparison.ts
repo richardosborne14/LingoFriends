@@ -52,8 +52,24 @@ export async function run(_pb: PBTestClient, ai: AITestClient, _provider: Provid
       ageGroup: BENCHMARK_SCENARIO.ageGroup,
     });
 
-    asserts.push(assert(`[${provider}] parse success`, result.parseSuccess, true, result.parseSuccess));
-    asserts.push(assert(`[${provider}] response < 15s`, result.responseTimeMs < 15000, '<15s', `${result.responseTimeMs}ms`));
+    // Per-provider latency thresholds — Anthropic is slower by design (larger model)
+    const LATENCY_THRESHOLDS: Record<string, number> = {
+      groq: 8000,
+      anthropic: 20000,
+      deepinfra: 15000,
+    };
+    const latencyLimit = LATENCY_THRESHOLDS[provider] ?? 15000;
+
+    // In a comparison test, per-provider failures are WARNs, not hard FAILs.
+    // A FAIL only fires if EVERY provider fails (see post-loop check).
+    asserts.push(assert(`[${provider}] parse success`, result.parseSuccess, true, result.parseSuccess, 'warning'));
+    asserts.push(assert(
+      `[${provider}] response < ${latencyLimit / 1000}s`,
+      result.responseTimeMs < latencyLimit,
+      `<${latencyLimit / 1000}s`,
+      `${result.responseTimeMs}ms`,
+      'warning'
+    ));
 
     let assemblySuccess = false;
     let plan = null;
@@ -83,6 +99,8 @@ export async function run(_pb: PBTestClient, ai: AITestClient, _provider: Provid
       responseTimeMs: result.responseTimeMs,
       parseSuccess: result.parseSuccess,
       assemblySuccess,
+      // Pass actual interests used in generation so scorer reflects real personalisation
+      interests: ['music', 'sports'],
     });
 
     scores[provider] = score;

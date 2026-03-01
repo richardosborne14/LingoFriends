@@ -44,7 +44,7 @@ import { lessonGeneratorV2 } from './src/services/lessonGeneratorV2';
 import * as srsService from './src/services/srsService';
 import { getCurrentUserId } from './services/pocketbaseService';
 import type { SessionPlan } from './src/types/pedagogy';
-import { DevTestHarness, FlowTestHarness, TreeRendererTestHarness } from './src/components/dev';
+import { DevTestHarness, FlowTestHarness, TreeRendererTestHarness, ObjectViewerHarness } from './src/components/dev';
 import { TutorialProvider, TutorialStep, useTutorial } from './src/components/tutorial';
 import { MOCK_AVATAR } from './src/data/mockGameData';
 import { useGarden } from './src/hooks/useGarden';
@@ -324,8 +324,11 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile, i
   const handleLessonComplete = useCallback(async (result: LessonResult) => {
     console.log('[GameApp] Lesson complete:', result);
 
-    // Save to Pocketbase in the background — both calls are fire-and-forget.
-    // The user sees the garden immediately; progress and SRS sync behind the scenes.
+    // Save to Pocketbase in the background.
+    // 2.3.9 fix: pathRefreshKey is incremented INSIDE the .then() so PathView
+    // only re-fetches after the PB write is confirmed. Previously it was called
+    // immediately (fire-and-forget race) causing PathView to query stale data
+    // and show the same lesson as "current" instead of the next one.
     if (state.selectedTree) {
       saveLessonCompletion({
         skillPathId: state.selectedTree.skillPathId,
@@ -333,9 +336,16 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile, i
         // LessonResult uses `stars` (1-3 rating) — maps directly to starsEarned
         starsEarned: result.stars ?? 0,
       }).then(() => {
+        // PB write confirmed — now safe to trigger PathView re-fetch.
+        // The user will already be on PathView at this point; the key change
+        // causes useSkillPath to re-query and unlock the next lesson node.
         refreshStats();
+        setPathRefreshKey((k) => k + 1);
       }).catch(err => {
         console.error('[GameApp] Progress save failed:', err);
+        // Still refresh the path even on failure — PB may have partial data.
+        // useSkillPath degrades gracefully if the write didn't land.
+        setPathRefreshKey((k) => k + 1);
       });
     }
 
@@ -403,11 +413,6 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile, i
       // Clear so the next lesson starts fresh
       activePlanRef.current = null;
     }
-
-    // Task G: Increment pathRefreshKey so PathView re-fetches live lesson statuses
-    // from PB after returning to the path. This unlocks the next node immediately
-    // without a full page remount. Uses functional update to avoid stale closure.
-    setPathRefreshKey((k) => k + 1);
 
     // First-run: show GardenReveal overlay instead of returning directly to garden.
     // gardenRevealData triggers the full-screen celebration with tree-grow animation.
@@ -973,7 +978,7 @@ function App() {
   
   // Dev mode for testing components directly
   const [showDevHarness, setShowDevHarness] = useState(false);
-  const [devHarnessTab, setDevHarnessTab] = useState<'dev' | 'flow' | 'trees'>('trees');
+  const [devHarnessTab, setDevHarnessTab] = useState<'dev' | 'flow' | 'trees' | 'objects'>('objects');
   
   // Keyboard shortcut to toggle dev harness (Ctrl/Cmd + Shift + D)
   useEffect(() => {
@@ -1018,6 +1023,14 @@ function App() {
             >
               🧪 Component Tests
             </button>
+            <button
+              onClick={() => setDevHarnessTab('objects')}
+              className={`px-4 py-2 rounded-lg font-medium transition ${
+                devHarnessTab === 'objects' ? 'bg-purple-500 text-white' : 'bg-gray-700 hover:bg-gray-600'
+              }`}
+            >
+              🔍 Object Viewer
+            </button>
           </div>
           <button
             onClick={() => setShowDevHarness(false)}
@@ -1028,10 +1041,11 @@ function App() {
         </div>
         
         {/* Harness content */}
-        <div className="pt-12">
+        <div className="pt-12 h-screen overflow-hidden">
           {devHarnessTab === 'trees' && <TreeRendererTestHarness />}
           {devHarnessTab === 'flow' && <FlowTestHarness />}
           {devHarnessTab === 'dev' && <DevTestHarness />}
+          {devHarnessTab === 'objects' && <ObjectViewerHarness />}
         </div>
       </>
     );

@@ -10,3 +10,4 @@ export { ShopTestHarness } from './ShopTestHarness';
 export { DevTestHarness } from './DevTestHarness';
 export { FlowTestHarness } from './FlowTestHarness';
 export { TreeRendererTestHarness } from './TreeRendererTestHarness';
+export { ObjectViewerHarness } from './ObjectViewerHarness';

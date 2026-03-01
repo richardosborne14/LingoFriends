@@ -1,0 +1,639 @@
+{
+  "scenario": {
+    "targetLanguage": "German",
+    "nativeLanguage": "English",
+    "topic": "Food & Drinks",
+    "ageGroup": "7-10",
+    "level": "A1"
+  },
+  "score": {
+    "provider": "groq",
+    "lessonTitle": "Test: Food & Drinks",
+    "combination": {
+      "targetLanguage": "German",
+      "nativeLanguage": "English",
+      "topic": "Food & Drinks",
+      "ageGroup": "7-10",
+      "level": "A1"
+    },
+    "responseTimeMs": 4205,
+    "parseSuccess": true,
+    "assemblySuccess": true,
+    "validationResult": {
+      "valid": true,
+      "errors": [],
+      "warnings": []
+    },
+    "scores": {
+      "languageCorrectness": 10,
+      "teachFirstEnforcement": 10,
+      "activityVariety": 10,
+      "chunkQuality": 10,
+      "distractorQuality": 10,
+      "ageAppropriateness": 10,
+      "interestPersonalisation": 5,
+      "fieldCompleteness": 10,
+      "i1Difficulty": 9,
+      "nativeLanguageInstructions": 10
+    },
+    "totalScore": 94,
+    "rawChunks": [
+      {
+        "targetPhrase": "Ich möchte ein Eis",
+        "nativeTranslation": "I would like an ice cream",
+        "exampleSentence": "Ich möchte ein Eis mit Schokolade",
+        "usageNote": "Use this phrase when you're at an ice cream shop or a cafe and you want to order a dessert",
+        "explanation": "This phrase is helpful when you want something sweet and cold, like ice cream, and you're asking for it politely",
+        "distractors": [
+          "I don't want an ice cream",
+          "I'm looking for a book",
+          "I need a new bike"
+        ],
+        "correctUsageContext": "You're at an ice cream parlor with your family on a hot summer day",
+        "wrongUsageContexts": [
+          "You're in a library studying for a test",
+          "You're playing soccer with your friends",
+          "You're at a doctor's office for a check-up"
+        ],
+        "coachingText": "Let's practice ordering our favorite treats, shall we? Remember to always be polite when asking for something you want."
+      },
+      {
+        "targetPhrase": "Kann ich bitte ein Glas Wasser haben",
+        "nativeTranslation": "Can I have a glass of water please",
+        "exampleSentence": "Kann ich bitte ein Glas Wasser haben, ich bin durstig",
+        "usageNote": "Use this phrase when you're thirsty and need a drink, and you're asking someone for help",
+        "explanation": "This phrase is helpful when you need something to drink and you're asking for it nicely, and it's very important to stay hydrated, especially when you're playing sports",
+        "distractors": [
+          "I don't want any water",
+          "I need a new video game",
+          "I'm looking for my phone"
+        ],
+        "correctUsageContext": "You're playing soccer outside on a hot day and you need a drink",
+        "wrongUsageContexts": [
+          "You're sleeping in your bed at night",
+          "You're watching TV on the couch",
+          "You're eating a big meal at a restaurant"
+        ],
+        "coachingText": "Staying hydrated is important, especially when we're being active, so let's learn how to ask for a drink in German."
+      },
+      {
+        "targetPhrase": "Das Essen schmeckt lecker",
+        "nativeTranslation": "The food tastes delicious",
+        "exampleSentence": "Das Essen schmeckt lecker, danke Mama",
+        "usageNote": "Use this phrase when you're eating a meal and you want to compliment the person who made it",
+        "explanation": "This phrase is helpful when you want to say something nice about the food you're eating, and it makes the person who cooked it happy",
+        "distractors": [
+          "The food is terrible",
+          "I don't like this music",
+          "I want to go outside and play"
+        ],
+        "correctUsageContext": "You're eating dinner at home with your family and you want to thank your mom for cooking",
+        "wrongUsageContexts": [
+          "You're playing music with your friends",
+          "You're riding your bike in the park",
+          "You're doing your homework at your desk"
+        ],
+        "coachingText": "Let's learn how to say that our food is delicious, it's a nice way to show appreciation for the person who cooked it."
+      }
+    ],
+    "rawLesson": {
+      "id": "test-1772363809690",
+      "title": "Test: Food & Drinks",
+      "icon": "📚",
+      "skillPathId": "Test: Food & Drinks",
+      "lessonIndex": 0,
+      "steps": [
+        {
+          "tutorText": "📚 New phrase: \"Ich möchte ein Eis\"",
+          "helpText": "This phrase is helpful when you want something sweet and cold, like ice cream, and you're asking for it politely",
+          "coachingText": "Let's practice ordering our favorite treats, shall we? Remember to always be polite when asking for something you want.",
+          "activity": {
+            "type": "info",
+            "title": "Ich möchte ein Eis",
+            "content": "Ich möchte ein Eis = \"I would like an ice cream\"",
+            "explanation": "This phrase is helpful when you want something sweet and cold, like ice cream, and you're asking for it politely",
+            "example": "Ich möchte ein Eis mit Schokolade",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Ich möchte ein Eis\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Ich möchte ein Eis\" means \"I would like an ice cream\"",
+            "isTrue": true,
+            "hint": "\"Ich möchte ein Eis\" = \"I would like an ice cream\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Ich möchte ein Eis\" mean?",
+          "helpText": "Remember: \"Ich möchte ein Eis\" = \"I would like an ice cream\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Ich möchte ein Eis\" mean?",
+            "options": [
+              "I don't want an ice cream",
+              "I would like an ice cream",
+              "I'm looking for a book",
+              "I need a new bike"
+            ],
+            "correctIndex": 1,
+            "hint": "\"Ich möchte ein Eis\" = \"I would like an ice cream\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Ich möchte ein Eis\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Ich möchte ein Eis\" means \"I would like an ice cream\"",
+            "isTrue": true,
+            "hint": "\"Ich möchte ein Eis\" = \"I would like an ice cream\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Ich möchte ein Eis\" mean?",
+          "helpText": "Remember: \"Ich möchte ein Eis\" = \"I would like an ice cream\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Ich möchte ein Eis\" mean?",
+            "options": [
+              "I don't want an ice cream",
+              "I would like an ice cream",
+              "I'm looking for a book",
+              "I need a new bike"
+            ],
+            "correctIndex": 1,
+            "hint": "\"Ich möchte ein Eis\" = \"I would like an ice cream\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "📚 New phrase: \"Kann ich bitte ein Glas Wasser haben\"",
+          "helpText": "This phrase is helpful when you need something to drink and you're asking for it nicely, and it's very important to stay hydrated, especially when you're playing sports",
+          "coachingText": "Staying hydrated is important, especially when we're being active, so let's learn how to ask for a drink in German.",
+          "activity": {
+            "type": "info",
+            "title": "Kann ich bitte ein Glas Wasser haben",
+            "content": "Kann ich bitte ein Glas Wasser haben = \"Can I have a glass of water please\"",
+            "explanation": "This phrase is helpful when you need something to drink and you're asking for it nicely, and it's very important to stay hydrated, especially when you're playing sports",
+            "example": "Kann ich bitte ein Glas Wasser haben, ich bin durstig",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Practice time! Complete this phrase.",
+          "helpText": "The full phrase is: \"Kann ich bitte ein Glas Wasser haben\"",
+          "activity": {
+            "type": "fill_blank",
+            "sentence": "Kann ich bitte ein Glas Wasser ___",
+            "correctAnswer": "haben",
+            "acceptedAnswers": [
+              "haben"
+            ],
+            "hint": "\"Kann ich bitte ein Glas Wasser haben\" = \"Can I have a glass of water please\"",
+            "sunDrops": 2
+          }
+        },
+        {
+          "tutorText": "Match the phrases with their meanings!",
+          "helpText": "Find the pair: \"Kann ich bitte ein Glas Wasser haben\" = \"Can I have a glass of water please\"",
+          "activity": {
+            "type": "matching",
+            "pairs": [
+              {
+                "left": "I need a new video game",
+                "right": "I'm looking for my phone"
+              },
+              {
+                "left": "I'm looking for my phone",
+                "right": "I don't want any water"
+              },
+              {
+                "left": "Kann ich bitte ein Glas Wasser haben",
+                "right": "Can I have a glass of water please"
+              },
+              {
+                "left": "I don't want any water",
+                "right": "I need a new video game"
+              }
+            ],
+            "hint": "\"Kann ich bitte ein Glas Wasser haben\" means \"Can I have a glass of water please\"",
+            "sunDrops": 2
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Kann ich bitte ein Glas Wasser haben\" mean?",
+          "helpText": "Remember: \"Kann ich bitte ein Glas Wasser haben\" = \"Can I have a glass of water please\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Kann ich bitte ein Glas Wasser haben\" mean?",
+            "options": [
+              "I don't want any water",
+              "I need a new video game",
+              "Can I have a glass of water please",
+              "I'm looking for my phone"
+            ],
+            "correctIndex": 2,
+            "hint": "\"Kann ich bitte ein Glas Wasser haben\" = \"Can I have a glass of water please\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Kann ich bitte ein Glas Wasser haben\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Kann ich bitte ein Glas Wasser haben\" means \"Can I have a glass of water please\"",
+            "isTrue": true,
+            "hint": "\"Kann ich bitte ein Glas Wasser haben\" = \"Can I have a glass of water please\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "📚 New phrase: \"Das Essen schmeckt lecker\"",
+          "helpText": "This phrase is helpful when you want to say something nice about the food you're eating, and it makes the person who cooked it happy",
+          "coachingText": "Let's learn how to say that our food is delicious, it's a nice way to show appreciation for the person who cooked it.",
+          "activity": {
+            "type": "info",
+            "title": "Das Essen schmeckt lecker",
+            "content": "Das Essen schmeckt lecker = \"The food tastes delicious\"",
+            "explanation": "This phrase is helpful when you want to say something nice about the food you're eating, and it makes the person who cooked it happy",
+            "example": "Das Essen schmeckt lecker, danke Mama",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"The food tastes delicious\" in ge?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "The food tastes delicious",
+            "correctAnswer": "Das Essen schmeckt lecker",
+            "acceptedAnswers": [
+              "Das Essen schmeckt lecker",
+              "das essen schmeckt lecker"
+            ],
+            "hint": "It starts with \"Das...\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"The food tastes delicious\"",
+          "helpText": "The correct phrase is: \"Das Essen schmeckt lecker\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "Das Essen schmeckt lecker",
+            "scrambledWords": [
+              "schmeckt",
+              "Das",
+              "lecker",
+              "Essen"
+            ],
+            "hint": "\"Das Essen schmeckt lecker\" = \"The food tastes delicious\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"The food tastes delicious\" in ge?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "The food tastes delicious",
+            "correctAnswer": "Das Essen schmeckt lecker",
+            "acceptedAnswers": [
+              "Das Essen schmeckt lecker",
+              "das essen schmeckt lecker"
+            ],
+            "hint": "It starts with \"Das...\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"The food tastes delicious\"",
+          "helpText": "The correct phrase is: \"Das Essen schmeckt lecker\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "Das Essen schmeckt lecker",
+            "scrambledWords": [
+              "schmeckt",
+              "Das",
+              "lecker",
+              "Essen"
+            ],
+            "hint": "\"Das Essen schmeckt lecker\" = \"The food tastes delicious\"",
+            "sunDrops": 3
+          }
+        }
+      ],
+      "totalSunDrops": 22
+    },
+    "notes": [
+      "Distractor \"I don't want an ice cream\" appears to be in target language (de), not native",
+      "Distractor \"I don't want any water\" appears to be in target language (de), not native",
+      "Distractor \"I'm looking for my phone\" appears to be in target language (de), not native",
+      "Distractor \"I don't like this music\" appears to be in target language (de), not native",
+      "Phrase may be too long for age 7-10: \"Kann ich bitte ein Glas Wasser haben\"",
+      "No interests provided to check against"
+    ]
+  },
+  "rawChunks": [
+    {
+      "targetPhrase": "Ich möchte ein Eis",
+      "nativeTranslation": "I would like an ice cream",
+      "exampleSentence": "Ich möchte ein Eis mit Schokolade",
+      "usageNote": "Use this phrase when you're at an ice cream shop or a cafe and you want to order a dessert",
+      "explanation": "This phrase is helpful when you want something sweet and cold, like ice cream, and you're asking for it politely",
+      "distractors": [
+        "I don't want an ice cream",
+        "I'm looking for a book",
+        "I need a new bike"
+      ],
+      "correctUsageContext": "You're at an ice cream parlor with your family on a hot summer day",
+      "wrongUsageContexts": [
+        "You're in a library studying for a test",
+        "You're playing soccer with your friends",
+        "You're at a doctor's office for a check-up"
+      ],
+      "coachingText": "Let's practice ordering our favorite treats, shall we? Remember to always be polite when asking for something you want."
+    },
+    {
+      "targetPhrase": "Kann ich bitte ein Glas Wasser haben",
+      "nativeTranslation": "Can I have a glass of water please",
+      "exampleSentence": "Kann ich bitte ein Glas Wasser haben, ich bin durstig",
+      "usageNote": "Use this phrase when you're thirsty and need a drink, and you're asking someone for help",
+      "explanation": "This phrase is helpful when you need something to drink and you're asking for it nicely, and it's very important to stay hydrated, especially when you're playing sports",
+      "distractors": [
+        "I don't want any water",
+        "I need a new video game",
+        "I'm looking for my phone"
+      ],
+      "correctUsageContext": "You're playing soccer outside on a hot day and you need a drink",
+      "wrongUsageContexts": [
+        "You're sleeping in your bed at night",
+        "You're watching TV on the couch",
+        "You're eating a big meal at a restaurant"
+      ],
+      "coachingText": "Staying hydrated is important, especially when we're being active, so let's learn how to ask for a drink in German."
+    },
+    {
+      "targetPhrase": "Das Essen schmeckt lecker",
+      "nativeTranslation": "The food tastes delicious",
+      "exampleSentence": "Das Essen schmeckt lecker, danke Mama",
+      "usageNote": "Use this phrase when you're eating a meal and you want to compliment the person who made it",
+      "explanation": "This phrase is helpful when you want to say something nice about the food you're eating, and it makes the person who cooked it happy",
+      "distractors": [
+        "The food is terrible",
+        "I don't like this music",
+        "I want to go outside and play"
+      ],
+      "correctUsageContext": "You're eating dinner at home with your family and you want to thank your mom for cooking",
+      "wrongUsageContexts": [
+        "You're playing music with your friends",
+        "You're riding your bike in the park",
+        "You're doing your homework at your desk"
+      ],
+      "coachingText": "Let's learn how to say that our food is delicious, it's a nice way to show appreciation for the person who cooked it."
+    }
+  ],
+  "rawLesson": {
+    "id": "test-1772363809690",
+    "title": "Test: Food & Drinks",
+    "icon": "📚",
+    "skillPathId": "Test: Food & Drinks",
+    "lessonIndex": 0,
+    "steps": [
+      {
+        "tutorText": "📚 New phrase: \"Ich möchte ein Eis\"",
+        "helpText": "This phrase is helpful when you want something sweet and cold, like ice cream, and you're asking for it politely",
+        "coachingText": "Let's practice ordering our favorite treats, shall we? Remember to always be polite when asking for something you want.",
+        "activity": {
+          "type": "info",
+          "title": "Ich möchte ein Eis",
+          "content": "Ich möchte ein Eis = \"I would like an ice cream\"",
+          "explanation": "This phrase is helpful when you want something sweet and cold, like ice cream, and you're asking for it politely",
+          "example": "Ich möchte ein Eis mit Schokolade",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Ich möchte ein Eis\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Ich möchte ein Eis\" means \"I would like an ice cream\"",
+          "isTrue": true,
+          "hint": "\"Ich möchte ein Eis\" = \"I would like an ice cream\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Ich möchte ein Eis\" mean?",
+        "helpText": "Remember: \"Ich möchte ein Eis\" = \"I would like an ice cream\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Ich möchte ein Eis\" mean?",
+          "options": [
+            "I don't want an ice cream",
+            "I would like an ice cream",
+            "I'm looking for a book",
+            "I need a new bike"
+          ],
+          "correctIndex": 1,
+          "hint": "\"Ich möchte ein Eis\" = \"I would like an ice cream\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Ich möchte ein Eis\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Ich möchte ein Eis\" means \"I would like an ice cream\"",
+          "isTrue": true,
+          "hint": "\"Ich möchte ein Eis\" = \"I would like an ice cream\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Ich möchte ein Eis\" mean?",
+        "helpText": "Remember: \"Ich möchte ein Eis\" = \"I would like an ice cream\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Ich möchte ein Eis\" mean?",
+          "options": [
+            "I don't want an ice cream",
+            "I would like an ice cream",
+            "I'm looking for a book",
+            "I need a new bike"
+          ],
+          "correctIndex": 1,
+          "hint": "\"Ich möchte ein Eis\" = \"I would like an ice cream\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "📚 New phrase: \"Kann ich bitte ein Glas Wasser haben\"",
+        "helpText": "This phrase is helpful when you need something to drink and you're asking for it nicely, and it's very important to stay hydrated, especially when you're playing sports",
+        "coachingText": "Staying hydrated is important, especially when we're being active, so let's learn how to ask for a drink in German.",
+        "activity": {
+          "type": "info",
+          "title": "Kann ich bitte ein Glas Wasser haben",
+          "content": "Kann ich bitte ein Glas Wasser haben = \"Can I have a glass of water please\"",
+          "explanation": "This phrase is helpful when you need something to drink and you're asking for it nicely, and it's very important to stay hydrated, especially when you're playing sports",
+          "example": "Kann ich bitte ein Glas Wasser haben, ich bin durstig",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Practice time! Complete this phrase.",
+        "helpText": "The full phrase is: \"Kann ich bitte ein Glas Wasser haben\"",
+        "activity": {
+          "type": "fill_blank",
+          "sentence": "Kann ich bitte ein Glas Wasser ___",
+          "correctAnswer": "haben",
+          "acceptedAnswers": [
+            "haben"
+          ],
+          "hint": "\"Kann ich bitte ein Glas Wasser haben\" = \"Can I have a glass of water please\"",
+          "sunDrops": 2
+        }
+      },
+      {
+        "tutorText": "Match the phrases with their meanings!",
+        "helpText": "Find the pair: \"Kann ich bitte ein Glas Wasser haben\" = \"Can I have a glass of water please\"",
+        "activity": {
+          "type": "matching",
+          "pairs": [
+            {
+              "left": "I need a new video game",
+              "right": "I'm looking for my phone"
+            },
+            {
+              "left": "I'm looking for my phone",
+              "right": "I don't want any water"
+            },
+            {
+              "left": "Kann ich bitte ein Glas Wasser haben",
+              "right": "Can I have a glass of water please"
+            },
+            {
+              "left": "I don't want any water",
+              "right": "I need a new video game"
+            }
+          ],
+          "hint": "\"Kann ich bitte ein Glas Wasser haben\" means \"Can I have a glass of water please\"",
+          "sunDrops": 2
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Kann ich bitte ein Glas Wasser haben\" mean?",
+        "helpText": "Remember: \"Kann ich bitte ein Glas Wasser haben\" = \"Can I have a glass of water please\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Kann ich bitte ein Glas Wasser haben\" mean?",
+          "options": [
+            "I don't want any water",
+            "I need a new video game",
+            "Can I have a glass of water please",
+            "I'm looking for my phone"
+          ],
+          "correctIndex": 2,
+          "hint": "\"Kann ich bitte ein Glas Wasser haben\" = \"Can I have a glass of water please\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Kann ich bitte ein Glas Wasser haben\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Kann ich bitte ein Glas Wasser haben\" means \"Can I have a glass of water please\"",
+          "isTrue": true,
+          "hint": "\"Kann ich bitte ein Glas Wasser haben\" = \"Can I have a glass of water please\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "📚 New phrase: \"Das Essen schmeckt lecker\"",
+        "helpText": "This phrase is helpful when you want to say something nice about the food you're eating, and it makes the person who cooked it happy",
+        "coachingText": "Let's learn how to say that our food is delicious, it's a nice way to show appreciation for the person who cooked it.",
+        "activity": {
+          "type": "info",
+          "title": "Das Essen schmeckt lecker",
+          "content": "Das Essen schmeckt lecker = \"The food tastes delicious\"",
+          "explanation": "This phrase is helpful when you want to say something nice about the food you're eating, and it makes the person who cooked it happy",
+          "example": "Das Essen schmeckt lecker, danke Mama",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"The food tastes delicious\" in ge?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "The food tastes delicious",
+          "correctAnswer": "Das Essen schmeckt lecker",
+          "acceptedAnswers": [
+            "Das Essen schmeckt lecker",
+            "das essen schmeckt lecker"
+          ],
+          "hint": "It starts with \"Das...\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"The food tastes delicious\"",
+        "helpText": "The correct phrase is: \"Das Essen schmeckt lecker\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "Das Essen schmeckt lecker",
+          "scrambledWords": [
+            "schmeckt",
+            "Das",
+            "lecker",
+            "Essen"
+          ],
+          "hint": "\"Das Essen schmeckt lecker\" = \"The food tastes delicious\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"The food tastes delicious\" in ge?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "The food tastes delicious",
+          "correctAnswer": "Das Essen schmeckt lecker",
+          "acceptedAnswers": [
+            "Das Essen schmeckt lecker",
+            "das essen schmeckt lecker"
+          ],
+          "hint": "It starts with \"Das...\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"The food tastes delicious\"",
+        "helpText": "The correct phrase is: \"Das Essen schmeckt lecker\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "Das Essen schmeckt lecker",
+          "scrambledWords": [
+            "schmeckt",
+            "Das",
+            "lecker",
+            "Essen"
+          ],
+          "hint": "\"Das Essen schmeckt lecker\" = \"The food tastes delicious\"",
+          "sunDrops": 3
+        }
+      }
+    ],
+    "totalSunDrops": 22
+  }
+}

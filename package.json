@@ -11,7 +11,10 @@
     "test:watch": "vitest",
     "test:e2e": "npx tsx tests/e2e/test-runner.ts",
     "test:e2e:lesson": "npx tsx tests/e2e/test-runner.ts --only 03-lesson-generation",
-    "test:e2e:compare": "npx tsx tests/e2e/test-runner.ts --only 08-cross-llm-comparison"
+    "test:e2e:compare": "npx tsx tests/e2e/test-runner.ts --only 08-cross-llm-comparison",
+    "migrate:lesson-history": "node scripts/migrate-lesson-history.cjs",
+    "migrate:fix-question-reports": "node scripts/migrate-fix-question-reports.cjs",
+    "migrate:all-2.2": "node scripts/migrate-lesson-history.cjs && node scripts/migrate-fix-question-reports.cjs"
   },
   "dependencies": {
     "@google/genai": "^1.30.0",

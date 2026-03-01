@@ -1,0 +1,631 @@
+{
+  "scenario": {
+    "targetLanguage": "German",
+    "nativeLanguage": "French",
+    "topic": "School Phrases",
+    "ageGroup": "15-18",
+    "level": "A2"
+  },
+  "score": {
+    "provider": "groq",
+    "lessonTitle": "Test: School Phrases",
+    "combination": {
+      "targetLanguage": "German",
+      "nativeLanguage": "French",
+      "topic": "School Phrases",
+      "ageGroup": "15-18",
+      "level": "A2"
+    },
+    "responseTimeMs": 4504,
+    "parseSuccess": true,
+    "assemblySuccess": true,
+    "validationResult": {
+      "valid": true,
+      "errors": [],
+      "warnings": []
+    },
+    "scores": {
+      "languageCorrectness": 10,
+      "teachFirstEnforcement": 10,
+      "activityVariety": 10,
+      "chunkQuality": 10,
+      "distractorQuality": 10,
+      "ageAppropriateness": 10,
+      "interestPersonalisation": 5,
+      "fieldCompleteness": 10,
+      "i1Difficulty": 9,
+      "nativeLanguageInstructions": 3
+    },
+    "totalScore": 87,
+    "rawChunks": [
+      {
+        "targetPhrase": "Ich verstehe das nicht",
+        "nativeTranslation": "Je ne comprends pas cela",
+        "exampleSentence": "Ich verstehe das nicht, kann der Lehrer es erklären?",
+        "usageNote": "Utilisez cette phrase lorsqu'il vous est difficile de comprendre quelque chose en classe",
+        "explanation": "C'est une phrase utile pour demander une explication supplémentaire si vous n'avez pas compris quelque chose à l'école",
+        "distractors": [
+          "Je suis perdu",
+          "Je ne sais pas jouer",
+          "Je n'aime pas ce sport"
+        ],
+        "correctUsageContext": "Lorsque vous êtes perdu pendant une explication en classe",
+        "wrongUsageContexts": [
+          "Lors d'un match de football",
+          "Lors d'un concert de musique",
+          "Lors d'une partie de jeux vidéo"
+        ],
+        "coachingText": "N'ayez pas peur de demander de l'aide si vous avez besoin d'une explication supplémentaire, c'est tout à fait normal ! Utilisez cette phrase pour montrer que vous êtes intéressé par apprendre."
+      },
+      {
+        "targetPhrase": "Kann ich mit dir zusammenarbeiten?",
+        "nativeTranslation": "Puis-je travailler avec toi ?",
+        "exampleSentence": "Kann ich mit dir zusammenarbeiten, um ce projet à terminer?",
+        "usageNote": "Demandez à votre camarade de classe s'il est possible de travailler ensemble sur un projet scolaire",
+        "explanation": "C'est une phrase utile pour demander à un camarade de classe s'il veut travailler en équipe sur un projet",
+        "distractors": [
+          "Veux-tu être mon ami ?",
+          "Je veux jouer au football avec toi",
+          "Je veux écouter de la musique avec toi"
+        ],
+        "correctUsageContext": "Lorsque vous devez travailler sur un projet de groupe à l'école",
+        "wrongUsageContexts": [
+          "Lors d'une partie de jeux vidéo en ligne",
+          "Lors d'un concert de musique",
+          "Lors d'un repas en famille"
+        ],
+        "coachingText": "Travailler en équipe est amusant et très utile pour apprendre ! Demandez à vos camarades de classe s'ils veulent travailler avec vous sur un projet."
+      },
+      {
+        "targetPhrase": "Ich bin fertig mit meiner Aufgabe",
+        "nativeTranslation": "J'ai terminé mon devoir",
+        "exampleSentence": "Ich bin fertig mit meiner Aufgabe, kann ich la lui donner au professeur?",
+        "usageNote": "Utilisez cette phrase pour signaler à votre professeur que vous avez terminé votre devoir",
+        "explanation": "C'est une phrase utile pour montrer que vous avez terminé votre travail et que vous êtes prêt à le remettre à votre professeur",
+        "distractors": [
+          "Je suis fatigué",
+          "Je veux aller jouer",
+          "Je n'aime pas cette tâche"
+        ],
+        "correctUsageContext": "Lorsque vous avez terminé votre devoir et que vous voulez le remettre à votre professeur",
+        "wrongUsageContexts": [
+          "Lors d'un match de football",
+          "Lors d'un concert de musique",
+          "Lors d'une partie de jeux vidéo"
+        ],
+        "coachingText": "Félicitations ! Vous avez terminé votre devoir ! Utilisez cette phrase pour montrer que vous êtes fier de votre travail et que vous êtes prêt à le remettre à votre professeur."
+      }
+    ],
+    "rawLesson": {
+      "id": "test-1772363804979",
+      "title": "Test: School Phrases",
+      "icon": "📚",
+      "skillPathId": "Test: School Phrases",
+      "lessonIndex": 0,
+      "steps": [
+        {
+          "tutorText": "📚 New phrase: \"Ich verstehe das nicht\"",
+          "helpText": "C'est une phrase utile pour demander une explication supplémentaire si vous n'avez pas compris quelque chose à l'école",
+          "coachingText": "N'ayez pas peur de demander de l'aide si vous avez besoin d'une explication supplémentaire, c'est tout à fait normal ! Utilisez cette phrase pour montrer que vous êtes intéressé par apprendre.",
+          "activity": {
+            "type": "info",
+            "title": "Ich verstehe das nicht",
+            "content": "Ich verstehe das nicht = \"Je ne comprends pas cela\"",
+            "explanation": "C'est une phrase utile pour demander une explication supplémentaire si vous n'avez pas compris quelque chose à l'école",
+            "example": "Ich verstehe das nicht, kann der Lehrer es erklären?",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Ich verstehe das nicht\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Ich verstehe das nicht\" means \"Je ne comprends pas cela\"",
+            "isTrue": true,
+            "hint": "\"Ich verstehe das nicht\" = \"Je ne comprends pas cela\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Ich verstehe das nicht\" mean?",
+          "helpText": "Remember: \"Ich verstehe das nicht\" = \"Je ne comprends pas cela\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Ich verstehe das nicht\" mean?",
+            "options": [
+              "Je ne comprends pas cela",
+              "Je suis perdu",
+              "Je ne sais pas jouer",
+              "Je n'aime pas ce sport"
+            ],
+            "correctIndex": 0,
+            "hint": "\"Ich verstehe das nicht\" = \"Je ne comprends pas cela\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Ich verstehe das nicht\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Ich verstehe das nicht\" means \"Je ne comprends pas cela\"",
+            "isTrue": true,
+            "hint": "\"Ich verstehe das nicht\" = \"Je ne comprends pas cela\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Ich verstehe das nicht\" mean?",
+          "helpText": "Remember: \"Ich verstehe das nicht\" = \"Je ne comprends pas cela\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Ich verstehe das nicht\" mean?",
+            "options": [
+              "Je ne comprends pas cela",
+              "Je suis perdu",
+              "Je ne sais pas jouer",
+              "Je n'aime pas ce sport"
+            ],
+            "correctIndex": 0,
+            "hint": "\"Ich verstehe das nicht\" = \"Je ne comprends pas cela\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "📚 New phrase: \"Kann ich mit dir zusammenarbeiten?\"",
+          "helpText": "C'est une phrase utile pour demander à un camarade de classe s'il veut travailler en équipe sur un projet",
+          "coachingText": "Travailler en équipe est amusant et très utile pour apprendre ! Demandez à vos camarades de classe s'ils veulent travailler avec vous sur un projet.",
+          "activity": {
+            "type": "info",
+            "title": "Kann ich mit dir zusammenarbeiten?",
+            "content": "Kann ich mit dir zusammenarbeiten? = \"Puis-je travailler avec toi ?\"",
+            "explanation": "C'est une phrase utile pour demander à un camarade de classe s'il veut travailler en équipe sur un projet",
+            "example": "Kann ich mit dir zusammenarbeiten, um ce projet à terminer?",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Kann ich mit dir zusammenarbeiten?\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Kann ich mit dir zusammenarbeiten?\" means \"Puis-je travailler avec toi ?\"",
+            "isTrue": true,
+            "hint": "\"Kann ich mit dir zusammenarbeiten?\" = \"Puis-je travailler avec toi ?\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Practice time! Complete this phrase.",
+          "helpText": "The full phrase is: \"Kann ich mit dir zusammenarbeiten?\"",
+          "activity": {
+            "type": "fill_blank",
+            "sentence": "Kann ich mit dir ___",
+            "correctAnswer": "zusammenarbeiten?",
+            "acceptedAnswers": [
+              "zusammenarbeiten?",
+              "zusammenarbeiten"
+            ],
+            "hint": "\"Kann ich mit dir zusammenarbeiten?\" = \"Puis-je travailler avec toi ?\"",
+            "sunDrops": 2
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Kann ich mit dir zusammenarbeiten?\" mean?",
+          "helpText": "Remember: \"Kann ich mit dir zusammenarbeiten?\" = \"Puis-je travailler avec toi ?\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Kann ich mit dir zusammenarbeiten?\" mean?",
+            "options": [
+              "Veux-tu être mon ami ?",
+              "Puis-je travailler avec toi ?",
+              "Je veux jouer au football avec toi",
+              "Je veux écouter de la musique avec toi"
+            ],
+            "correctIndex": 1,
+            "hint": "\"Kann ich mit dir zusammenarbeiten?\" = \"Puis-je travailler avec toi ?\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Practice time! Complete this phrase.",
+          "helpText": "The full phrase is: \"Kann ich mit dir zusammenarbeiten?\"",
+          "activity": {
+            "type": "fill_blank",
+            "sentence": "Kann ich mit dir ___",
+            "correctAnswer": "zusammenarbeiten?",
+            "acceptedAnswers": [
+              "zusammenarbeiten?",
+              "zusammenarbeiten"
+            ],
+            "hint": "\"Kann ich mit dir zusammenarbeiten?\" = \"Puis-je travailler avec toi ?\"",
+            "sunDrops": 2
+          }
+        },
+        {
+          "tutorText": "📚 New phrase: \"Ich bin fertig mit meiner Aufgabe\"",
+          "helpText": "C'est une phrase utile pour montrer que vous avez terminé votre travail et que vous êtes prêt à le remettre à votre professeur",
+          "coachingText": "Félicitations ! Vous avez terminé votre devoir ! Utilisez cette phrase pour montrer que vous êtes fier de votre travail et que vous êtes prêt à le remettre à votre professeur.",
+          "activity": {
+            "type": "info",
+            "title": "Ich bin fertig mit meiner Aufgabe",
+            "content": "Ich bin fertig mit meiner Aufgabe = \"J'ai terminé mon devoir\"",
+            "explanation": "C'est une phrase utile pour montrer que vous avez terminé votre travail et que vous êtes prêt à le remettre à votre professeur",
+            "example": "Ich bin fertig mit meiner Aufgabe, kann ich la lui donner au professeur?",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"J'ai terminé mon devoir\"",
+          "helpText": "The correct phrase is: \"Ich bin fertig mit meiner Aufgabe\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "Ich bin fertig mit meiner Aufgabe",
+            "scrambledWords": [
+              "bin",
+              "meiner",
+              "mit",
+              "fertig",
+              "Aufgabe",
+              "Ich"
+            ],
+            "hint": "\"Ich bin fertig mit meiner Aufgabe\" = \"J'ai terminé mon devoir\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"J'ai terminé mon devoir\" in ge?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "J'ai terminé mon devoir",
+            "correctAnswer": "Ich bin fertig mit meiner Aufgabe",
+            "acceptedAnswers": [
+              "Ich bin fertig mit meiner Aufgabe",
+              "ich bin fertig mit meiner aufgabe"
+            ],
+            "hint": "It starts with \"Ich...\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"J'ai terminé mon devoir\"",
+          "helpText": "The correct phrase is: \"Ich bin fertig mit meiner Aufgabe\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "Ich bin fertig mit meiner Aufgabe",
+            "scrambledWords": [
+              "bin",
+              "meiner",
+              "mit",
+              "fertig",
+              "Aufgabe",
+              "Ich"
+            ],
+            "hint": "\"Ich bin fertig mit meiner Aufgabe\" = \"J'ai terminé mon devoir\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"J'ai terminé mon devoir\" in ge?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "J'ai terminé mon devoir",
+            "correctAnswer": "Ich bin fertig mit meiner Aufgabe",
+            "acceptedAnswers": [
+              "Ich bin fertig mit meiner Aufgabe",
+              "ich bin fertig mit meiner aufgabe"
+            ],
+            "hint": "It starts with \"Ich...\"",
+            "sunDrops": 3
+          }
+        }
+      ],
+      "totalSunDrops": 22
+    },
+    "notes": [
+      "No interests provided to check against",
+      "tutorText appears to be in de, expected fr",
+      "tutorText appears to be in en, expected fr",
+      "tutorText appears to be in de, expected fr",
+      "tutorText appears to be in en, expected fr",
+      "tutorText appears to be in de, expected fr",
+      "tutorText appears to be in de, expected fr",
+      "tutorText appears to be in en, expected fr",
+      "tutorText appears to be in de, expected fr",
+      "tutorText appears to be in de, expected fr",
+      "tutorText appears to be in de, expected fr",
+      "tutorText appears to be in de, expected fr"
+    ]
+  },
+  "rawChunks": [
+    {
+      "targetPhrase": "Ich verstehe das nicht",
+      "nativeTranslation": "Je ne comprends pas cela",
+      "exampleSentence": "Ich verstehe das nicht, kann der Lehrer es erklären?",
+      "usageNote": "Utilisez cette phrase lorsqu'il vous est difficile de comprendre quelque chose en classe",
+      "explanation": "C'est une phrase utile pour demander une explication supplémentaire si vous n'avez pas compris quelque chose à l'école",
+      "distractors": [
+        "Je suis perdu",
+        "Je ne sais pas jouer",
+        "Je n'aime pas ce sport"
+      ],
+      "correctUsageContext": "Lorsque vous êtes perdu pendant une explication en classe",
+      "wrongUsageContexts": [
+        "Lors d'un match de football",
+        "Lors d'un concert de musique",
+        "Lors d'une partie de jeux vidéo"
+      ],
+      "coachingText": "N'ayez pas peur de demander de l'aide si vous avez besoin d'une explication supplémentaire, c'est tout à fait normal ! Utilisez cette phrase pour montrer que vous êtes intéressé par apprendre."
+    },
+    {
+      "targetPhrase": "Kann ich mit dir zusammenarbeiten?",
+      "nativeTranslation": "Puis-je travailler avec toi ?",
+      "exampleSentence": "Kann ich mit dir zusammenarbeiten, um ce projet à terminer?",
+      "usageNote": "Demandez à votre camarade de classe s'il est possible de travailler ensemble sur un projet scolaire",
+      "explanation": "C'est une phrase utile pour demander à un camarade de classe s'il veut travailler en équipe sur un projet",
+      "distractors": [
+        "Veux-tu être mon ami ?",
+        "Je veux jouer au football avec toi",
+        "Je veux écouter de la musique avec toi"
+      ],
+      "correctUsageContext": "Lorsque vous devez travailler sur un projet de groupe à l'école",
+      "wrongUsageContexts": [
+        "Lors d'une partie de jeux vidéo en ligne",
+        "Lors d'un concert de musique",
+        "Lors d'un repas en famille"
+      ],
+      "coachingText": "Travailler en équipe est amusant et très utile pour apprendre ! Demandez à vos camarades de classe s'ils veulent travailler avec vous sur un projet."
+    },
+    {
+      "targetPhrase": "Ich bin fertig mit meiner Aufgabe",
+      "nativeTranslation": "J'ai terminé mon devoir",
+      "exampleSentence": "Ich bin fertig mit meiner Aufgabe, kann ich la lui donner au professeur?",
+      "usageNote": "Utilisez cette phrase pour signaler à votre professeur que vous avez terminé votre devoir",
+      "explanation": "C'est une phrase utile pour montrer que vous avez terminé votre travail et que vous êtes prêt à le remettre à votre professeur",
+      "distractors": [
+        "Je suis fatigué",
+        "Je veux aller jouer",
+        "Je n'aime pas cette tâche"
+      ],
+      "correctUsageContext": "Lorsque vous avez terminé votre devoir et que vous voulez le remettre à votre professeur",
+      "wrongUsageContexts": [
+        "Lors d'un match de football",
+        "Lors d'un concert de musique",
+        "Lors d'une partie de jeux vidéo"
+      ],
+      "coachingText": "Félicitations ! Vous avez terminé votre devoir ! Utilisez cette phrase pour montrer que vous êtes fier de votre travail et que vous êtes prêt à le remettre à votre professeur."
+    }
+  ],
+  "rawLesson": {
+    "id": "test-1772363804979",
+    "title": "Test: School Phrases",
+    "icon": "📚",
+    "skillPathId": "Test: School Phrases",
+    "lessonIndex": 0,
+    "steps": [
+      {
+        "tutorText": "📚 New phrase: \"Ich verstehe das nicht\"",
+        "helpText": "C'est une phrase utile pour demander une explication supplémentaire si vous n'avez pas compris quelque chose à l'école",
+        "coachingText": "N'ayez pas peur de demander de l'aide si vous avez besoin d'une explication supplémentaire, c'est tout à fait normal ! Utilisez cette phrase pour montrer que vous êtes intéressé par apprendre.",
+        "activity": {
+          "type": "info",
+          "title": "Ich verstehe das nicht",
+          "content": "Ich verstehe das nicht = \"Je ne comprends pas cela\"",
+          "explanation": "C'est une phrase utile pour demander une explication supplémentaire si vous n'avez pas compris quelque chose à l'école",
+          "example": "Ich verstehe das nicht, kann der Lehrer es erklären?",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Ich verstehe das nicht\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Ich verstehe das nicht\" means \"Je ne comprends pas cela\"",
+          "isTrue": true,
+          "hint": "\"Ich verstehe das nicht\" = \"Je ne comprends pas cela\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Ich verstehe das nicht\" mean?",
+        "helpText": "Remember: \"Ich verstehe das nicht\" = \"Je ne comprends pas cela\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Ich verstehe das nicht\" mean?",
+          "options": [
+            "Je ne comprends pas cela",
+            "Je suis perdu",
+            "Je ne sais pas jouer",
+            "Je n'aime pas ce sport"
+          ],
+          "correctIndex": 0,
+          "hint": "\"Ich verstehe das nicht\" = \"Je ne comprends pas cela\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Ich verstehe das nicht\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Ich verstehe das nicht\" means \"Je ne comprends pas cela\"",
+          "isTrue": true,
+          "hint": "\"Ich verstehe das nicht\" = \"Je ne comprends pas cela\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Ich verstehe das nicht\" mean?",
+        "helpText": "Remember: \"Ich verstehe das nicht\" = \"Je ne comprends pas cela\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Ich verstehe das nicht\" mean?",
+          "options": [
+            "Je ne comprends pas cela",
+            "Je suis perdu",
+            "Je ne sais pas jouer",
+            "Je n'aime pas ce sport"
+          ],
+          "correctIndex": 0,
+          "hint": "\"Ich verstehe das nicht\" = \"Je ne comprends pas cela\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "📚 New phrase: \"Kann ich mit dir zusammenarbeiten?\"",
+        "helpText": "C'est une phrase utile pour demander à un camarade de classe s'il veut travailler en équipe sur un projet",
+        "coachingText": "Travailler en équipe est amusant et très utile pour apprendre ! Demandez à vos camarades de classe s'ils veulent travailler avec vous sur un projet.",
+        "activity": {
+          "type": "info",
+          "title": "Kann ich mit dir zusammenarbeiten?",
+          "content": "Kann ich mit dir zusammenarbeiten? = \"Puis-je travailler avec toi ?\"",
+          "explanation": "C'est une phrase utile pour demander à un camarade de classe s'il veut travailler en équipe sur un projet",
+          "example": "Kann ich mit dir zusammenarbeiten, um ce projet à terminer?",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Kann ich mit dir zusammenarbeiten?\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Kann ich mit dir zusammenarbeiten?\" means \"Puis-je travailler avec toi ?\"",
+          "isTrue": true,
+          "hint": "\"Kann ich mit dir zusammenarbeiten?\" = \"Puis-je travailler avec toi ?\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Practice time! Complete this phrase.",
+        "helpText": "The full phrase is: \"Kann ich mit dir zusammenarbeiten?\"",
+        "activity": {
+          "type": "fill_blank",
+          "sentence": "Kann ich mit dir ___",
+          "correctAnswer": "zusammenarbeiten?",
+          "acceptedAnswers": [
+            "zusammenarbeiten?",
+            "zusammenarbeiten"
+          ],
+          "hint": "\"Kann ich mit dir zusammenarbeiten?\" = \"Puis-je travailler avec toi ?\"",
+          "sunDrops": 2
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Kann ich mit dir zusammenarbeiten?\" mean?",
+        "helpText": "Remember: \"Kann ich mit dir zusammenarbeiten?\" = \"Puis-je travailler avec toi ?\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Kann ich mit dir zusammenarbeiten?\" mean?",
+          "options": [
+            "Veux-tu être mon ami ?",
+            "Puis-je travailler avec toi ?",
+            "Je veux jouer au football avec toi",
+            "Je veux écouter de la musique avec toi"
+          ],
+          "correctIndex": 1,
+          "hint": "\"Kann ich mit dir zusammenarbeiten?\" = \"Puis-je travailler avec toi ?\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Practice time! Complete this phrase.",
+        "helpText": "The full phrase is: \"Kann ich mit dir zusammenarbeiten?\"",
+        "activity": {
+          "type": "fill_blank",
+          "sentence": "Kann ich mit dir ___",
+          "correctAnswer": "zusammenarbeiten?",
+          "acceptedAnswers": [
+            "zusammenarbeiten?",
+            "zusammenarbeiten"
+          ],
+          "hint": "\"Kann ich mit dir zusammenarbeiten?\" = \"Puis-je travailler avec toi ?\"",
+          "sunDrops": 2
+        }
+      },
+      {
+        "tutorText": "📚 New phrase: \"Ich bin fertig mit meiner Aufgabe\"",
+        "helpText": "C'est une phrase utile pour montrer que vous avez terminé votre travail et que vous êtes prêt à le remettre à votre professeur",
+        "coachingText": "Félicitations ! Vous avez terminé votre devoir ! Utilisez cette phrase pour montrer que vous êtes fier de votre travail et que vous êtes prêt à le remettre à votre professeur.",
+        "activity": {
+          "type": "info",
+          "title": "Ich bin fertig mit meiner Aufgabe",
+          "content": "Ich bin fertig mit meiner Aufgabe = \"J'ai terminé mon devoir\"",
+          "explanation": "C'est une phrase utile pour montrer que vous avez terminé votre travail et que vous êtes prêt à le remettre à votre professeur",
+          "example": "Ich bin fertig mit meiner Aufgabe, kann ich la lui donner au professeur?",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"J'ai terminé mon devoir\"",
+        "helpText": "The correct phrase is: \"Ich bin fertig mit meiner Aufgabe\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "Ich bin fertig mit meiner Aufgabe",
+          "scrambledWords": [
+            "bin",
+            "meiner",
+            "mit",
+            "fertig",
+            "Aufgabe",
+            "Ich"
+          ],
+          "hint": "\"Ich bin fertig mit meiner Aufgabe\" = \"J'ai terminé mon devoir\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"J'ai terminé mon devoir\" in ge?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "J'ai terminé mon devoir",
+          "correctAnswer": "Ich bin fertig mit meiner Aufgabe",
+          "acceptedAnswers": [
+            "Ich bin fertig mit meiner Aufgabe",
+            "ich bin fertig mit meiner aufgabe"
+          ],
+          "hint": "It starts with \"Ich...\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"J'ai terminé mon devoir\"",
+        "helpText": "The correct phrase is: \"Ich bin fertig mit meiner Aufgabe\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "Ich bin fertig mit meiner Aufgabe",
+          "scrambledWords": [
+            "bin",
+            "meiner",
+            "mit",
+            "fertig",
+            "Aufgabe",
+            "Ich"
+          ],
+          "hint": "\"Ich bin fertig mit meiner Aufgabe\" = \"J'ai terminé mon devoir\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"J'ai terminé mon devoir\" in ge?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "J'ai terminé mon devoir",
+          "correctAnswer": "Ich bin fertig mit meiner Aufgabe",
+          "acceptedAnswers": [
+            "Ich bin fertig mit meiner Aufgabe",
+            "ich bin fertig mit meiner aufgabe"
+          ],
+          "hint": "It starts with \"Ich...\"",
+          "sunDrops": 3
+        }
+      }
+    ],
+    "totalSunDrops": 22
+  }
+}

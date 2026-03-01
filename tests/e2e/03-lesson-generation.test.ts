@@ -117,7 +117,9 @@ export async function run(pb: PBTestClient, ai: AITestClient, provider: Provider
       errors.push((e as Error).message);
     }
 
-    tests.push(buildTestResult(`03-${scenario.targetLanguage}`, label, asserts, t, errors));
+    // Include topic in testId so multiple scenarios don't overwrite each other in results
+    const topicSlug = scenario.topic.replace(/\s+/g, '-').toLowerCase();
+    tests.push(buildTestResult(`03-${scenario.targetLanguage}-${topicSlug}`, label, asserts, t, errors));
     await sleep(500);
   }
 

@@ -1,0 +1,650 @@
+{
+  "scenario": {
+    "targetLanguage": "French",
+    "nativeLanguage": "English",
+    "topic": "Food & Drinks",
+    "ageGroup": "11-14",
+    "level": "A1"
+  },
+  "score": {
+    "provider": "groq",
+    "lessonTitle": "Test: Food & Drinks",
+    "combination": {
+      "targetLanguage": "French",
+      "nativeLanguage": "English",
+      "topic": "Food & Drinks",
+      "ageGroup": "11-14",
+      "level": "A1"
+    },
+    "responseTimeMs": 3957,
+    "parseSuccess": true,
+    "assemblySuccess": true,
+    "validationResult": {
+      "valid": true,
+      "errors": [],
+      "warnings": []
+    },
+    "scores": {
+      "languageCorrectness": 10,
+      "teachFirstEnforcement": 10,
+      "activityVariety": 10,
+      "chunkQuality": 10,
+      "distractorQuality": 10,
+      "ageAppropriateness": 10,
+      "interestPersonalisation": 5,
+      "fieldCompleteness": 10,
+      "i1Difficulty": 9,
+      "nativeLanguageInstructions": 10
+    },
+    "totalScore": 94,
+    "rawChunks": [
+      {
+        "targetPhrase": "Je voudrais une carafe d'eau",
+        "nativeTranslation": "I would like a glass of water",
+        "exampleSentence": "Je voudrais une carafe d'eau, s'il vous plaît.",
+        "usageNote": "Use this phrase when you want to ask for water in a restaurant or cafe.",
+        "explanation": "This phrase is helpful when you're thirsty and need to ask for water.",
+        "distractors": [
+          "I want a big house",
+          "I like playing soccer",
+          "I have a pet cat"
+        ],
+        "correctUsageContext": "You're at a restaurant with your family and you want to ask for water.",
+        "wrongUsageContexts": [
+          "You're playing soccer with friends",
+          "You're watching a movie at home",
+          "You're playing with your pet"
+        ],
+        "coachingText": "Let's practice ordering drinks in French, shall we? Remember to be polite and say please."
+      },
+      {
+        "targetPhrase": "L'addition, s'il vous plaît",
+        "nativeTranslation": "The bill, please",
+        "exampleSentence": "L'addition, s'il vous plaît, merci.",
+        "usageNote": "Use this phrase when you want to ask for the bill at a restaurant.",
+        "explanation": "This phrase is important to know so you can pay for your meal and leave the restaurant.",
+        "distractors": [
+          "The food is delicious",
+          "I love playing music",
+          "I have a big brother"
+        ],
+        "correctUsageContext": "You've finished eating at a restaurant and you want to pay.",
+        "wrongUsageContexts": [
+          "You're ordering food at a restaurant",
+          "You're talking to a friend on the phone",
+          "You're watching a concert"
+        ],
+        "coachingText": "Now that we've learned how to order food, let's learn how to ask for the bill."
+      },
+      {
+        "targetPhrase": "Je prends un sandwich",
+        "nativeTranslation": "I'll have a sandwich",
+        "exampleSentence": "Je prends un sandwich, merci.",
+        "usageNote": "Use this phrase when you want to order a sandwich at a cafe or restaurant.",
+        "explanation": "This phrase is helpful when you're hungry and want to order a quick and easy meal.",
+        "distractors": [
+          "I love playing basketball",
+          "I have a pet dog",
+          "I like reading books"
+        ],
+        "correctUsageContext": "You're at a cafe and you want to order a light meal.",
+        "wrongUsageContexts": [
+          "You're at a fancy restaurant",
+          "You're at a sports game",
+          "You're at the library"
+        ],
+        "coachingText": "Let's practice ordering food in French, starting with something simple like a sandwich."
+      }
+    ],
+    "rawLesson": {
+      "id": "test-1772363799965",
+      "title": "Test: Food & Drinks",
+      "icon": "📚",
+      "skillPathId": "Test: Food & Drinks",
+      "lessonIndex": 0,
+      "steps": [
+        {
+          "tutorText": "📚 New phrase: \"Je voudrais une carafe d'eau\"",
+          "helpText": "This phrase is helpful when you're thirsty and need to ask for water.",
+          "coachingText": "Let's practice ordering drinks in French, shall we? Remember to be polite and say please.",
+          "activity": {
+            "type": "info",
+            "title": "Je voudrais une carafe d'eau",
+            "content": "Je voudrais une carafe d'eau = \"I would like a glass of water\"",
+            "explanation": "This phrase is helpful when you're thirsty and need to ask for water.",
+            "example": "Je voudrais une carafe d'eau, s'il vous plaît.",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Je voudrais une carafe d'eau\" mean?",
+          "helpText": "Remember: \"Je voudrais une carafe d'eau\" = \"I would like a glass of water\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Je voudrais une carafe d'eau\" mean?",
+            "options": [
+              "I want a big house",
+              "I would like a glass of water",
+              "I like playing soccer",
+              "I have a pet cat"
+            ],
+            "correctIndex": 1,
+            "hint": "\"Je voudrais une carafe d'eau\" = \"I would like a glass of water\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Je voudrais une carafe d'eau\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Je voudrais une carafe d'eau\" means \"I would like a glass of water\"",
+            "isTrue": true,
+            "hint": "\"Je voudrais une carafe d'eau\" = \"I would like a glass of water\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Je voudrais une carafe d'eau\" mean?",
+          "helpText": "Remember: \"Je voudrais une carafe d'eau\" = \"I would like a glass of water\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Je voudrais une carafe d'eau\" mean?",
+            "options": [
+              "I want a big house",
+              "I would like a glass of water",
+              "I like playing soccer",
+              "I have a pet cat"
+            ],
+            "correctIndex": 1,
+            "hint": "\"Je voudrais une carafe d'eau\" = \"I would like a glass of water\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Je voudrais une carafe d'eau\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Je voudrais une carafe d'eau\" means \"I would like a glass of water\"",
+            "isTrue": true,
+            "hint": "\"Je voudrais une carafe d'eau\" = \"I would like a glass of water\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "📚 New phrase: \"L'addition, s'il vous plaît\"",
+          "helpText": "This phrase is important to know so you can pay for your meal and leave the restaurant.",
+          "coachingText": "Now that we've learned how to order food, let's learn how to ask for the bill.",
+          "activity": {
+            "type": "info",
+            "title": "L'addition, s'il vous plaît",
+            "content": "L'addition, s'il vous plaît = \"The bill, please\"",
+            "explanation": "This phrase is important to know so you can pay for your meal and leave the restaurant.",
+            "example": "L'addition, s'il vous plaît, merci.",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"L'addition, s'il vous plaît\" mean?",
+          "helpText": "Remember: \"L'addition, s'il vous plaît\" = \"The bill, please\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"L'addition, s'il vous plaît\" mean?",
+            "options": [
+              "The bill, please",
+              "The food is delicious",
+              "I love playing music",
+              "I have a big brother"
+            ],
+            "correctIndex": 0,
+            "hint": "\"L'addition, s'il vous plaît\" = \"The bill, please\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"The bill, please\"",
+          "helpText": "The correct phrase is: \"L'addition, s'il vous plaît\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "L'addition, s'il vous plaît",
+            "scrambledWords": [
+              "vous",
+              "s'il",
+              "plaît",
+              "L'addition,"
+            ],
+            "hint": "\"L'addition, s'il vous plaît\" = \"The bill, please\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Match the phrases with their meanings!",
+          "helpText": "Find the pair: \"L'addition, s'il vous plaît\" = \"The bill, please\"",
+          "activity": {
+            "type": "matching",
+            "pairs": [
+              {
+                "left": "I love playing music",
+                "right": "I have a big brother"
+              },
+              {
+                "left": "I have a big brother",
+                "right": "The food is delicious"
+              },
+              {
+                "left": "L'addition, s'il vous plaît",
+                "right": "The bill, please"
+              },
+              {
+                "left": "The food is delicious",
+                "right": "I love playing music"
+              }
+            ],
+            "hint": "\"L'addition, s'il vous plaît\" means \"The bill, please\"",
+            "sunDrops": 2
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"L'addition, s'il vous plaît\" mean?",
+          "helpText": "Remember: \"L'addition, s'il vous plaît\" = \"The bill, please\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"L'addition, s'il vous plaît\" mean?",
+            "options": [
+              "The bill, please",
+              "The food is delicious",
+              "I love playing music",
+              "I have a big brother"
+            ],
+            "correctIndex": 0,
+            "hint": "\"L'addition, s'il vous plaît\" = \"The bill, please\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "📚 New phrase: \"Je prends un sandwich\"",
+          "helpText": "This phrase is helpful when you're hungry and want to order a quick and easy meal.",
+          "coachingText": "Let's practice ordering food in French, starting with something simple like a sandwich.",
+          "activity": {
+            "type": "info",
+            "title": "Je prends un sandwich",
+            "content": "Je prends un sandwich = \"I'll have a sandwich\"",
+            "explanation": "This phrase is helpful when you're hungry and want to order a quick and easy meal.",
+            "example": "Je prends un sandwich, merci.",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"I'll have a sandwich\" in French?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "I'll have a sandwich",
+            "correctAnswer": "Je prends un sandwich",
+            "acceptedAnswers": [
+              "Je prends un sandwich",
+              "je prends un sandwich"
+            ],
+            "hint": "It starts with \"Je ...\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"I'll have a sandwich\"",
+          "helpText": "The correct phrase is: \"Je prends un sandwich\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "Je prends un sandwich",
+            "scrambledWords": [
+              "Je",
+              "un",
+              "prends",
+              "sandwich"
+            ],
+            "hint": "\"Je prends un sandwich\" = \"I'll have a sandwich\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"I'll have a sandwich\" in French?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "I'll have a sandwich",
+            "correctAnswer": "Je prends un sandwich",
+            "acceptedAnswers": [
+              "Je prends un sandwich",
+              "je prends un sandwich"
+            ],
+            "hint": "It starts with \"Je ...\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"I'll have a sandwich\"",
+          "helpText": "The correct phrase is: \"Je prends un sandwich\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "Je prends un sandwich",
+            "scrambledWords": [
+              "Je",
+              "un",
+              "prends",
+              "sandwich"
+            ],
+            "hint": "\"Je prends un sandwich\" = \"I'll have a sandwich\"",
+            "sunDrops": 3
+          }
+        }
+      ],
+      "totalSunDrops": 23
+    },
+    "notes": [
+      "No interests provided to check against"
+    ]
+  },
+  "rawChunks": [
+    {
+      "targetPhrase": "Je voudrais une carafe d'eau",
+      "nativeTranslation": "I would like a glass of water",
+      "exampleSentence": "Je voudrais une carafe d'eau, s'il vous plaît.",
+      "usageNote": "Use this phrase when you want to ask for water in a restaurant or cafe.",
+      "explanation": "This phrase is helpful when you're thirsty and need to ask for water.",
+      "distractors": [
+        "I want a big house",
+        "I like playing soccer",
+        "I have a pet cat"
+      ],
+      "correctUsageContext": "You're at a restaurant with your family and you want to ask for water.",
+      "wrongUsageContexts": [
+        "You're playing soccer with friends",
+        "You're watching a movie at home",
+        "You're playing with your pet"
+      ],
+      "coachingText": "Let's practice ordering drinks in French, shall we? Remember to be polite and say please."
+    },
+    {
+      "targetPhrase": "L'addition, s'il vous plaît",
+      "nativeTranslation": "The bill, please",
+      "exampleSentence": "L'addition, s'il vous plaît, merci.",
+      "usageNote": "Use this phrase when you want to ask for the bill at a restaurant.",
+      "explanation": "This phrase is important to know so you can pay for your meal and leave the restaurant.",
+      "distractors": [
+        "The food is delicious",
+        "I love playing music",
+        "I have a big brother"
+      ],
+      "correctUsageContext": "You've finished eating at a restaurant and you want to pay.",
+      "wrongUsageContexts": [
+        "You're ordering food at a restaurant",
+        "You're talking to a friend on the phone",
+        "You're watching a concert"
+      ],
+      "coachingText": "Now that we've learned how to order food, let's learn how to ask for the bill."
+    },
+    {
+      "targetPhrase": "Je prends un sandwich",
+      "nativeTranslation": "I'll have a sandwich",
+      "exampleSentence": "Je prends un sandwich, merci.",
+      "usageNote": "Use this phrase when you want to order a sandwich at a cafe or restaurant.",
+      "explanation": "This phrase is helpful when you're hungry and want to order a quick and easy meal.",
+      "distractors": [
+        "I love playing basketball",
+        "I have a pet dog",
+        "I like reading books"
+      ],
+      "correctUsageContext": "You're at a cafe and you want to order a light meal.",
+      "wrongUsageContexts": [
+        "You're at a fancy restaurant",
+        "You're at a sports game",
+        "You're at the library"
+      ],
+      "coachingText": "Let's practice ordering food in French, starting with something simple like a sandwich."
+    }
+  ],
+  "rawLesson": {
+    "id": "test-1772363799965",
+    "title": "Test: Food & Drinks",
+    "icon": "📚",
+    "skillPathId": "Test: Food & Drinks",
+    "lessonIndex": 0,
+    "steps": [
+      {
+        "tutorText": "📚 New phrase: \"Je voudrais une carafe d'eau\"",
+        "helpText": "This phrase is helpful when you're thirsty and need to ask for water.",
+        "coachingText": "Let's practice ordering drinks in French, shall we? Remember to be polite and say please.",
+        "activity": {
+          "type": "info",
+          "title": "Je voudrais une carafe d'eau",
+          "content": "Je voudrais une carafe d'eau = \"I would like a glass of water\"",
+          "explanation": "This phrase is helpful when you're thirsty and need to ask for water.",
+          "example": "Je voudrais une carafe d'eau, s'il vous plaît.",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Je voudrais une carafe d'eau\" mean?",
+        "helpText": "Remember: \"Je voudrais une carafe d'eau\" = \"I would like a glass of water\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Je voudrais une carafe d'eau\" mean?",
+          "options": [
+            "I want a big house",
+            "I would like a glass of water",
+            "I like playing soccer",
+            "I have a pet cat"
+          ],
+          "correctIndex": 1,
+          "hint": "\"Je voudrais une carafe d'eau\" = \"I would like a glass of water\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Je voudrais une carafe d'eau\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Je voudrais une carafe d'eau\" means \"I would like a glass of water\"",
+          "isTrue": true,
+          "hint": "\"Je voudrais une carafe d'eau\" = \"I would like a glass of water\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Je voudrais une carafe d'eau\" mean?",
+        "helpText": "Remember: \"Je voudrais une carafe d'eau\" = \"I would like a glass of water\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Je voudrais une carafe d'eau\" mean?",
+          "options": [
+            "I want a big house",
+            "I would like a glass of water",
+            "I like playing soccer",
+            "I have a pet cat"
+          ],
+          "correctIndex": 1,
+          "hint": "\"Je voudrais une carafe d'eau\" = \"I would like a glass of water\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Je voudrais une carafe d'eau\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Je voudrais une carafe d'eau\" means \"I would like a glass of water\"",
+          "isTrue": true,
+          "hint": "\"Je voudrais une carafe d'eau\" = \"I would like a glass of water\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "📚 New phrase: \"L'addition, s'il vous plaît\"",
+        "helpText": "This phrase is important to know so you can pay for your meal and leave the restaurant.",
+        "coachingText": "Now that we've learned how to order food, let's learn how to ask for the bill.",
+        "activity": {
+          "type": "info",
+          "title": "L'addition, s'il vous plaît",
+          "content": "L'addition, s'il vous plaît = \"The bill, please\"",
+          "explanation": "This phrase is important to know so you can pay for your meal and leave the restaurant.",
+          "example": "L'addition, s'il vous plaît, merci.",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"L'addition, s'il vous plaît\" mean?",
+        "helpText": "Remember: \"L'addition, s'il vous plaît\" = \"The bill, please\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"L'addition, s'il vous plaît\" mean?",
+          "options": [
+            "The bill, please",
+            "The food is delicious",
+            "I love playing music",
+            "I have a big brother"
+          ],
+          "correctIndex": 0,
+          "hint": "\"L'addition, s'il vous plaît\" = \"The bill, please\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"The bill, please\"",
+        "helpText": "The correct phrase is: \"L'addition, s'il vous plaît\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "L'addition, s'il vous plaît",
+          "scrambledWords": [
+            "vous",
+            "s'il",
+            "plaît",
+            "L'addition,"
+          ],
+          "hint": "\"L'addition, s'il vous plaît\" = \"The bill, please\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Match the phrases with their meanings!",
+        "helpText": "Find the pair: \"L'addition, s'il vous plaît\" = \"The bill, please\"",
+        "activity": {
+          "type": "matching",
+          "pairs": [
+            {
+              "left": "I love playing music",
+              "right": "I have a big brother"
+            },
+            {
+              "left": "I have a big brother",
+              "right": "The food is delicious"
+            },
+            {
+              "left": "L'addition, s'il vous plaît",
+              "right": "The bill, please"
+            },
+            {
+              "left": "The food is delicious",
+              "right": "I love playing music"
+            }
+          ],
+          "hint": "\"L'addition, s'il vous plaît\" means \"The bill, please\"",
+          "sunDrops": 2
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"L'addition, s'il vous plaît\" mean?",
+        "helpText": "Remember: \"L'addition, s'il vous plaît\" = \"The bill, please\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"L'addition, s'il vous plaît\" mean?",
+          "options": [
+            "The bill, please",
+            "The food is delicious",
+            "I love playing music",
+            "I have a big brother"
+          ],
+          "correctIndex": 0,
+          "hint": "\"L'addition, s'il vous plaît\" = \"The bill, please\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "📚 New phrase: \"Je prends un sandwich\"",
+        "helpText": "This phrase is helpful when you're hungry and want to order a quick and easy meal.",
+        "coachingText": "Let's practice ordering food in French, starting with something simple like a sandwich.",
+        "activity": {
+          "type": "info",
+          "title": "Je prends un sandwich",
+          "content": "Je prends un sandwich = \"I'll have a sandwich\"",
+          "explanation": "This phrase is helpful when you're hungry and want to order a quick and easy meal.",
+          "example": "Je prends un sandwich, merci.",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"I'll have a sandwich\" in French?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "I'll have a sandwich",
+          "correctAnswer": "Je prends un sandwich",
+          "acceptedAnswers": [
+            "Je prends un sandwich",
+            "je prends un sandwich"
+          ],
+          "hint": "It starts with \"Je ...\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"I'll have a sandwich\"",
+        "helpText": "The correct phrase is: \"Je prends un sandwich\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "Je prends un sandwich",
+          "scrambledWords": [
+            "Je",
+            "un",
+            "prends",
+            "sandwich"
+          ],
+          "hint": "\"Je prends un sandwich\" = \"I'll have a sandwich\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"I'll have a sandwich\" in French?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "I'll have a sandwich",
+          "correctAnswer": "Je prends un sandwich",
+          "acceptedAnswers": [
+            "Je prends un sandwich",
+            "je prends un sandwich"
+          ],
+          "hint": "It starts with \"Je ...\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"I'll have a sandwich\"",
+        "helpText": "The correct phrase is: \"Je prends un sandwich\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "Je prends un sandwich",
+          "scrambledWords": [
+            "Je",
+            "un",
+            "prends",
+            "sandwich"
+          ],
+          "hint": "\"Je prends un sandwich\" = \"I'll have a sandwich\"",
+          "sunDrops": 3
+        }
+      }
+    ],
+    "totalSunDrops": 23
+  }
+}

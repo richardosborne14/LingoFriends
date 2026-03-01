@@ -33,6 +33,9 @@ function getProviderConfigs(): Record<ProviderKey, ProviderConfig> {
       apiKey: process.env['VITE_DEEPINFRA_API_KEY'] ?? '',
       openAICompatible: true,
       rateLimitDelayMs: 500,
+      // Disabled until endpoint + API key are verified working.
+      // Re-enable by removing experimental: true, then run suite 08 in isolation.
+      experimental: true,
     },
     groq: {
       baseUrl: 'https://api.groq.com/openai/v1/chat/completions',
@@ -137,19 +140,22 @@ export class AITestClient {
   }
 
   /**
-   * Get list of available providers (have API keys configured).
+   * Get list of available providers.
+   * Excludes providers with no API key OR marked as experimental.
+   * Experimental providers are preserved in config but skipped in runs.
    */
   getAvailableProviders(): ProviderKey[] {
     return (Object.keys(this.configs) as ProviderKey[]).filter(
-      key => this.configs[key].apiKey.length > 0
+      key => this.configs[key].apiKey.length > 0 && !this.configs[key].experimental
     );
   }
 
   /**
-   * Check if a specific provider is available.
+   * Check if a specific provider is available (has key and is not experimental).
    */
   isAvailable(provider: ProviderKey): boolean {
-    return this.configs[provider].apiKey.length > 0;
+    const config = this.configs[provider];
+    return config.apiKey.length > 0 && !config.experimental;
   }
 
   /**
@@ -258,7 +264,10 @@ The child's native language is ${context.nativeLanguage}.
 RULES:
 1. Always respond in ${context.nativeLanguage} (the child's native language).
 2. Be warm, encouraging, and age-appropriate.
-3. Do NOT reveal the answer directly — give hints and encouragement instead.
+3. CRITICAL: Do NOT state the correct answer or repeat any of the answer options verbatim.
+   Instead, give ONLY hints: explain the grammar rule, give a memory tip, describe the context.
+   Example of a BAD hint: "The answer is Good morning"
+   Example of a GOOD hint: "Think about what time of day Guten Morgen is used — it has the word 'Morgen' in it!"
 4. If the question itself appears to be broken/wrong/confusing (not a comprehension issue), set isBrokenQuestion to true.
 5. If it's a valid question the child is struggling with, set isBrokenQuestion to false.
 

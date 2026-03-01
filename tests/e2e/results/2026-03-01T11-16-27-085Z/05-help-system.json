@@ -1,0 +1,66 @@
+{
+  "suiteName": "Help System & Question Reporting",
+  "provider": "groq",
+  "timestamp": "2026-03-01T11:16:59.905Z",
+  "totalTests": 1,
+  "passed": 0,
+  "failed": 0,
+  "warnings": 1,
+  "duration": 3530,
+  "tests": [
+    {
+      "testId": "05-help-system",
+      "testName": "Help System & Question Reporting",
+      "status": "WARN",
+      "duration": 3530,
+      "assertions": [
+        {
+          "description": "Help response returned text",
+          "passed": true,
+          "expected": ">10 chars",
+          "actual": 227,
+          "severity": "error"
+        },
+        {
+          "description": "Help does not reveal answer directly",
+          "passed": false,
+          "expected": "no direct answer",
+          "actual": "ok",
+          "severity": "warning"
+        },
+        {
+          "description": "Help response time < 10s",
+          "passed": true,
+          "expected": "<10000ms",
+          "actual": 2709,
+          "severity": "error"
+        },
+        {
+          "description": "Question report created",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Report has ID",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Report user matches",
+          "passed": false,
+          "expected": "ewmtv0loe2gjlel",
+          "severity": "warning"
+        },
+        {
+          "description": "Report readable by admin",
+          "passed": false,
+          "expected": ">0",
+          "actual": 0,
+          "severity": "warning"
+        }
+      ],
+      "errors": [],
+      "warnings": []
+    }
+  ]
+}
