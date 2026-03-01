@@ -1,0 +1,64 @@
+{
+  "suiteName": "Registration & Profile Creation",
+  "provider": "groq",
+  "timestamp": "2026-03-01T11:03:04.934Z",
+  "totalTests": 1,
+  "passed": 0,
+  "failed": 1,
+  "warnings": 0,
+  "duration": 1551,
+  "tests": [
+    {
+      "testId": "01-registration",
+      "testName": "Registration & Profile Creation",
+      "status": "FAIL",
+      "duration": 1073,
+      "assertions": [
+        {
+          "description": "User created (HTTP 2xx)",
+          "passed": true,
+          "expected": "HTTP 2xx",
+          "actual": "HTTP 200",
+          "severity": "error"
+        },
+        {
+          "description": "User has ID",
+          "passed": true,
+          "expected": "<non-empty>",
+          "actual": "yxwx8qsmbcid3a2",
+          "severity": "error"
+        },
+        {
+          "description": "User has email",
+          "passed": true,
+          "expected": "test-1772362983384-h4aqv@lingofriends-test.local",
+          "actual": "test-1772362983384-h4aqv@lingofriends-test.local",
+          "severity": "error"
+        },
+        {
+          "description": "User auth token returned",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Profile created",
+          "passed": false,
+          "expected": "profile record",
+          "actual": null,
+          "severity": "error"
+        },
+        {
+          "description": "Cross-user profile read is blocked or returns empty",
+          "passed": true,
+          "expected": "403 or 200 (empty)",
+          "actual": "HTTP 200",
+          "severity": "warning"
+        }
+      ],
+      "errors": [
+        "Failed to create profile: HTTP 400 — {\"data\":{\"onboarding_complete\":{\"code\":\"validation_required\",\"message\":\"Cannot be blank.\"}},\"message\":\"Failed to create record.\",\"status\":400}"
+      ],
+      "warnings": []
+    }
+  ]
+}

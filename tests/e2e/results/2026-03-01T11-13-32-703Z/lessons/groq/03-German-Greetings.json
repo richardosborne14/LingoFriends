@@ -1,0 +1,648 @@
+{
+  "scenario": {
+    "targetLanguage": "German",
+    "nativeLanguage": "English",
+    "topic": "Greetings",
+    "ageGroup": "11-14",
+    "level": "A1"
+  },
+  "score": {
+    "provider": "groq",
+    "lessonTitle": "Test: Greetings",
+    "combination": {
+      "targetLanguage": "German",
+      "nativeLanguage": "English",
+      "topic": "Greetings",
+      "ageGroup": "11-14",
+      "level": "A1"
+    },
+    "responseTimeMs": 3902,
+    "parseSuccess": true,
+    "assemblySuccess": true,
+    "validationResult": {
+      "valid": true,
+      "errors": [],
+      "warnings": []
+    },
+    "scores": {
+      "languageCorrectness": 7,
+      "teachFirstEnforcement": 10,
+      "activityVariety": 10,
+      "chunkQuality": 10,
+      "distractorQuality": 10,
+      "ageAppropriateness": 10,
+      "interestPersonalisation": 5,
+      "fieldCompleteness": 10,
+      "i1Difficulty": 9,
+      "nativeLanguageInstructions": 10
+    },
+    "totalScore": 91,
+    "rawChunks": [
+      {
+        "targetPhrase": "Guten Morgen",
+        "nativeTranslation": "Good morning",
+        "exampleSentence": "Ich wünsche dir einen schönen Tag, Guten Morgen!",
+        "usageNote": "Use this phrase in the morning to greet someone",
+        "explanation": "This is a common way to greet someone in the morning in Germany",
+        "distractors": [
+          "Good night",
+          "Goodbye",
+          "How are you"
+        ],
+        "correctUsageContext": "When you meet your friend at school in the morning",
+        "wrongUsageContexts": [
+          "When you are saying goodbye to someone",
+          "When you are going to bed",
+          "When you are angry at someone"
+        ],
+        "coachingText": "Let's start the day with a friendly greeting, shall we?"
+      },
+      {
+        "targetPhrase": "Hallo, wie geht es dir?",
+        "nativeTranslation": "Hello, how are you?",
+        "exampleSentence": "Hallo, wie geht es dir? Ich habe dich lange nicht gesehen!",
+        "usageNote": "Use this phrase when you meet someone you know to ask about their well-being",
+        "explanation": "This is a way to greet someone and show interest in how they are doing",
+        "distractors": [
+          "What's your name?",
+          "I'm tired",
+          "I love music"
+        ],
+        "correctUsageContext": "When you meet your friend at a sports game",
+        "wrongUsageContexts": [
+          "When you are in a hurry and can't talk",
+          "When you are talking to someone you don't know",
+          "When you are feeling sad"
+        ],
+        "coachingText": "Let's check in with our friends and see how they're doing, okay?"
+      },
+      {
+        "targetPhrase": "Auf Wiedersehen",
+        "nativeTranslation": "Goodbye",
+        "exampleSentence": "Ich muss gehen, Auf Wiedersehen, bis morgen!",
+        "usageNote": "Use this phrase when you are parting ways with someone",
+        "explanation": "This is a formal way to say goodbye to someone in Germany",
+        "distractors": [
+          "Hello again",
+          "See you soon",
+          "I'm hungry"
+        ],
+        "correctUsageContext": "When you are leaving your music practice and saying goodbye to your teacher",
+        "wrongUsageContexts": [
+          "When you are meeting someone for the first time",
+          "When you are in the middle of a conversation",
+          "When you are going to sleep"
+        ],
+        "coachingText": "Time to say goodbye, but we'll catch up again soon, don't worry!"
+      }
+    ],
+    "rawLesson": {
+      "id": "test-1772363620660",
+      "title": "Test: Greetings",
+      "icon": "📚",
+      "skillPathId": "Test: Greetings",
+      "lessonIndex": 0,
+      "steps": [
+        {
+          "tutorText": "📚 New phrase: \"Guten Morgen\"",
+          "helpText": "This is a common way to greet someone in the morning in Germany",
+          "coachingText": "Let's start the day with a friendly greeting, shall we?",
+          "activity": {
+            "type": "info",
+            "title": "Guten Morgen",
+            "content": "Guten Morgen = \"Good morning\"",
+            "explanation": "This is a common way to greet someone in the morning in Germany",
+            "example": "Ich wünsche dir einen schönen Tag, Guten Morgen!",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Guten Morgen\" mean?",
+          "helpText": "Remember: \"Guten Morgen\" = \"Good morning\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Guten Morgen\" mean?",
+            "options": [
+              "Good morning",
+              "Good night",
+              "Goodbye",
+              "How are you"
+            ],
+            "correctIndex": 0,
+            "hint": "\"Guten Morgen\" = \"Good morning\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Guten Morgen\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Guten Morgen\" means \"Good morning\"",
+            "isTrue": true,
+            "hint": "\"Guten Morgen\" = \"Good morning\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Guten Morgen\" mean?",
+          "helpText": "Remember: \"Guten Morgen\" = \"Good morning\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Guten Morgen\" mean?",
+            "options": [
+              "Good morning",
+              "Good night",
+              "Goodbye",
+              "How are you"
+            ],
+            "correctIndex": 0,
+            "hint": "\"Guten Morgen\" = \"Good morning\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Guten Morgen\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Guten Morgen\" means \"Good morning\"",
+            "isTrue": true,
+            "hint": "\"Guten Morgen\" = \"Good morning\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "📚 New phrase: \"Hallo, wie geht es dir?\"",
+          "helpText": "This is a way to greet someone and show interest in how they are doing",
+          "coachingText": "Let's check in with our friends and see how they're doing, okay?",
+          "activity": {
+            "type": "info",
+            "title": "Hallo, wie geht es dir?",
+            "content": "Hallo, wie geht es dir? = \"Hello, how are you?\"",
+            "explanation": "This is a way to greet someone and show interest in how they are doing",
+            "example": "Hallo, wie geht es dir? Ich habe dich lange nicht gesehen!",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Practice time! Complete this phrase.",
+          "helpText": "The full phrase is: \"Hallo, wie geht es dir?\"",
+          "activity": {
+            "type": "fill_blank",
+            "sentence": "Hallo, wie geht es ___",
+            "correctAnswer": "dir?",
+            "acceptedAnswers": [
+              "dir?",
+              "dir"
+            ],
+            "hint": "\"Hallo, wie geht es dir?\" = \"Hello, how are you?\"",
+            "sunDrops": 2
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"Hello, how are you?\" in ge?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "Hello, how are you?",
+            "correctAnswer": "Hallo, wie geht es dir?",
+            "acceptedAnswers": [
+              "Hallo, wie geht es dir?",
+              "hallo, wie geht es dir?",
+              "Hallo wie geht es dir",
+              "hallo wie geht es dir"
+            ],
+            "hint": "It starts with \"Hal...\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Hallo, wie geht es dir?\" mean?",
+          "helpText": "Remember: \"Hallo, wie geht es dir?\" = \"Hello, how are you?\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Hallo, wie geht es dir?\" mean?",
+            "options": [
+              "What's your name?",
+              "I'm tired",
+              "I love music",
+              "Hello, how are you?"
+            ],
+            "correctIndex": 3,
+            "hint": "\"Hallo, wie geht es dir?\" = \"Hello, how are you?\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Match the phrases with their meanings!",
+          "helpText": "Find the pair: \"Hallo, wie geht es dir?\" = \"Hello, how are you?\"",
+          "activity": {
+            "type": "matching",
+            "pairs": [
+              {
+                "left": "I'm tired",
+                "right": "I love music"
+              },
+              {
+                "left": "I love music",
+                "right": "What's your name?"
+              },
+              {
+                "left": "Hallo, wie geht es dir?",
+                "right": "Hello, how are you?"
+              },
+              {
+                "left": "What's your name?",
+                "right": "I'm tired"
+              }
+            ],
+            "hint": "\"Hallo, wie geht es dir?\" means \"Hello, how are you?\"",
+            "sunDrops": 2
+          }
+        },
+        {
+          "tutorText": "📚 New phrase: \"Auf Wiedersehen\"",
+          "helpText": "This is a formal way to say goodbye to someone in Germany",
+          "coachingText": "Time to say goodbye, but we'll catch up again soon, don't worry!",
+          "activity": {
+            "type": "info",
+            "title": "Auf Wiedersehen",
+            "content": "Auf Wiedersehen = \"Goodbye\"",
+            "explanation": "This is a formal way to say goodbye to someone in Germany",
+            "example": "Ich muss gehen, Auf Wiedersehen, bis morgen!",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"Goodbye\"",
+          "helpText": "The correct phrase is: \"Auf Wiedersehen\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "Auf Wiedersehen",
+            "scrambledWords": [
+              "Wiedersehen",
+              "Auf"
+            ],
+            "hint": "\"Auf Wiedersehen\" = \"Goodbye\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"Goodbye\" in ge?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "Goodbye",
+            "correctAnswer": "Auf Wiedersehen",
+            "acceptedAnswers": [
+              "Auf Wiedersehen",
+              "auf wiedersehen"
+            ],
+            "hint": "It starts with \"Auf...\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"Goodbye\"",
+          "helpText": "The correct phrase is: \"Auf Wiedersehen\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "Auf Wiedersehen",
+            "scrambledWords": [
+              "Wiedersehen",
+              "Auf"
+            ],
+            "hint": "\"Auf Wiedersehen\" = \"Goodbye\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"Goodbye\" in ge?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "Goodbye",
+            "correctAnswer": "Auf Wiedersehen",
+            "acceptedAnswers": [
+              "Auf Wiedersehen",
+              "auf wiedersehen"
+            ],
+            "hint": "It starts with \"Auf...\"",
+            "sunDrops": 3
+          }
+        }
+      ],
+      "totalSunDrops": 24
+    },
+    "notes": [
+      "Distractor \"Good night\" appears to be in target language (de), not native",
+      "Distractor \"Goodbye\" appears to be in target language (de), not native",
+      "targetPhrase \"Hallo, wie geht es dir?\" detected as es, expected de",
+      "Distractor \"What's your name?\" appears to be in target language (de), not native",
+      "Distractor \"I'm tired\" appears to be in target language (de), not native",
+      "Distractor \"I love music\" appears to be in target language (de), not native",
+      "Distractor \"Hello again\" appears to be in target language (de), not native",
+      "Distractor \"I'm hungry\" appears to be in target language (de), not native",
+      "No interests provided to check against"
+    ]
+  },
+  "rawChunks": [
+    {
+      "targetPhrase": "Guten Morgen",
+      "nativeTranslation": "Good morning",
+      "exampleSentence": "Ich wünsche dir einen schönen Tag, Guten Morgen!",
+      "usageNote": "Use this phrase in the morning to greet someone",
+      "explanation": "This is a common way to greet someone in the morning in Germany",
+      "distractors": [
+        "Good night",
+        "Goodbye",
+        "How are you"
+      ],
+      "correctUsageContext": "When you meet your friend at school in the morning",
+      "wrongUsageContexts": [
+        "When you are saying goodbye to someone",
+        "When you are going to bed",
+        "When you are angry at someone"
+      ],
+      "coachingText": "Let's start the day with a friendly greeting, shall we?"
+    },
+    {
+      "targetPhrase": "Hallo, wie geht es dir?",
+      "nativeTranslation": "Hello, how are you?",
+      "exampleSentence": "Hallo, wie geht es dir? Ich habe dich lange nicht gesehen!",
+      "usageNote": "Use this phrase when you meet someone you know to ask about their well-being",
+      "explanation": "This is a way to greet someone and show interest in how they are doing",
+      "distractors": [
+        "What's your name?",
+        "I'm tired",
+        "I love music"
+      ],
+      "correctUsageContext": "When you meet your friend at a sports game",
+      "wrongUsageContexts": [
+        "When you are in a hurry and can't talk",
+        "When you are talking to someone you don't know",
+        "When you are feeling sad"
+      ],
+      "coachingText": "Let's check in with our friends and see how they're doing, okay?"
+    },
+    {
+      "targetPhrase": "Auf Wiedersehen",
+      "nativeTranslation": "Goodbye",
+      "exampleSentence": "Ich muss gehen, Auf Wiedersehen, bis morgen!",
+      "usageNote": "Use this phrase when you are parting ways with someone",
+      "explanation": "This is a formal way to say goodbye to someone in Germany",
+      "distractors": [
+        "Hello again",
+        "See you soon",
+        "I'm hungry"
+      ],
+      "correctUsageContext": "When you are leaving your music practice and saying goodbye to your teacher",
+      "wrongUsageContexts": [
+        "When you are meeting someone for the first time",
+        "When you are in the middle of a conversation",
+        "When you are going to sleep"
+      ],
+      "coachingText": "Time to say goodbye, but we'll catch up again soon, don't worry!"
+    }
+  ],
+  "rawLesson": {
+    "id": "test-1772363620660",
+    "title": "Test: Greetings",
+    "icon": "📚",
+    "skillPathId": "Test: Greetings",
+    "lessonIndex": 0,
+    "steps": [
+      {
+        "tutorText": "📚 New phrase: \"Guten Morgen\"",
+        "helpText": "This is a common way to greet someone in the morning in Germany",
+        "coachingText": "Let's start the day with a friendly greeting, shall we?",
+        "activity": {
+          "type": "info",
+          "title": "Guten Morgen",
+          "content": "Guten Morgen = \"Good morning\"",
+          "explanation": "This is a common way to greet someone in the morning in Germany",
+          "example": "Ich wünsche dir einen schönen Tag, Guten Morgen!",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Guten Morgen\" mean?",
+        "helpText": "Remember: \"Guten Morgen\" = \"Good morning\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Guten Morgen\" mean?",
+          "options": [
+            "Good morning",
+            "Good night",
+            "Goodbye",
+            "How are you"
+          ],
+          "correctIndex": 0,
+          "hint": "\"Guten Morgen\" = \"Good morning\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Guten Morgen\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Guten Morgen\" means \"Good morning\"",
+          "isTrue": true,
+          "hint": "\"Guten Morgen\" = \"Good morning\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Guten Morgen\" mean?",
+        "helpText": "Remember: \"Guten Morgen\" = \"Good morning\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Guten Morgen\" mean?",
+          "options": [
+            "Good morning",
+            "Good night",
+            "Goodbye",
+            "How are you"
+          ],
+          "correctIndex": 0,
+          "hint": "\"Guten Morgen\" = \"Good morning\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Guten Morgen\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Guten Morgen\" means \"Good morning\"",
+          "isTrue": true,
+          "hint": "\"Guten Morgen\" = \"Good morning\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "📚 New phrase: \"Hallo, wie geht es dir?\"",
+        "helpText": "This is a way to greet someone and show interest in how they are doing",
+        "coachingText": "Let's check in with our friends and see how they're doing, okay?",
+        "activity": {
+          "type": "info",
+          "title": "Hallo, wie geht es dir?",
+          "content": "Hallo, wie geht es dir? = \"Hello, how are you?\"",
+          "explanation": "This is a way to greet someone and show interest in how they are doing",
+          "example": "Hallo, wie geht es dir? Ich habe dich lange nicht gesehen!",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Practice time! Complete this phrase.",
+        "helpText": "The full phrase is: \"Hallo, wie geht es dir?\"",
+        "activity": {
+          "type": "fill_blank",
+          "sentence": "Hallo, wie geht es ___",
+          "correctAnswer": "dir?",
+          "acceptedAnswers": [
+            "dir?",
+            "dir"
+          ],
+          "hint": "\"Hallo, wie geht es dir?\" = \"Hello, how are you?\"",
+          "sunDrops": 2
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"Hello, how are you?\" in ge?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "Hello, how are you?",
+          "correctAnswer": "Hallo, wie geht es dir?",
+          "acceptedAnswers": [
+            "Hallo, wie geht es dir?",
+            "hallo, wie geht es dir?",
+            "Hallo wie geht es dir",
+            "hallo wie geht es dir"
+          ],
+          "hint": "It starts with \"Hal...\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Hallo, wie geht es dir?\" mean?",
+        "helpText": "Remember: \"Hallo, wie geht es dir?\" = \"Hello, how are you?\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Hallo, wie geht es dir?\" mean?",
+          "options": [
+            "What's your name?",
+            "I'm tired",
+            "I love music",
+            "Hello, how are you?"
+          ],
+          "correctIndex": 3,
+          "hint": "\"Hallo, wie geht es dir?\" = \"Hello, how are you?\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Match the phrases with their meanings!",
+        "helpText": "Find the pair: \"Hallo, wie geht es dir?\" = \"Hello, how are you?\"",
+        "activity": {
+          "type": "matching",
+          "pairs": [
+            {
+              "left": "I'm tired",
+              "right": "I love music"
+            },
+            {
+              "left": "I love music",
+              "right": "What's your name?"
+            },
+            {
+              "left": "Hallo, wie geht es dir?",
+              "right": "Hello, how are you?"
+            },
+            {
+              "left": "What's your name?",
+              "right": "I'm tired"
+            }
+          ],
+          "hint": "\"Hallo, wie geht es dir?\" means \"Hello, how are you?\"",
+          "sunDrops": 2
+        }
+      },
+      {
+        "tutorText": "📚 New phrase: \"Auf Wiedersehen\"",
+        "helpText": "This is a formal way to say goodbye to someone in Germany",
+        "coachingText": "Time to say goodbye, but we'll catch up again soon, don't worry!",
+        "activity": {
+          "type": "info",
+          "title": "Auf Wiedersehen",
+          "content": "Auf Wiedersehen = \"Goodbye\"",
+          "explanation": "This is a formal way to say goodbye to someone in Germany",
+          "example": "Ich muss gehen, Auf Wiedersehen, bis morgen!",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"Goodbye\"",
+        "helpText": "The correct phrase is: \"Auf Wiedersehen\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "Auf Wiedersehen",
+          "scrambledWords": [
+            "Wiedersehen",
+            "Auf"
+          ],
+          "hint": "\"Auf Wiedersehen\" = \"Goodbye\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"Goodbye\" in ge?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "Goodbye",
+          "correctAnswer": "Auf Wiedersehen",
+          "acceptedAnswers": [
+            "Auf Wiedersehen",
+            "auf wiedersehen"
+          ],
+          "hint": "It starts with \"Auf...\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"Goodbye\"",
+        "helpText": "The correct phrase is: \"Auf Wiedersehen\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "Auf Wiedersehen",
+          "scrambledWords": [
+            "Wiedersehen",
+            "Auf"
+          ],
+          "hint": "\"Auf Wiedersehen\" = \"Goodbye\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"Goodbye\" in ge?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "Goodbye",
+          "correctAnswer": "Auf Wiedersehen",
+          "acceptedAnswers": [
+            "Auf Wiedersehen",
+            "auf wiedersehen"
+          ],
+          "hint": "It starts with \"Auf...\"",
+          "sunDrops": 3
+        }
+      }
+    ],
+    "totalSunDrops": 24
+  }
+}

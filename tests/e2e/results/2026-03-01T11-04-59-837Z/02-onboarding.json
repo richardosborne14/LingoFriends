@@ -1,0 +1,23 @@
+{
+  "suiteName": "Onboarding Configuration",
+  "provider": "groq",
+  "timestamp": "2026-03-01T11:05:01.209Z",
+  "totalTests": 1,
+  "passed": 0,
+  "failed": 1,
+  "warnings": 0,
+  "duration": 987,
+  "tests": [
+    {
+      "testId": "02-onboarding",
+      "testName": "Onboarding Configuration",
+      "status": "FAIL",
+      "duration": 987,
+      "assertions": [],
+      "errors": [
+        "Failed to create profile: HTTP 400 — {\"data\":{\"level\":{\"code\":\"validation_required\",\"message\":\"Cannot be blank.\"}},\"message\":\"Failed to create record.\",\"status\":400}"
+      ],
+      "warnings": []
+    }
+  ]
+}

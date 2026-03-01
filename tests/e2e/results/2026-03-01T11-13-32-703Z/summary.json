@@ -1,0 +1,1797 @@
+{
+  "timestamp": "2026-03-01T11:14:47.814Z",
+  "provider": "groq",
+  "suitesRun": 8,
+  "suites": [
+    {
+      "suiteName": "Registration & Profile Creation",
+      "provider": "groq",
+      "timestamp": "2026-03-01T11:13:34.908Z",
+      "totalTests": 1,
+      "passed": 1,
+      "failed": 0,
+      "warnings": 0,
+      "duration": 1816,
+      "tests": [
+        {
+          "testId": "01-registration",
+          "testName": "Registration & Profile Creation",
+          "status": "PASS",
+          "duration": 1121,
+          "assertions": [
+            {
+              "description": "User created (HTTP 2xx)",
+              "passed": true,
+              "expected": "HTTP 2xx",
+              "actual": "HTTP 200",
+              "severity": "error"
+            },
+            {
+              "description": "User has ID",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": "t5fy56wp9ir5bp8",
+              "severity": "error"
+            },
+            {
+              "description": "User has email",
+              "passed": true,
+              "expected": "test-1772363613092-ic7fm@lingofriends-test.local",
+              "actual": "test-1772363613092-ic7fm@lingofriends-test.local",
+              "severity": "error"
+            },
+            {
+              "description": "User auth token returned",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Profile created",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Profile fields: has field \"id\"",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": "ihhsnyzlbz8rkda",
+              "severity": "error"
+            },
+            {
+              "description": "Profile fields: has field \"user\"",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": "t5fy56wp9ir5bp8",
+              "severity": "error"
+            },
+            {
+              "description": "Profile fields: has field \"display_name\"",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": "TestKid",
+              "severity": "error"
+            },
+            {
+              "description": "Profile fields: has field \"native_language\"",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": "English",
+              "severity": "error"
+            },
+            {
+              "description": "Profile fields: has field \"target_language\"",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": "German",
+              "severity": "error"
+            },
+            {
+              "description": "Profile fields: has field \"xp\"",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": 0,
+              "severity": "error"
+            },
+            {
+              "description": "Profile fields: has field \"streak\"",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": 0,
+              "severity": "error"
+            },
+            {
+              "description": "Profile fields: has field \"sunDrops\"",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": 0,
+              "severity": "error"
+            },
+            {
+              "description": "Profile fields: has field \"gems\"",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": 0,
+              "severity": "error"
+            },
+            {
+              "description": "xp defaults to 0",
+              "passed": true,
+              "expected": 0,
+              "actual": 0,
+              "severity": "error"
+            },
+            {
+              "description": "streak defaults to 0",
+              "passed": true,
+              "expected": 0,
+              "actual": 0,
+              "severity": "error"
+            },
+            {
+              "description": "sunDrops defaults to 0",
+              "passed": true,
+              "expected": 0,
+              "actual": 0,
+              "severity": "error"
+            },
+            {
+              "description": "Profile readable via admin",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Profile user matches",
+              "passed": true,
+              "expected": "t5fy56wp9ir5bp8",
+              "actual": "t5fy56wp9ir5bp8",
+              "severity": "error"
+            },
+            {
+              "description": "Cross-user profile read is blocked or returns empty",
+              "passed": true,
+              "expected": "403 or 200 (empty)",
+              "actual": "HTTP 200",
+              "severity": "warning"
+            }
+          ],
+          "errors": [],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "suiteName": "Onboarding Configuration",
+      "provider": "groq",
+      "timestamp": "2026-03-01T11:13:36.739Z",
+      "totalTests": 1,
+      "passed": 1,
+      "failed": 0,
+      "warnings": 0,
+      "duration": 1824,
+      "tests": [
+        {
+          "testId": "02-onboarding",
+          "testName": "Onboarding Configuration",
+          "status": "PASS",
+          "duration": 1824,
+          "assertions": [
+            {
+              "description": "Profile created for onboarding",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Subject updated",
+              "passed": true,
+              "expected": "German",
+              "actual": "German",
+              "severity": "error"
+            },
+            {
+              "description": "Interests stored",
+              "passed": true,
+              "expected": "array",
+              "actual": "object",
+              "severity": "error"
+            },
+            {
+              "description": "Native language updated to French",
+              "passed": true,
+              "expected": "French",
+              "actual": "French",
+              "severity": "error"
+            },
+            {
+              "description": "onboarding_complete set to true",
+              "passed": true,
+              "expected": true,
+              "actual": true,
+              "severity": "error"
+            },
+            {
+              "description": "Tree created",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Tree fields: has field \"id\"",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": "n0eiadzno08666x",
+              "severity": "error"
+            },
+            {
+              "description": "Tree fields: has field \"user\"",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": "hyamtys5uz34wcj",
+              "severity": "error"
+            },
+            {
+              "description": "Tree fields: has field \"status\"",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": "seed",
+              "severity": "error"
+            },
+            {
+              "description": "Tree fields: has field \"health\"",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": 100,
+              "severity": "error"
+            },
+            {
+              "description": "Tree fields: has field \"lastRefreshDate\"",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": "2026-03-01 11:13:35.647Z",
+              "severity": "error"
+            },
+            {
+              "description": "Tree health is 100",
+              "passed": true,
+              "expected": 100,
+              "actual": 100,
+              "severity": "error"
+            },
+            {
+              "description": "Learner profile created",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Learner profile native_language",
+              "passed": true,
+              "expected": "fr",
+              "actual": "fr",
+              "severity": "error"
+            },
+            {
+              "description": "Learner profile target_language",
+              "passed": true,
+              "expected": "de",
+              "actual": "de",
+              "severity": "error"
+            }
+          ],
+          "errors": [],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "suiteName": "Lesson Generation & Validation",
+      "provider": "groq",
+      "timestamp": "2026-03-01T11:13:59.538Z",
+      "totalTests": 5,
+      "passed": 5,
+      "failed": 0,
+      "warnings": 0,
+      "duration": 22781,
+      "tests": [
+        {
+          "testId": "03-German",
+          "testName": "German/English — \"Greetings\"",
+          "status": "PASS",
+          "duration": 3913,
+          "assertions": [
+            {
+              "description": "AI returned valid JSON",
+              "passed": true,
+              "expected": true,
+              "actual": true,
+              "severity": "error"
+            },
+            {
+              "description": "AI returned chunks",
+              "passed": true,
+              "expected": ">0",
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has targetPhrase",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has nativeTranslation",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has 3 distractors",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has correctUsageContext",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has wrongUsageContexts (3)",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Distractor \"Good night\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "Good night",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"Goodbye\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "Goodbye",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"How are you\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "How are you",
+              "severity": "warning"
+            },
+            {
+              "description": "Chunk has targetPhrase",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has nativeTranslation",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has 3 distractors",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has correctUsageContext",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has wrongUsageContexts (3)",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Distractor \"What's your name?\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "What's your name?",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"I'm tired\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "I'm tired",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"I love music\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "I love music",
+              "severity": "warning"
+            },
+            {
+              "description": "Chunk has targetPhrase",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has nativeTranslation",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has 3 distractors",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has correctUsageContext",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has wrongUsageContexts (3)",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Distractor \"Hello again\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "Hello again",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"See you soon\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "See you soon",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"I'm hungry\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "I'm hungry",
+              "severity": "warning"
+            },
+            {
+              "description": "Lesson assembly succeeded",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Lesson validation passed",
+              "passed": true,
+              "expected": true,
+              "actual": true,
+              "severity": "error"
+            },
+            {
+              "description": "First step is INFO (teach-first)",
+              "passed": true,
+              "expected": "info",
+              "actual": "info",
+              "severity": "error"
+            },
+            {
+              "description": "SunDrops sum matches total",
+              "passed": true,
+              "expected": 24,
+              "actual": 24,
+              "severity": "warning"
+            },
+            {
+              "description": "Quality score ≥ 50/100",
+              "passed": true,
+              "expected": "≥50",
+              "actual": 91,
+              "severity": "warning"
+            }
+          ],
+          "errors": [],
+          "warnings": []
+        },
+        {
+          "testId": "03-French",
+          "testName": "French/English — \"Food & Drinks\"",
+          "status": "PASS",
+          "duration": 4002,
+          "assertions": [
+            {
+              "description": "AI returned valid JSON",
+              "passed": true,
+              "expected": true,
+              "actual": true,
+              "severity": "error"
+            },
+            {
+              "description": "AI returned chunks",
+              "passed": true,
+              "expected": ">0",
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has targetPhrase",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has nativeTranslation",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has 3 distractors",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has correctUsageContext",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has wrongUsageContexts (3)",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Distractor \"I want a bottle of s\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "I want a bottle of soda",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"Can I have a cookie\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "Can I have a cookie",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"Where is the bathroo\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "Where is the bathroom",
+              "severity": "warning"
+            },
+            {
+              "description": "Chunk has targetPhrase",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has nativeTranslation",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has 3 distractors",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has correctUsageContext",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has wrongUsageContexts (3)",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Distractor \"I want to order more\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "I want to order more food",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"Can I have the menu\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "Can I have the menu",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"Where is the restroo\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "Where is the restroom",
+              "severity": "warning"
+            },
+            {
+              "description": "Chunk has targetPhrase",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has nativeTranslation",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has 3 distractors",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has correctUsageContext",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has wrongUsageContexts (3)",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Distractor \"I want to order a bi\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "I want to order a big meal",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"Can I have a salad\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "Can I have a salad",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"Where is the playgro\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "Where is the playground",
+              "severity": "warning"
+            },
+            {
+              "description": "Lesson assembly succeeded",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Lesson validation passed",
+              "passed": true,
+              "expected": true,
+              "actual": true,
+              "severity": "error"
+            },
+            {
+              "description": "First step is INFO (teach-first)",
+              "passed": true,
+              "expected": "info",
+              "actual": "info",
+              "severity": "error"
+            },
+            {
+              "description": "SunDrops sum matches total",
+              "passed": true,
+              "expected": 23,
+              "actual": 23,
+              "severity": "warning"
+            },
+            {
+              "description": "Quality score ≥ 50/100",
+              "passed": true,
+              "expected": "≥50",
+              "actual": 94,
+              "severity": "warning"
+            }
+          ],
+          "errors": [],
+          "warnings": []
+        },
+        {
+          "testId": "03-German",
+          "testName": "German/French — \"School Phrases\"",
+          "status": "PASS",
+          "duration": 4306,
+          "assertions": [
+            {
+              "description": "AI returned valid JSON",
+              "passed": true,
+              "expected": true,
+              "actual": true,
+              "severity": "error"
+            },
+            {
+              "description": "AI returned chunks",
+              "passed": true,
+              "expected": ">0",
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has targetPhrase",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has nativeTranslation",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has 3 distractors",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has correctUsageContext",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has wrongUsageContexts (3)",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Distractor \"Je suis désolé\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "Je suis désolé",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"Je m'appelle\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "Je m'appelle",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"J'aime le football\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "J'aime le football",
+              "severity": "warning"
+            },
+            {
+              "description": "Chunk has targetPhrase",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has nativeTranslation",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has 3 distractors",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has correctUsageContext",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has wrongUsageContexts (3)",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Distractor \"Je veux boire de l'e\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "Je veux boire de l'eau",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"Je suis fatigué\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "Je suis fatigué",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"J'ai faim\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "J'ai faim",
+              "severity": "warning"
+            },
+            {
+              "description": "Chunk has targetPhrase",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has nativeTranslation",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has 3 distractors",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has correctUsageContext",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has wrongUsageContexts (3)",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Distractor \"Je commence maintena\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "Je commence maintenant",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"Je suis perdu\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "Je suis perdu",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"Je suis fatigué\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "Je suis fatigué",
+              "severity": "warning"
+            },
+            {
+              "description": "Lesson assembly succeeded",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Lesson validation passed",
+              "passed": true,
+              "expected": true,
+              "actual": true,
+              "severity": "error"
+            },
+            {
+              "description": "First step is INFO (teach-first)",
+              "passed": true,
+              "expected": "info",
+              "actual": "info",
+              "severity": "error"
+            },
+            {
+              "description": "SunDrops sum matches total",
+              "passed": true,
+              "expected": 22,
+              "actual": 22,
+              "severity": "warning"
+            },
+            {
+              "description": "Quality score ≥ 50/100",
+              "passed": true,
+              "expected": "≥50",
+              "actual": 87,
+              "severity": "warning"
+            }
+          ],
+          "errors": [],
+          "warnings": []
+        },
+        {
+          "testId": "03-German",
+          "testName": "German/English — \"Food & Drinks\"",
+          "status": "PASS",
+          "duration": 4000,
+          "assertions": [
+            {
+              "description": "AI returned valid JSON",
+              "passed": true,
+              "expected": true,
+              "actual": true,
+              "severity": "error"
+            },
+            {
+              "description": "AI returned chunks",
+              "passed": true,
+              "expected": ">0",
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has targetPhrase",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has nativeTranslation",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has 3 distractors",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has correctUsageContext",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has wrongUsageContexts (3)",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Distractor \"I don't like to eat \" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "I don't like to eat fruit",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"I eat fruit every ni\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "I eat fruit every night",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"I only eat fruit in \" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "I only eat fruit in summer",
+              "severity": "warning"
+            },
+            {
+              "description": "Chunk has targetPhrase",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has nativeTranslation",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has 3 distractors",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has correctUsageContext",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has wrongUsageContexts (3)",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Distractor \"I want a big glass o\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "I want a big glass of water",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"I don't need a glass\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "I don't need a glass of water",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"I can have a glass o\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "I can have a glass of water later",
+              "severity": "warning"
+            },
+            {
+              "description": "Chunk has targetPhrase",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has nativeTranslation",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has 3 distractors",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has correctUsageContext",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has wrongUsageContexts (3)",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Distractor \"The ice cream is not\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "The ice cream is not delicious",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"I don't like ice cre\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "I don't like ice cream",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"I only eat ice cream\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "I only eat ice cream on Fridays",
+              "severity": "warning"
+            },
+            {
+              "description": "Lesson assembly succeeded",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Lesson validation passed",
+              "passed": true,
+              "expected": true,
+              "actual": true,
+              "severity": "error"
+            },
+            {
+              "description": "First step is INFO (teach-first)",
+              "passed": true,
+              "expected": "info",
+              "actual": "info",
+              "severity": "error"
+            },
+            {
+              "description": "SunDrops sum matches total",
+              "passed": true,
+              "expected": 25,
+              "actual": 25,
+              "severity": "warning"
+            },
+            {
+              "description": "Quality score ≥ 50/100",
+              "passed": true,
+              "expected": "≥50",
+              "actual": 94,
+              "severity": "warning"
+            }
+          ],
+          "errors": [],
+          "warnings": []
+        },
+        {
+          "testId": "03-German",
+          "testName": "German/English — \"Family & Friends\"",
+          "status": "PASS",
+          "duration": 4054,
+          "assertions": [
+            {
+              "description": "AI returned valid JSON",
+              "passed": true,
+              "expected": true,
+              "actual": true,
+              "severity": "error"
+            },
+            {
+              "description": "AI returned chunks",
+              "passed": true,
+              "expected": ">0",
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has targetPhrase",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has nativeTranslation",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has 3 distractors",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has correctUsageContext",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has wrongUsageContexts (3)",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Distractor \"My family is boring\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "My family is boring",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"I don't have a famil\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "I don't have a family",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"My family is mean\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "My family is mean",
+              "severity": "warning"
+            },
+            {
+              "description": "Chunk has targetPhrase",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has nativeTranslation",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has 3 distractors",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has correctUsageContext",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has wrongUsageContexts (3)",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Distractor \"My best friend hates\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "My best friend hates music",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"I don't have friends\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "I don't have friends",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"My friend plays foot\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "My friend plays football only",
+              "severity": "warning"
+            },
+            {
+              "description": "Chunk has targetPhrase",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has nativeTranslation",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has 3 distractors",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has correctUsageContext",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Chunk has wrongUsageContexts (3)",
+              "passed": true,
+              "expected": 3,
+              "actual": 3,
+              "severity": "error"
+            },
+            {
+              "description": "Distractor \"I'm going alone to t\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "I'm going alone to the park",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"I don't like concert\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "I don't like concerts",
+              "severity": "warning"
+            },
+            {
+              "description": "Distractor \"My friends are borin\" ≠ correct answer",
+              "passed": true,
+              "expected": "!= correct",
+              "actual": "My friends are boring",
+              "severity": "warning"
+            },
+            {
+              "description": "Lesson assembly succeeded",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Lesson validation passed",
+              "passed": true,
+              "expected": true,
+              "actual": true,
+              "severity": "error"
+            },
+            {
+              "description": "First step is INFO (teach-first)",
+              "passed": true,
+              "expected": "info",
+              "actual": "info",
+              "severity": "error"
+            },
+            {
+              "description": "SunDrops sum matches total",
+              "passed": true,
+              "expected": 25,
+              "actual": 25,
+              "severity": "warning"
+            },
+            {
+              "description": "Quality score ≥ 50/100",
+              "passed": true,
+              "expected": "≥50",
+              "actual": 91,
+              "severity": "warning"
+            }
+          ],
+          "errors": [],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "suiteName": "Lesson Completion & Scoring",
+      "provider": "groq",
+      "timestamp": "2026-03-01T11:14:01.372Z",
+      "totalTests": 1,
+      "passed": 0,
+      "failed": 0,
+      "warnings": 1,
+      "duration": 1828,
+      "tests": [
+        {
+          "testId": "04-lesson-completion",
+          "testName": "Lesson Completion & Scoring",
+          "status": "WARN",
+          "duration": 1828,
+          "assertions": [
+            {
+              "description": "Profile created",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "XP updated",
+              "passed": true,
+              "expected": 15,
+              "actual": 15,
+              "severity": "error"
+            },
+            {
+              "description": "SunDrops updated",
+              "passed": true,
+              "expected": 8,
+              "actual": 8,
+              "severity": "error"
+            },
+            {
+              "description": "Streak incremented",
+              "passed": true,
+              "expected": 1,
+              "actual": 1,
+              "severity": "error"
+            },
+            {
+              "description": "lesson_history collection exists (Phase 2.1+)",
+              "passed": false,
+              "expected": "collection",
+              "actual": "missing",
+              "severity": "warning"
+            },
+            {
+              "description": "Tree sunDropsEarned updated",
+              "passed": true,
+              "expected": 8,
+              "actual": 8,
+              "severity": "error"
+            },
+            {
+              "description": "Tree lessonsCompleted incremented",
+              "passed": true,
+              "expected": 1,
+              "actual": 1,
+              "severity": "error"
+            },
+            {
+              "description": "daily_xp_today tracked",
+              "passed": true,
+              "expected": 15,
+              "actual": 15,
+              "severity": "error"
+            },
+            {
+              "description": "daily_cap exists and > 0",
+              "passed": true,
+              "expected": ">0",
+              "actual": 50,
+              "severity": "error"
+            },
+            {
+              "description": "XP earned within daily cap",
+              "passed": true,
+              "expected": "<= 50",
+              "actual": 15,
+              "severity": "error"
+            }
+          ],
+          "errors": [],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "suiteName": "Help System & Question Reporting",
+      "provider": "groq",
+      "timestamp": "2026-03-01T11:14:04.830Z",
+      "totalTests": 1,
+      "passed": 0,
+      "failed": 0,
+      "warnings": 1,
+      "duration": 3453,
+      "tests": [
+        {
+          "testId": "05-help-system",
+          "testName": "Help System & Question Reporting",
+          "status": "WARN",
+          "duration": 3453,
+          "assertions": [
+            {
+              "description": "Help response returned text",
+              "passed": true,
+              "expected": ">10 chars",
+              "actual": 272,
+              "severity": "error"
+            },
+            {
+              "description": "Help does not reveal answer directly",
+              "passed": true,
+              "expected": "no direct answer",
+              "actual": "ok",
+              "severity": "warning"
+            },
+            {
+              "description": "Help response time < 10s",
+              "passed": true,
+              "expected": "<10000ms",
+              "actual": 2592,
+              "severity": "error"
+            },
+            {
+              "description": "Question report created",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Report has ID",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Report user matches",
+              "passed": false,
+              "expected": "j3afarje0dhjf8x",
+              "severity": "warning"
+            },
+            {
+              "description": "Report readable by admin",
+              "passed": false,
+              "expected": ">0",
+              "actual": 0,
+              "severity": "warning"
+            }
+          ],
+          "errors": [],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "suiteName": "Reward System Verification",
+      "provider": "groq",
+      "timestamp": "2026-03-01T11:14:06.455Z",
+      "totalTests": 1,
+      "passed": 1,
+      "failed": 0,
+      "warnings": 0,
+      "duration": 1620,
+      "tests": [
+        {
+          "testId": "06-rewards",
+          "testName": "Reward System Verification",
+          "status": "PASS",
+          "duration": 1619,
+          "assertions": [
+            {
+              "description": "Profile created",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "XP 0→10",
+              "passed": true,
+              "expected": 10,
+              "actual": 10,
+              "severity": "error"
+            },
+            {
+              "description": "SunDrops 0→5",
+              "passed": true,
+              "expected": 5,
+              "actual": 5,
+              "severity": "error"
+            },
+            {
+              "description": "Gems 0→2",
+              "passed": true,
+              "expected": 2,
+              "actual": 2,
+              "severity": "error"
+            },
+            {
+              "description": "Streak 0→1",
+              "passed": true,
+              "expected": 1,
+              "actual": 1,
+              "severity": "error"
+            },
+            {
+              "description": "XP accumulates (10→25)",
+              "passed": true,
+              "expected": 25,
+              "actual": 25,
+              "severity": "error"
+            },
+            {
+              "description": "Streak advances (1→2)",
+              "passed": true,
+              "expected": 2,
+              "actual": 2,
+              "severity": "error"
+            },
+            {
+              "description": "Daily XP cap is 50",
+              "passed": true,
+              "expected": 50,
+              "actual": 50,
+              "severity": "warning"
+            },
+            {
+              "description": "Tree sunDropsEarned updated to 20",
+              "passed": true,
+              "expected": 20,
+              "actual": 20,
+              "severity": "error"
+            },
+            {
+              "description": "Tree lessonsCompleted updated",
+              "passed": true,
+              "expected": 1,
+              "actual": 1,
+              "severity": "error"
+            },
+            {
+              "description": "Tree status becomes growing",
+              "passed": true,
+              "expected": "growing",
+              "actual": "growing",
+              "severity": "error"
+            },
+            {
+              "description": "Seeds collection accessible",
+              "passed": true,
+              "severity": "error"
+            }
+          ],
+          "errors": [],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "suiteName": "Tree Health & Decay",
+      "provider": "groq",
+      "timestamp": "2026-03-01T11:14:07.955Z",
+      "totalTests": 1,
+      "passed": 1,
+      "failed": 0,
+      "warnings": 0,
+      "duration": 1498,
+      "tests": [
+        {
+          "testId": "07-tree-health",
+          "testName": "Tree Health & Decay",
+          "status": "PASS",
+          "duration": 1498,
+          "assertions": [
+            {
+              "description": "Tree created at 100% health",
+              "passed": true,
+              "expected": 100,
+              "actual": 100,
+              "severity": "error"
+            },
+            {
+              "description": "Tree status is growing",
+              "passed": true,
+              "expected": "growing",
+              "actual": "growing",
+              "severity": "error"
+            },
+            {
+              "description": "Buffer days = 1",
+              "passed": true,
+              "expected": 1,
+              "actual": 1,
+              "severity": "error"
+            },
+            {
+              "description": "Health decremented to 90",
+              "passed": true,
+              "expected": 90,
+              "actual": 90,
+              "severity": "error"
+            },
+            {
+              "description": "Buffer days consumed",
+              "passed": true,
+              "expected": 0,
+              "actual": 0,
+              "severity": "error"
+            },
+            {
+              "description": "Health at 70 after multiple missed days",
+              "passed": true,
+              "expected": 70,
+              "actual": 70,
+              "severity": "error"
+            },
+            {
+              "description": "Tree can reach low health",
+              "passed": true,
+              "expected": 10,
+              "actual": 10,
+              "severity": "error"
+            },
+            {
+              "description": "Tree health recovers after lesson",
+              "passed": true,
+              "expected": 50,
+              "actual": 50,
+              "severity": "error"
+            },
+            {
+              "description": "Status stays growing during recovery",
+              "passed": true,
+              "expected": "growing",
+              "actual": "growing",
+              "severity": "error"
+            },
+            {
+              "description": "User can have multiple trees",
+              "passed": true,
+              "expected": "≥2",
+              "actual": 2,
+              "severity": "error"
+            }
+          ],
+          "errors": [],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "suiteName": "Cross-LLM Quality Comparison",
+      "provider": "deepinfra",
+      "timestamp": "2026-03-01T11:14:47.814Z",
+      "totalTests": 1,
+      "passed": 0,
+      "failed": 1,
+      "warnings": 0,
+      "duration": 39811,
+      "tests": [
+        {
+          "testId": "08-cross-llm",
+          "testName": "Cross-LLM Quality Comparison",
+          "status": "FAIL",
+          "duration": 39811,
+          "assertions": [
+            {
+              "description": "[deepinfra] parse success",
+              "passed": false,
+              "expected": true,
+              "actual": false,
+              "severity": "error"
+            },
+            {
+              "description": "[deepinfra] response < 15s",
+              "passed": false,
+              "expected": "<15s",
+              "actual": "17117ms",
+              "severity": "error"
+            },
+            {
+              "description": "[groq] parse success",
+              "passed": true,
+              "expected": true,
+              "actual": true,
+              "severity": "error"
+            },
+            {
+              "description": "[groq] response < 15s",
+              "passed": true,
+              "expected": "<15s",
+              "actual": "4193ms",
+              "severity": "error"
+            },
+            {
+              "description": "[groq] assembly OK",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "[groq] validation passed",
+              "passed": true,
+              "expected": true,
+              "actual": true,
+              "severity": "warning"
+            },
+            {
+              "description": "[anthropic] parse success",
+              "passed": true,
+              "expected": true,
+              "actual": true,
+              "severity": "error"
+            },
+            {
+              "description": "[anthropic] response < 15s",
+              "passed": false,
+              "expected": "<15s",
+              "actual": "15493ms",
+              "severity": "error"
+            },
+            {
+              "description": "[anthropic] assembly OK",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "[anthropic] validation passed",
+              "passed": true,
+              "expected": true,
+              "actual": true,
+              "severity": "warning"
+            },
+            {
+              "description": "Winner score ≥ 40/100",
+              "passed": true,
+              "expected": "≥40",
+              "actual": 94,
+              "severity": "warning"
+            },
+            {
+              "description": "[anthropic] score ≥ 20/100",
+              "passed": true,
+              "expected": "≥20",
+              "actual": 94,
+              "severity": "warning"
+            },
+            {
+              "description": "[groq] score ≥ 20/100",
+              "passed": true,
+              "expected": "≥20",
+              "actual": 88,
+              "severity": "warning"
+            },
+            {
+              "description": "[deepinfra] score ≥ 20/100",
+              "passed": false,
+              "expected": "≥20",
+              "actual": 0,
+              "severity": "warning"
+            }
+          ],
+          "errors": [],
+          "warnings": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "suiteName": "Tree Health & Decay",
+  "provider": "groq",
+  "timestamp": "2026-03-01T11:06:13.980Z",
+  "totalTests": 1,
+  "passed": 0,
+  "failed": 1,
+  "warnings": 0,
+  "duration": 1164,
+  "tests": [
+    {
+      "testId": "07-tree-health",
+      "testName": "Tree Health & Decay",
+      "status": "FAIL",
+      "duration": 1164,
+      "assertions": [
+        {
+          "description": "Tree created at 100% health",
+          "passed": true,
+          "expected": 100,
+          "actual": 100,
+          "severity": "error"
+        },
+        {
+          "description": "Tree status is growing",
+          "passed": true,
+          "expected": "growing",
+          "actual": "growing",
+          "severity": "error"
+        },
+        {
+          "description": "Buffer days = 1",
+          "passed": true,
+          "expected": 1,
+          "actual": 1,
+          "severity": "error"
+        },
+        {
+          "description": "Health decremented to 90",
+          "passed": true,
+          "expected": 90,
+          "actual": 90,
+          "severity": "error"
+        },
+        {
+          "description": "Buffer days consumed",
+          "passed": true,
+          "expected": 0,
+          "actual": 0,
+          "severity": "error"
+        }
+      ],
+      "errors": [
+        "Failed to update tree: HTTP 400 — {\"data\":{\"status\":{\"code\":\"validation_invalid_value\",\"message\":\"Invalid value struggling.\",\"params\":{\"value\":\"struggling\"}}},\"message\":\"Failed to update record.\",\"status\":400}"
+      ],
+      "warnings": []
+    }
+  ]
+}

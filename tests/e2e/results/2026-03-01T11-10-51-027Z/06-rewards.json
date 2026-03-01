@@ -1,0 +1,94 @@
+{
+  "suiteName": "Reward System Verification",
+  "provider": "groq",
+  "timestamp": "2026-03-01T11:10:53.115Z",
+  "totalTests": 1,
+  "passed": 0,
+  "failed": 1,
+  "warnings": 0,
+  "duration": 1731,
+  "tests": [
+    {
+      "testId": "06-rewards",
+      "testName": "Reward System Verification",
+      "status": "FAIL",
+      "duration": 1731,
+      "assertions": [
+        {
+          "description": "Profile created",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "XP 0→10",
+          "passed": true,
+          "expected": 10,
+          "actual": 10,
+          "severity": "error"
+        },
+        {
+          "description": "SunDrops 0→5",
+          "passed": true,
+          "expected": 5,
+          "actual": 5,
+          "severity": "error"
+        },
+        {
+          "description": "Gems 0→2",
+          "passed": true,
+          "expected": 2,
+          "actual": 2,
+          "severity": "error"
+        },
+        {
+          "description": "Streak 0→1",
+          "passed": true,
+          "expected": 1,
+          "actual": 1,
+          "severity": "error"
+        },
+        {
+          "description": "XP accumulates (10→25)",
+          "passed": true,
+          "expected": 25,
+          "actual": 25,
+          "severity": "error"
+        },
+        {
+          "description": "Streak advances (1→2)",
+          "passed": true,
+          "expected": 2,
+          "actual": 2,
+          "severity": "error"
+        },
+        {
+          "description": "Daily XP cap is 50",
+          "passed": true,
+          "expected": 50,
+          "actual": 50,
+          "severity": "warning"
+        },
+        {
+          "description": "Tree grows on sunDrops (growth_stage)",
+          "passed": false,
+          "expected": 1,
+          "severity": "error"
+        },
+        {
+          "description": "Tree status becomes growing",
+          "passed": true,
+          "expected": "growing",
+          "actual": "growing",
+          "severity": "error"
+        },
+        {
+          "description": "Seeds collection accessible",
+          "passed": true,
+          "severity": "error"
+        }
+      ],
+      "errors": [],
+      "warnings": []
+    }
+  ]
+}

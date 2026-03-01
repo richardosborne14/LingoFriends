@@ -1,0 +1,626 @@
+{
+  "scenario": {
+    "targetLanguage": "French",
+    "nativeLanguage": "English",
+    "topic": "Food & Drinks",
+    "ageGroup": "11-14",
+    "level": "A1"
+  },
+  "score": {
+    "provider": "groq",
+    "lessonTitle": "Test: Food & Drinks",
+    "combination": {
+      "targetLanguage": "French",
+      "nativeLanguage": "English",
+      "topic": "Food & Drinks",
+      "ageGroup": "11-14",
+      "level": "A1"
+    },
+    "responseTimeMs": 3731,
+    "parseSuccess": true,
+    "assemblySuccess": true,
+    "validationResult": {
+      "valid": true,
+      "errors": [],
+      "warnings": []
+    },
+    "scores": {
+      "languageCorrectness": 10,
+      "teachFirstEnforcement": 10,
+      "activityVariety": 10,
+      "chunkQuality": 10,
+      "distractorQuality": 10,
+      "ageAppropriateness": 10,
+      "interestPersonalisation": 5,
+      "fieldCompleteness": 10,
+      "i1Difficulty": 9,
+      "nativeLanguageInstructions": 10
+    },
+    "totalScore": 94,
+    "rawChunks": [
+      {
+        "targetPhrase": "Je voudrais un sandwich",
+        "nativeTranslation": "I would like a sandwich",
+        "exampleSentence": "Je voudrais un sandwich au fromage, s'il vous plaît",
+        "usageNote": "Use this phrase when you want to order a sandwich at a cafe or restaurant",
+        "explanation": "This phrase is helpful when you're hungry and want to ask for food politely",
+        "distractors": [
+          "I want a car",
+          "I love playing soccer",
+          "I have a pet dog"
+        ],
+        "correctUsageContext": "At a restaurant or cafe during lunchtime",
+        "wrongUsageContexts": [
+          "When playing video games",
+          "During a music concert",
+          "While watching a movie"
+        ],
+        "coachingText": "Let's practice ordering food in French! Imagine you're at a yummy bakery in Paris."
+      },
+      {
+        "targetPhrase": "Pouvez-vous m'aider à choisir un plat?",
+        "nativeTranslation": "Can you help me choose a dish?",
+        "exampleSentence": "Pouvez-vous m'aider à choisir un plat qui est populaire ici?",
+        "usageNote": "Use this phrase when you need help deciding what to eat at a restaurant",
+        "explanation": "This phrase shows that you value the other person's opinion and need their assistance",
+        "distractors": [
+          "I'm a great soccer player",
+          "I love eating broccoli",
+          "I have a big house"
+        ],
+        "correctUsageContext": "When looking at a menu and feeling unsure about what to order",
+        "wrongUsageContexts": [
+          "When buying a new pair of shoes",
+          "During a sports game",
+          "While riding a bike"
+        ],
+        "coachingText": "Don't be afraid to ask for help when you need it, especially when trying new foods!"
+      },
+      {
+        "targetPhrase": "L'addition, s'il vous plaît",
+        "nativeTranslation": "The bill, please",
+        "exampleSentence": "L'addition, s'il vous plaît, je voudrais payer maintenant",
+        "usageNote": "Use this phrase when you're finished eating and want to pay the bill",
+        "explanation": "This phrase is polite and shows that you're ready to pay for your meal",
+        "distractors": [
+          "I want to watch TV",
+          "I love playing music",
+          "I have a big family"
+        ],
+        "correctUsageContext": "After finishing your meal at a restaurant",
+        "wrongUsageContexts": [
+          "When arriving at a restaurant",
+          "During a phone call",
+          "While playing with friends"
+        ],
+        "coachingText": "It's time to practice paying the bill in French! Remember to be polite and say thank you."
+      }
+    ],
+    "rawLesson": {
+      "id": "test-1772363587100",
+      "title": "Test: Food & Drinks",
+      "icon": "📚",
+      "skillPathId": "Test: Food & Drinks",
+      "lessonIndex": 0,
+      "steps": [
+        {
+          "tutorText": "📚 New phrase: \"Je voudrais un sandwich\"",
+          "helpText": "This phrase is helpful when you're hungry and want to ask for food politely",
+          "coachingText": "Let's practice ordering food in French! Imagine you're at a yummy bakery in Paris.",
+          "activity": {
+            "type": "info",
+            "title": "Je voudrais un sandwich",
+            "content": "Je voudrais un sandwich = \"I would like a sandwich\"",
+            "explanation": "This phrase is helpful when you're hungry and want to ask for food politely",
+            "example": "Je voudrais un sandwich au fromage, s'il vous plaît",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Je voudrais un sandwich\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Je voudrais un sandwich\" means \"I want a car\"",
+            "isTrue": false,
+            "hint": "\"Je voudrais un sandwich\" = \"I would like a sandwich\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Je voudrais un sandwich\" mean?",
+          "helpText": "Remember: \"Je voudrais un sandwich\" = \"I would like a sandwich\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Je voudrais un sandwich\" mean?",
+            "options": [
+              "I want a car",
+              "I love playing soccer",
+              "I have a pet dog",
+              "I would like a sandwich"
+            ],
+            "correctIndex": 3,
+            "hint": "\"Je voudrais un sandwich\" = \"I would like a sandwich\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Je voudrais un sandwich\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Je voudrais un sandwich\" means \"I want a car\"",
+            "isTrue": false,
+            "hint": "\"Je voudrais un sandwich\" = \"I would like a sandwich\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Je voudrais un sandwich\" mean?",
+          "helpText": "Remember: \"Je voudrais un sandwich\" = \"I would like a sandwich\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Je voudrais un sandwich\" mean?",
+            "options": [
+              "I want a car",
+              "I love playing soccer",
+              "I have a pet dog",
+              "I would like a sandwich"
+            ],
+            "correctIndex": 3,
+            "hint": "\"Je voudrais un sandwich\" = \"I would like a sandwich\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "📚 New phrase: \"Pouvez-vous m'aider à choisir un plat?\"",
+          "helpText": "This phrase shows that you value the other person's opinion and need their assistance",
+          "coachingText": "Don't be afraid to ask for help when you need it, especially when trying new foods!",
+          "activity": {
+            "type": "info",
+            "title": "Pouvez-vous m'aider à choisir un plat?",
+            "content": "Pouvez-vous m'aider à choisir un plat? = \"Can you help me choose a dish?\"",
+            "explanation": "This phrase shows that you value the other person's opinion and need their assistance",
+            "example": "Pouvez-vous m'aider à choisir un plat qui est populaire ici?",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Pouvez-vous m'aider à choisir un plat?\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Pouvez-vous m'aider à choisir un plat?\" means \"Can you help me choose a dish?\"",
+            "isTrue": true,
+            "hint": "\"Pouvez-vous m'aider à choisir un plat?\" = \"Can you help me choose a dish?\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"Can you help me choose a dish?\"",
+          "helpText": "The correct phrase is: \"Pouvez-vous m'aider à choisir un plat?\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "Pouvez-vous m'aider à choisir un plat?",
+            "scrambledWords": [
+              "plat?",
+              "choisir",
+              "Pouvez-vous",
+              "à",
+              "m'aider",
+              "un"
+            ],
+            "hint": "\"Pouvez-vous m'aider à choisir un plat?\" = \"Can you help me choose a dish?\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Practice time! Complete this phrase.",
+          "helpText": "The full phrase is: \"Pouvez-vous m'aider à choisir un plat?\"",
+          "activity": {
+            "type": "fill_blank",
+            "sentence": "Pouvez-vous m'aider à choisir un ___",
+            "correctAnswer": "plat?",
+            "acceptedAnswers": [
+              "plat?",
+              "plat"
+            ],
+            "hint": "\"Pouvez-vous m'aider à choisir un plat?\" = \"Can you help me choose a dish?\"",
+            "sunDrops": 2
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Pouvez-vous m'aider à choisir un plat?\" mean?",
+          "helpText": "Remember: \"Pouvez-vous m'aider à choisir un plat?\" = \"Can you help me choose a dish?\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Pouvez-vous m'aider à choisir un plat?\" mean?",
+            "options": [
+              "I'm a great soccer player",
+              "I love eating broccoli",
+              "Can you help me choose a dish?",
+              "I have a big house"
+            ],
+            "correctIndex": 2,
+            "hint": "\"Pouvez-vous m'aider à choisir un plat?\" = \"Can you help me choose a dish?\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "📚 New phrase: \"L'addition, s'il vous plaît\"",
+          "helpText": "This phrase is polite and shows that you're ready to pay for your meal",
+          "coachingText": "It's time to practice paying the bill in French! Remember to be polite and say thank you.",
+          "activity": {
+            "type": "info",
+            "title": "L'addition, s'il vous plaît",
+            "content": "L'addition, s'il vous plaît = \"The bill, please\"",
+            "explanation": "This phrase is polite and shows that you're ready to pay for your meal",
+            "example": "L'addition, s'il vous plaît, je voudrais payer maintenant",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"The bill, please\" in French?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "The bill, please",
+            "correctAnswer": "L'addition, s'il vous plaît",
+            "acceptedAnswers": [
+              "L'addition, s'il vous plaît",
+              "l'addition, s'il vous plaît",
+              "L'addition s'il vous plaît",
+              "l'addition s'il vous plaît"
+            ],
+            "hint": "It starts with \"L'a...\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"The bill, please\"",
+          "helpText": "The correct phrase is: \"L'addition, s'il vous plaît\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "L'addition, s'il vous plaît",
+            "scrambledWords": [
+              "vous",
+              "s'il",
+              "plaît",
+              "L'addition,"
+            ],
+            "hint": "\"L'addition, s'il vous plaît\" = \"The bill, please\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"The bill, please\" in French?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "The bill, please",
+            "correctAnswer": "L'addition, s'il vous plaît",
+            "acceptedAnswers": [
+              "L'addition, s'il vous plaît",
+              "l'addition, s'il vous plaît",
+              "L'addition s'il vous plaît",
+              "l'addition s'il vous plaît"
+            ],
+            "hint": "It starts with \"L'a...\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"The bill, please\"",
+          "helpText": "The correct phrase is: \"L'addition, s'il vous plaît\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "L'addition, s'il vous plaît",
+            "scrambledWords": [
+              "vous",
+              "s'il",
+              "plaît",
+              "L'addition,"
+            ],
+            "hint": "\"L'addition, s'il vous plaît\" = \"The bill, please\"",
+            "sunDrops": 3
+          }
+        }
+      ],
+      "totalSunDrops": 23
+    },
+    "notes": [
+      "No interests provided to check against"
+    ]
+  },
+  "rawChunks": [
+    {
+      "targetPhrase": "Je voudrais un sandwich",
+      "nativeTranslation": "I would like a sandwich",
+      "exampleSentence": "Je voudrais un sandwich au fromage, s'il vous plaît",
+      "usageNote": "Use this phrase when you want to order a sandwich at a cafe or restaurant",
+      "explanation": "This phrase is helpful when you're hungry and want to ask for food politely",
+      "distractors": [
+        "I want a car",
+        "I love playing soccer",
+        "I have a pet dog"
+      ],
+      "correctUsageContext": "At a restaurant or cafe during lunchtime",
+      "wrongUsageContexts": [
+        "When playing video games",
+        "During a music concert",
+        "While watching a movie"
+      ],
+      "coachingText": "Let's practice ordering food in French! Imagine you're at a yummy bakery in Paris."
+    },
+    {
+      "targetPhrase": "Pouvez-vous m'aider à choisir un plat?",
+      "nativeTranslation": "Can you help me choose a dish?",
+      "exampleSentence": "Pouvez-vous m'aider à choisir un plat qui est populaire ici?",
+      "usageNote": "Use this phrase when you need help deciding what to eat at a restaurant",
+      "explanation": "This phrase shows that you value the other person's opinion and need their assistance",
+      "distractors": [
+        "I'm a great soccer player",
+        "I love eating broccoli",
+        "I have a big house"
+      ],
+      "correctUsageContext": "When looking at a menu and feeling unsure about what to order",
+      "wrongUsageContexts": [
+        "When buying a new pair of shoes",
+        "During a sports game",
+        "While riding a bike"
+      ],
+      "coachingText": "Don't be afraid to ask for help when you need it, especially when trying new foods!"
+    },
+    {
+      "targetPhrase": "L'addition, s'il vous plaît",
+      "nativeTranslation": "The bill, please",
+      "exampleSentence": "L'addition, s'il vous plaît, je voudrais payer maintenant",
+      "usageNote": "Use this phrase when you're finished eating and want to pay the bill",
+      "explanation": "This phrase is polite and shows that you're ready to pay for your meal",
+      "distractors": [
+        "I want to watch TV",
+        "I love playing music",
+        "I have a big family"
+      ],
+      "correctUsageContext": "After finishing your meal at a restaurant",
+      "wrongUsageContexts": [
+        "When arriving at a restaurant",
+        "During a phone call",
+        "While playing with friends"
+      ],
+      "coachingText": "It's time to practice paying the bill in French! Remember to be polite and say thank you."
+    }
+  ],
+  "rawLesson": {
+    "id": "test-1772363587100",
+    "title": "Test: Food & Drinks",
+    "icon": "📚",
+    "skillPathId": "Test: Food & Drinks",
+    "lessonIndex": 0,
+    "steps": [
+      {
+        "tutorText": "📚 New phrase: \"Je voudrais un sandwich\"",
+        "helpText": "This phrase is helpful when you're hungry and want to ask for food politely",
+        "coachingText": "Let's practice ordering food in French! Imagine you're at a yummy bakery in Paris.",
+        "activity": {
+          "type": "info",
+          "title": "Je voudrais un sandwich",
+          "content": "Je voudrais un sandwich = \"I would like a sandwich\"",
+          "explanation": "This phrase is helpful when you're hungry and want to ask for food politely",
+          "example": "Je voudrais un sandwich au fromage, s'il vous plaît",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Je voudrais un sandwich\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Je voudrais un sandwich\" means \"I want a car\"",
+          "isTrue": false,
+          "hint": "\"Je voudrais un sandwich\" = \"I would like a sandwich\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Je voudrais un sandwich\" mean?",
+        "helpText": "Remember: \"Je voudrais un sandwich\" = \"I would like a sandwich\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Je voudrais un sandwich\" mean?",
+          "options": [
+            "I want a car",
+            "I love playing soccer",
+            "I have a pet dog",
+            "I would like a sandwich"
+          ],
+          "correctIndex": 3,
+          "hint": "\"Je voudrais un sandwich\" = \"I would like a sandwich\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Je voudrais un sandwich\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Je voudrais un sandwich\" means \"I want a car\"",
+          "isTrue": false,
+          "hint": "\"Je voudrais un sandwich\" = \"I would like a sandwich\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Je voudrais un sandwich\" mean?",
+        "helpText": "Remember: \"Je voudrais un sandwich\" = \"I would like a sandwich\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Je voudrais un sandwich\" mean?",
+          "options": [
+            "I want a car",
+            "I love playing soccer",
+            "I have a pet dog",
+            "I would like a sandwich"
+          ],
+          "correctIndex": 3,
+          "hint": "\"Je voudrais un sandwich\" = \"I would like a sandwich\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "📚 New phrase: \"Pouvez-vous m'aider à choisir un plat?\"",
+        "helpText": "This phrase shows that you value the other person's opinion and need their assistance",
+        "coachingText": "Don't be afraid to ask for help when you need it, especially when trying new foods!",
+        "activity": {
+          "type": "info",
+          "title": "Pouvez-vous m'aider à choisir un plat?",
+          "content": "Pouvez-vous m'aider à choisir un plat? = \"Can you help me choose a dish?\"",
+          "explanation": "This phrase shows that you value the other person's opinion and need their assistance",
+          "example": "Pouvez-vous m'aider à choisir un plat qui est populaire ici?",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Pouvez-vous m'aider à choisir un plat?\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Pouvez-vous m'aider à choisir un plat?\" means \"Can you help me choose a dish?\"",
+          "isTrue": true,
+          "hint": "\"Pouvez-vous m'aider à choisir un plat?\" = \"Can you help me choose a dish?\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"Can you help me choose a dish?\"",
+        "helpText": "The correct phrase is: \"Pouvez-vous m'aider à choisir un plat?\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "Pouvez-vous m'aider à choisir un plat?",
+          "scrambledWords": [
+            "plat?",
+            "choisir",
+            "Pouvez-vous",
+            "à",
+            "m'aider",
+            "un"
+          ],
+          "hint": "\"Pouvez-vous m'aider à choisir un plat?\" = \"Can you help me choose a dish?\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Practice time! Complete this phrase.",
+        "helpText": "The full phrase is: \"Pouvez-vous m'aider à choisir un plat?\"",
+        "activity": {
+          "type": "fill_blank",
+          "sentence": "Pouvez-vous m'aider à choisir un ___",
+          "correctAnswer": "plat?",
+          "acceptedAnswers": [
+            "plat?",
+            "plat"
+          ],
+          "hint": "\"Pouvez-vous m'aider à choisir un plat?\" = \"Can you help me choose a dish?\"",
+          "sunDrops": 2
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Pouvez-vous m'aider à choisir un plat?\" mean?",
+        "helpText": "Remember: \"Pouvez-vous m'aider à choisir un plat?\" = \"Can you help me choose a dish?\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Pouvez-vous m'aider à choisir un plat?\" mean?",
+          "options": [
+            "I'm a great soccer player",
+            "I love eating broccoli",
+            "Can you help me choose a dish?",
+            "I have a big house"
+          ],
+          "correctIndex": 2,
+          "hint": "\"Pouvez-vous m'aider à choisir un plat?\" = \"Can you help me choose a dish?\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "📚 New phrase: \"L'addition, s'il vous plaît\"",
+        "helpText": "This phrase is polite and shows that you're ready to pay for your meal",
+        "coachingText": "It's time to practice paying the bill in French! Remember to be polite and say thank you.",
+        "activity": {
+          "type": "info",
+          "title": "L'addition, s'il vous plaît",
+          "content": "L'addition, s'il vous plaît = \"The bill, please\"",
+          "explanation": "This phrase is polite and shows that you're ready to pay for your meal",
+          "example": "L'addition, s'il vous plaît, je voudrais payer maintenant",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"The bill, please\" in French?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "The bill, please",
+          "correctAnswer": "L'addition, s'il vous plaît",
+          "acceptedAnswers": [
+            "L'addition, s'il vous plaît",
+            "l'addition, s'il vous plaît",
+            "L'addition s'il vous plaît",
+            "l'addition s'il vous plaît"
+          ],
+          "hint": "It starts with \"L'a...\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"The bill, please\"",
+        "helpText": "The correct phrase is: \"L'addition, s'il vous plaît\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "L'addition, s'il vous plaît",
+          "scrambledWords": [
+            "vous",
+            "s'il",
+            "plaît",
+            "L'addition,"
+          ],
+          "hint": "\"L'addition, s'il vous plaît\" = \"The bill, please\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"The bill, please\" in French?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "The bill, please",
+          "correctAnswer": "L'addition, s'il vous plaît",
+          "acceptedAnswers": [
+            "L'addition, s'il vous plaît",
+            "l'addition, s'il vous plaît",
+            "L'addition s'il vous plaît",
+            "l'addition s'il vous plaît"
+          ],
+          "hint": "It starts with \"L'a...\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"The bill, please\"",
+        "helpText": "The correct phrase is: \"L'addition, s'il vous plaît\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "L'addition, s'il vous plaît",
+          "scrambledWords": [
+            "vous",
+            "s'il",
+            "plaît",
+            "L'addition,"
+          ],
+          "hint": "\"L'addition, s'il vous plaît\" = \"The bill, please\"",
+          "sunDrops": 3
+        }
+      }
+    ],
+    "totalSunDrops": 23
+  }
+}

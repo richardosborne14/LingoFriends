@@ -1,0 +1,64 @@
+{
+  "timestamp": "2026-03-01T11:05:26.734Z",
+  "provider": "groq",
+  "suitesRun": 1,
+  "suites": [
+    {
+      "suiteName": "Onboarding Configuration",
+      "provider": "groq",
+      "timestamp": "2026-03-01T11:05:26.732Z",
+      "totalTests": 1,
+      "passed": 0,
+      "failed": 1,
+      "warnings": 0,
+      "duration": 1720,
+      "tests": [
+        {
+          "testId": "02-onboarding",
+          "testName": "Onboarding Configuration",
+          "status": "FAIL",
+          "duration": 1719,
+          "assertions": [
+            {
+              "description": "Profile created for onboarding",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Subject updated",
+              "passed": true,
+              "expected": "German",
+              "actual": "German",
+              "severity": "error"
+            },
+            {
+              "description": "Interests stored",
+              "passed": true,
+              "expected": "array",
+              "actual": "object",
+              "severity": "error"
+            },
+            {
+              "description": "Native language updated to French",
+              "passed": true,
+              "expected": "French",
+              "actual": "French",
+              "severity": "error"
+            },
+            {
+              "description": "onboarding_complete set to true",
+              "passed": true,
+              "expected": true,
+              "actual": true,
+              "severity": "error"
+            }
+          ],
+          "errors": [
+            "Failed to create tree: HTTP 400 — {\"data\":{\"position\":{\"code\":\"validation_required\",\"message\":\"Cannot be blank.\"}},\"message\":\"Failed to create record.\",\"status\":400}"
+          ],
+          "warnings": []
+        }
+      ]
+    }
+  ]
+}

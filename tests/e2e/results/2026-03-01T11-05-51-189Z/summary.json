@@ -1,0 +1,128 @@
+{
+  "timestamp": "2026-03-01T11:05:53.506Z",
+  "provider": "groq",
+  "suitesRun": 1,
+  "suites": [
+    {
+      "suiteName": "Onboarding Configuration",
+      "provider": "groq",
+      "timestamp": "2026-03-01T11:05:53.504Z",
+      "totalTests": 1,
+      "passed": 1,
+      "failed": 0,
+      "warnings": 0,
+      "duration": 1968,
+      "tests": [
+        {
+          "testId": "02-onboarding",
+          "testName": "Onboarding Configuration",
+          "status": "PASS",
+          "duration": 1968,
+          "assertions": [
+            {
+              "description": "Profile created for onboarding",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Subject updated",
+              "passed": true,
+              "expected": "German",
+              "actual": "German",
+              "severity": "error"
+            },
+            {
+              "description": "Interests stored",
+              "passed": true,
+              "expected": "array",
+              "actual": "object",
+              "severity": "error"
+            },
+            {
+              "description": "Native language updated to French",
+              "passed": true,
+              "expected": "French",
+              "actual": "French",
+              "severity": "error"
+            },
+            {
+              "description": "onboarding_complete set to true",
+              "passed": true,
+              "expected": true,
+              "actual": true,
+              "severity": "error"
+            },
+            {
+              "description": "Tree created",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Tree fields: has field \"id\"",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": "5uxkrgj5wsar3x3",
+              "severity": "error"
+            },
+            {
+              "description": "Tree fields: has field \"user\"",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": "gf00edouhg16cj2",
+              "severity": "error"
+            },
+            {
+              "description": "Tree fields: has field \"status\"",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": "seed",
+              "severity": "error"
+            },
+            {
+              "description": "Tree fields: has field \"health\"",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": 100,
+              "severity": "error"
+            },
+            {
+              "description": "Tree fields: has field \"lastRefreshDate\"",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": "2026-03-01 11:05:52.422Z",
+              "severity": "error"
+            },
+            {
+              "description": "Tree health is 100",
+              "passed": true,
+              "expected": 100,
+              "actual": 100,
+              "severity": "error"
+            },
+            {
+              "description": "Learner profile created",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Learner profile native_language",
+              "passed": true,
+              "expected": "fr",
+              "actual": "fr",
+              "severity": "error"
+            },
+            {
+              "description": "Learner profile target_language",
+              "passed": true,
+              "expected": "de",
+              "actual": "de",
+              "severity": "error"
+            }
+          ],
+          "errors": [],
+          "warnings": []
+        }
+      ]
+    }
+  ]
+}

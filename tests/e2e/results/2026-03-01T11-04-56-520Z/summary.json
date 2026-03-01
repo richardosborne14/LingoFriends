@@ -1,0 +1,163 @@
+{
+  "timestamp": "2026-03-01T11:04:58.651Z",
+  "provider": "groq",
+  "suitesRun": 1,
+  "suites": [
+    {
+      "suiteName": "Registration & Profile Creation",
+      "provider": "groq",
+      "timestamp": "2026-03-01T11:04:58.650Z",
+      "totalTests": 1,
+      "passed": 1,
+      "failed": 0,
+      "warnings": 0,
+      "duration": 1776,
+      "tests": [
+        {
+          "testId": "01-registration",
+          "testName": "Registration & Profile Creation",
+          "status": "PASS",
+          "duration": 1089,
+          "assertions": [
+            {
+              "description": "User created (HTTP 2xx)",
+              "passed": true,
+              "expected": "HTTP 2xx",
+              "actual": "HTTP 200",
+              "severity": "error"
+            },
+            {
+              "description": "User has ID",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": "fjyl43dpu2ozrc4",
+              "severity": "error"
+            },
+            {
+              "description": "User has email",
+              "passed": true,
+              "expected": "test-1772363096874-zmnp1@lingofriends-test.local",
+              "actual": "test-1772363096874-zmnp1@lingofriends-test.local",
+              "severity": "error"
+            },
+            {
+              "description": "User auth token returned",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Profile created",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Profile fields: has field \"id\"",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": "07zrcrvj2idpju7",
+              "severity": "error"
+            },
+            {
+              "description": "Profile fields: has field \"user\"",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": "fjyl43dpu2ozrc4",
+              "severity": "error"
+            },
+            {
+              "description": "Profile fields: has field \"display_name\"",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": "TestKid",
+              "severity": "error"
+            },
+            {
+              "description": "Profile fields: has field \"native_language\"",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": "English",
+              "severity": "error"
+            },
+            {
+              "description": "Profile fields: has field \"target_language\"",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": "German",
+              "severity": "error"
+            },
+            {
+              "description": "Profile fields: has field \"xp\"",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": 0,
+              "severity": "error"
+            },
+            {
+              "description": "Profile fields: has field \"streak\"",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": 0,
+              "severity": "error"
+            },
+            {
+              "description": "Profile fields: has field \"sunDrops\"",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": 0,
+              "severity": "error"
+            },
+            {
+              "description": "Profile fields: has field \"gems\"",
+              "passed": true,
+              "expected": "<non-empty>",
+              "actual": 0,
+              "severity": "error"
+            },
+            {
+              "description": "xp defaults to 0",
+              "passed": true,
+              "expected": 0,
+              "actual": 0,
+              "severity": "error"
+            },
+            {
+              "description": "streak defaults to 0",
+              "passed": true,
+              "expected": 0,
+              "actual": 0,
+              "severity": "error"
+            },
+            {
+              "description": "sunDrops defaults to 0",
+              "passed": true,
+              "expected": 0,
+              "actual": 0,
+              "severity": "error"
+            },
+            {
+              "description": "Profile readable via admin",
+              "passed": true,
+              "severity": "error"
+            },
+            {
+              "description": "Profile user matches",
+              "passed": true,
+              "expected": "fjyl43dpu2ozrc4",
+              "actual": "fjyl43dpu2ozrc4",
+              "severity": "error"
+            },
+            {
+              "description": "Cross-user profile read is blocked or returns empty",
+              "passed": true,
+              "expected": "403 or 200 (empty)",
+              "actual": "HTTP 200",
+              "severity": "warning"
+            }
+          ],
+          "errors": [],
+          "warnings": []
+        }
+      ]
+    }
+  ]
+}

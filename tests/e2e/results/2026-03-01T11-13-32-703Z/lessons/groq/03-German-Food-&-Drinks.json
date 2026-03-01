@@ -1,0 +1,641 @@
+{
+  "scenario": {
+    "targetLanguage": "German",
+    "nativeLanguage": "English",
+    "topic": "Food & Drinks",
+    "ageGroup": "7-10",
+    "level": "A1"
+  },
+  "score": {
+    "provider": "groq",
+    "lessonTitle": "Test: Food & Drinks",
+    "combination": {
+      "targetLanguage": "German",
+      "nativeLanguage": "English",
+      "topic": "Food & Drinks",
+      "ageGroup": "7-10",
+      "level": "A1"
+    },
+    "responseTimeMs": 3995,
+    "parseSuccess": true,
+    "assemblySuccess": true,
+    "validationResult": {
+      "valid": true,
+      "errors": [],
+      "warnings": []
+    },
+    "scores": {
+      "languageCorrectness": 10,
+      "teachFirstEnforcement": 10,
+      "activityVariety": 10,
+      "chunkQuality": 10,
+      "distractorQuality": 10,
+      "ageAppropriateness": 10,
+      "interestPersonalisation": 5,
+      "fieldCompleteness": 10,
+      "i1Difficulty": 9,
+      "nativeLanguageInstructions": 10
+    },
+    "totalScore": 94,
+    "rawChunks": [
+      {
+        "targetPhrase": "Ich esse gerne Obst",
+        "nativeTranslation": "I like to eat fruit",
+        "exampleSentence": "Ich esse gerne Obst, weil es gesund ist.",
+        "usageNote": "Use this phrase when talking about your favorite foods or snacks.",
+        "explanation": "This phrase helps you tell others what foods you enjoy eating, like fruits or vegetables.",
+        "distractors": [
+          "I don't like to eat fruit",
+          "I eat fruit every night",
+          "I only eat fruit in summer"
+        ],
+        "correctUsageContext": "When someone asks about your favorite foods.",
+        "wrongUsageContexts": [
+          "When talking about your favorite sports",
+          "When asking for directions",
+          "When saying goodbye to a friend"
+        ],
+        "coachingText": "Let's talk about food, what do you like to eat? Try saying it in German!"
+      },
+      {
+        "targetPhrase": "Kann ich ein Glas Wasser haben",
+        "nativeTranslation": "Can I have a glass of water",
+        "exampleSentence": "Kann ich ein Glas Wasser haben, bitte?",
+        "usageNote": "Use this phrase when you're thirsty and need a drink.",
+        "explanation": "This phrase is helpful when you need something to drink, like water or juice.",
+        "distractors": [
+          "I want a big glass of water",
+          "I don't need a glass of water",
+          "I can have a glass of water later"
+        ],
+        "correctUsageContext": "When you're thirsty and want to ask for a drink.",
+        "wrongUsageContexts": [
+          "When ordering food at a restaurant",
+          "When playing a sport",
+          "When watching a movie"
+        ],
+        "coachingText": "Sometimes we get thirsty, let's ask for a drink in German!"
+      },
+      {
+        "targetPhrase": "Das Eis ist lecker",
+        "nativeTranslation": "The ice cream is delicious",
+        "exampleSentence": "Das Eis ist lecker, ich esse es gerne.",
+        "usageNote": "Use this phrase when you want to express that you enjoy a certain food or dessert.",
+        "explanation": "This phrase helps you tell others that you think something tastes good, like ice cream or cake.",
+        "distractors": [
+          "The ice cream is not delicious",
+          "I don't like ice cream",
+          "I only eat ice cream on Fridays"
+        ],
+        "correctUsageContext": "When you're eating something you enjoy and want to share your opinion.",
+        "wrongUsageContexts": [
+          "When you're eating something you don't like",
+          "When talking about your favorite music",
+          "When playing with your friends"
+        ],
+        "coachingText": "Yum, who loves ice cream? Let's say it's delicious in German!"
+      }
+    ],
+    "rawLesson": {
+      "id": "test-1772363634477",
+      "title": "Test: Food & Drinks",
+      "icon": "📚",
+      "skillPathId": "Test: Food & Drinks",
+      "lessonIndex": 0,
+      "steps": [
+        {
+          "tutorText": "📚 New phrase: \"Ich esse gerne Obst\"",
+          "helpText": "This phrase helps you tell others what foods you enjoy eating, like fruits or vegetables.",
+          "coachingText": "Let's talk about food, what do you like to eat? Try saying it in German!",
+          "activity": {
+            "type": "info",
+            "title": "Ich esse gerne Obst",
+            "content": "Ich esse gerne Obst = \"I like to eat fruit\"",
+            "explanation": "This phrase helps you tell others what foods you enjoy eating, like fruits or vegetables.",
+            "example": "Ich esse gerne Obst, weil es gesund ist.",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Ich esse gerne Obst\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Ich esse gerne Obst\" means \"I don't like to eat fruit\"",
+            "isTrue": false,
+            "hint": "\"Ich esse gerne Obst\" = \"I like to eat fruit\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Ich esse gerne Obst\" mean?",
+          "helpText": "Remember: \"Ich esse gerne Obst\" = \"I like to eat fruit\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Ich esse gerne Obst\" mean?",
+            "options": [
+              "I don't like to eat fruit",
+              "I eat fruit every night",
+              "I only eat fruit in summer",
+              "I like to eat fruit"
+            ],
+            "correctIndex": 3,
+            "hint": "\"Ich esse gerne Obst\" = \"I like to eat fruit\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Ich esse gerne Obst\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Ich esse gerne Obst\" means \"I don't like to eat fruit\"",
+            "isTrue": false,
+            "hint": "\"Ich esse gerne Obst\" = \"I like to eat fruit\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Ich esse gerne Obst\" mean?",
+          "helpText": "Remember: \"Ich esse gerne Obst\" = \"I like to eat fruit\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Ich esse gerne Obst\" mean?",
+            "options": [
+              "I don't like to eat fruit",
+              "I eat fruit every night",
+              "I only eat fruit in summer",
+              "I like to eat fruit"
+            ],
+            "correctIndex": 3,
+            "hint": "\"Ich esse gerne Obst\" = \"I like to eat fruit\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "📚 New phrase: \"Kann ich ein Glas Wasser haben\"",
+          "helpText": "This phrase is helpful when you need something to drink, like water or juice.",
+          "coachingText": "Sometimes we get thirsty, let's ask for a drink in German!",
+          "activity": {
+            "type": "info",
+            "title": "Kann ich ein Glas Wasser haben",
+            "content": "Kann ich ein Glas Wasser haben = \"Can I have a glass of water\"",
+            "explanation": "This phrase is helpful when you need something to drink, like water or juice.",
+            "example": "Kann ich ein Glas Wasser haben, bitte?",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Kann ich ein Glas Wasser haben\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Kann ich ein Glas Wasser haben\" means \"Can I have a glass of water\"",
+            "isTrue": true,
+            "hint": "\"Kann ich ein Glas Wasser haben\" = \"Can I have a glass of water\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Match the phrases with their meanings!",
+          "helpText": "Find the pair: \"Kann ich ein Glas Wasser haben\" = \"Can I have a glass of water\"",
+          "activity": {
+            "type": "matching",
+            "pairs": [
+              {
+                "left": "I don't need a glass of water",
+                "right": "I can have a glass of water later"
+              },
+              {
+                "left": "I can have a glass of water later",
+                "right": "I want a big glass of water"
+              },
+              {
+                "left": "Kann ich ein Glas Wasser haben",
+                "right": "Can I have a glass of water"
+              },
+              {
+                "left": "I want a big glass of water",
+                "right": "I don't need a glass of water"
+              }
+            ],
+            "hint": "\"Kann ich ein Glas Wasser haben\" means \"Can I have a glass of water\"",
+            "sunDrops": 2
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"Can I have a glass of water\" in ge?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "Can I have a glass of water",
+            "correctAnswer": "Kann ich ein Glas Wasser haben",
+            "acceptedAnswers": [
+              "Kann ich ein Glas Wasser haben",
+              "kann ich ein glas wasser haben"
+            ],
+            "hint": "It starts with \"Kan...\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"Can I have a glass of water\"",
+          "helpText": "The correct phrase is: \"Kann ich ein Glas Wasser haben\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "Kann ich ein Glas Wasser haben",
+            "scrambledWords": [
+              "ich",
+              "haben",
+              "ein",
+              "Glas",
+              "Kann",
+              "Wasser"
+            ],
+            "hint": "\"Kann ich ein Glas Wasser haben\" = \"Can I have a glass of water\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "📚 New phrase: \"Das Eis ist lecker\"",
+          "helpText": "This phrase helps you tell others that you think something tastes good, like ice cream or cake.",
+          "coachingText": "Yum, who loves ice cream? Let's say it's delicious in German!",
+          "activity": {
+            "type": "info",
+            "title": "Das Eis ist lecker",
+            "content": "Das Eis ist lecker = \"The ice cream is delicious\"",
+            "explanation": "This phrase helps you tell others that you think something tastes good, like ice cream or cake.",
+            "example": "Das Eis ist lecker, ich esse es gerne.",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"The ice cream is delicious\" in ge?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "The ice cream is delicious",
+            "correctAnswer": "Das Eis ist lecker",
+            "acceptedAnswers": [
+              "Das Eis ist lecker",
+              "das eis ist lecker"
+            ],
+            "hint": "It starts with \"Das...\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"The ice cream is delicious\"",
+          "helpText": "The correct phrase is: \"Das Eis ist lecker\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "Das Eis ist lecker",
+            "scrambledWords": [
+              "lecker",
+              "Das",
+              "ist",
+              "Eis"
+            ],
+            "hint": "\"Das Eis ist lecker\" = \"The ice cream is delicious\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"The ice cream is delicious\" in ge?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "The ice cream is delicious",
+            "correctAnswer": "Das Eis ist lecker",
+            "acceptedAnswers": [
+              "Das Eis ist lecker",
+              "das eis ist lecker"
+            ],
+            "hint": "It starts with \"Das...\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"The ice cream is delicious\"",
+          "helpText": "The correct phrase is: \"Das Eis ist lecker\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "Das Eis ist lecker",
+            "scrambledWords": [
+              "lecker",
+              "Das",
+              "ist",
+              "Eis"
+            ],
+            "hint": "\"Das Eis ist lecker\" = \"The ice cream is delicious\"",
+            "sunDrops": 3
+          }
+        }
+      ],
+      "totalSunDrops": 25
+    },
+    "notes": [
+      "Distractor \"I eat fruit every night\" appears to be in target language (de), not native",
+      "Distractor \"I don't like ice cream\" appears to be in target language (de), not native",
+      "Distractor \"I only eat ice cream on Fridays\" appears to be in target language (de), not native",
+      "No interests provided to check against"
+    ]
+  },
+  "rawChunks": [
+    {
+      "targetPhrase": "Ich esse gerne Obst",
+      "nativeTranslation": "I like to eat fruit",
+      "exampleSentence": "Ich esse gerne Obst, weil es gesund ist.",
+      "usageNote": "Use this phrase when talking about your favorite foods or snacks.",
+      "explanation": "This phrase helps you tell others what foods you enjoy eating, like fruits or vegetables.",
+      "distractors": [
+        "I don't like to eat fruit",
+        "I eat fruit every night",
+        "I only eat fruit in summer"
+      ],
+      "correctUsageContext": "When someone asks about your favorite foods.",
+      "wrongUsageContexts": [
+        "When talking about your favorite sports",
+        "When asking for directions",
+        "When saying goodbye to a friend"
+      ],
+      "coachingText": "Let's talk about food, what do you like to eat? Try saying it in German!"
+    },
+    {
+      "targetPhrase": "Kann ich ein Glas Wasser haben",
+      "nativeTranslation": "Can I have a glass of water",
+      "exampleSentence": "Kann ich ein Glas Wasser haben, bitte?",
+      "usageNote": "Use this phrase when you're thirsty and need a drink.",
+      "explanation": "This phrase is helpful when you need something to drink, like water or juice.",
+      "distractors": [
+        "I want a big glass of water",
+        "I don't need a glass of water",
+        "I can have a glass of water later"
+      ],
+      "correctUsageContext": "When you're thirsty and want to ask for a drink.",
+      "wrongUsageContexts": [
+        "When ordering food at a restaurant",
+        "When playing a sport",
+        "When watching a movie"
+      ],
+      "coachingText": "Sometimes we get thirsty, let's ask for a drink in German!"
+    },
+    {
+      "targetPhrase": "Das Eis ist lecker",
+      "nativeTranslation": "The ice cream is delicious",
+      "exampleSentence": "Das Eis ist lecker, ich esse es gerne.",
+      "usageNote": "Use this phrase when you want to express that you enjoy a certain food or dessert.",
+      "explanation": "This phrase helps you tell others that you think something tastes good, like ice cream or cake.",
+      "distractors": [
+        "The ice cream is not delicious",
+        "I don't like ice cream",
+        "I only eat ice cream on Fridays"
+      ],
+      "correctUsageContext": "When you're eating something you enjoy and want to share your opinion.",
+      "wrongUsageContexts": [
+        "When you're eating something you don't like",
+        "When talking about your favorite music",
+        "When playing with your friends"
+      ],
+      "coachingText": "Yum, who loves ice cream? Let's say it's delicious in German!"
+    }
+  ],
+  "rawLesson": {
+    "id": "test-1772363634477",
+    "title": "Test: Food & Drinks",
+    "icon": "📚",
+    "skillPathId": "Test: Food & Drinks",
+    "lessonIndex": 0,
+    "steps": [
+      {
+        "tutorText": "📚 New phrase: \"Ich esse gerne Obst\"",
+        "helpText": "This phrase helps you tell others what foods you enjoy eating, like fruits or vegetables.",
+        "coachingText": "Let's talk about food, what do you like to eat? Try saying it in German!",
+        "activity": {
+          "type": "info",
+          "title": "Ich esse gerne Obst",
+          "content": "Ich esse gerne Obst = \"I like to eat fruit\"",
+          "explanation": "This phrase helps you tell others what foods you enjoy eating, like fruits or vegetables.",
+          "example": "Ich esse gerne Obst, weil es gesund ist.",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Ich esse gerne Obst\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Ich esse gerne Obst\" means \"I don't like to eat fruit\"",
+          "isTrue": false,
+          "hint": "\"Ich esse gerne Obst\" = \"I like to eat fruit\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Ich esse gerne Obst\" mean?",
+        "helpText": "Remember: \"Ich esse gerne Obst\" = \"I like to eat fruit\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Ich esse gerne Obst\" mean?",
+          "options": [
+            "I don't like to eat fruit",
+            "I eat fruit every night",
+            "I only eat fruit in summer",
+            "I like to eat fruit"
+          ],
+          "correctIndex": 3,
+          "hint": "\"Ich esse gerne Obst\" = \"I like to eat fruit\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Ich esse gerne Obst\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Ich esse gerne Obst\" means \"I don't like to eat fruit\"",
+          "isTrue": false,
+          "hint": "\"Ich esse gerne Obst\" = \"I like to eat fruit\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Ich esse gerne Obst\" mean?",
+        "helpText": "Remember: \"Ich esse gerne Obst\" = \"I like to eat fruit\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Ich esse gerne Obst\" mean?",
+          "options": [
+            "I don't like to eat fruit",
+            "I eat fruit every night",
+            "I only eat fruit in summer",
+            "I like to eat fruit"
+          ],
+          "correctIndex": 3,
+          "hint": "\"Ich esse gerne Obst\" = \"I like to eat fruit\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "📚 New phrase: \"Kann ich ein Glas Wasser haben\"",
+        "helpText": "This phrase is helpful when you need something to drink, like water or juice.",
+        "coachingText": "Sometimes we get thirsty, let's ask for a drink in German!",
+        "activity": {
+          "type": "info",
+          "title": "Kann ich ein Glas Wasser haben",
+          "content": "Kann ich ein Glas Wasser haben = \"Can I have a glass of water\"",
+          "explanation": "This phrase is helpful when you need something to drink, like water or juice.",
+          "example": "Kann ich ein Glas Wasser haben, bitte?",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Kann ich ein Glas Wasser haben\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Kann ich ein Glas Wasser haben\" means \"Can I have a glass of water\"",
+          "isTrue": true,
+          "hint": "\"Kann ich ein Glas Wasser haben\" = \"Can I have a glass of water\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Match the phrases with their meanings!",
+        "helpText": "Find the pair: \"Kann ich ein Glas Wasser haben\" = \"Can I have a glass of water\"",
+        "activity": {
+          "type": "matching",
+          "pairs": [
+            {
+              "left": "I don't need a glass of water",
+              "right": "I can have a glass of water later"
+            },
+            {
+              "left": "I can have a glass of water later",
+              "right": "I want a big glass of water"
+            },
+            {
+              "left": "Kann ich ein Glas Wasser haben",
+              "right": "Can I have a glass of water"
+            },
+            {
+              "left": "I want a big glass of water",
+              "right": "I don't need a glass of water"
+            }
+          ],
+          "hint": "\"Kann ich ein Glas Wasser haben\" means \"Can I have a glass of water\"",
+          "sunDrops": 2
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"Can I have a glass of water\" in ge?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "Can I have a glass of water",
+          "correctAnswer": "Kann ich ein Glas Wasser haben",
+          "acceptedAnswers": [
+            "Kann ich ein Glas Wasser haben",
+            "kann ich ein glas wasser haben"
+          ],
+          "hint": "It starts with \"Kan...\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"Can I have a glass of water\"",
+        "helpText": "The correct phrase is: \"Kann ich ein Glas Wasser haben\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "Kann ich ein Glas Wasser haben",
+          "scrambledWords": [
+            "ich",
+            "haben",
+            "ein",
+            "Glas",
+            "Kann",
+            "Wasser"
+          ],
+          "hint": "\"Kann ich ein Glas Wasser haben\" = \"Can I have a glass of water\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "📚 New phrase: \"Das Eis ist lecker\"",
+        "helpText": "This phrase helps you tell others that you think something tastes good, like ice cream or cake.",
+        "coachingText": "Yum, who loves ice cream? Let's say it's delicious in German!",
+        "activity": {
+          "type": "info",
+          "title": "Das Eis ist lecker",
+          "content": "Das Eis ist lecker = \"The ice cream is delicious\"",
+          "explanation": "This phrase helps you tell others that you think something tastes good, like ice cream or cake.",
+          "example": "Das Eis ist lecker, ich esse es gerne.",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"The ice cream is delicious\" in ge?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "The ice cream is delicious",
+          "correctAnswer": "Das Eis ist lecker",
+          "acceptedAnswers": [
+            "Das Eis ist lecker",
+            "das eis ist lecker"
+          ],
+          "hint": "It starts with \"Das...\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"The ice cream is delicious\"",
+        "helpText": "The correct phrase is: \"Das Eis ist lecker\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "Das Eis ist lecker",
+          "scrambledWords": [
+            "lecker",
+            "Das",
+            "ist",
+            "Eis"
+          ],
+          "hint": "\"Das Eis ist lecker\" = \"The ice cream is delicious\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"The ice cream is delicious\" in ge?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "The ice cream is delicious",
+          "correctAnswer": "Das Eis ist lecker",
+          "acceptedAnswers": [
+            "Das Eis ist lecker",
+            "das eis ist lecker"
+          ],
+          "hint": "It starts with \"Das...\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"The ice cream is delicious\"",
+        "helpText": "The correct phrase is: \"Das Eis ist lecker\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "Das Eis ist lecker",
+          "scrambledWords": [
+            "lecker",
+            "Das",
+            "ist",
+            "Eis"
+          ],
+          "hint": "\"Das Eis ist lecker\" = \"The ice cream is delicious\"",
+          "sunDrops": 3
+        }
+      }
+    ],
+    "totalSunDrops": 25
+  }
+}

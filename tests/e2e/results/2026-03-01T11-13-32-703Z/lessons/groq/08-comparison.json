@@ -1,0 +1,88 @@
+{
+  "benchmark": {
+    "targetLanguage": "German",
+    "nativeLanguage": "English",
+    "topic": "Greetings",
+    "ageGroup": "11-14",
+    "level": "A1"
+  },
+  "comparison": [
+    {
+      "provider": "anthropic",
+      "totalScore": 94,
+      "responseTimeMs": 15493,
+      "parseSuccess": true,
+      "assemblySuccess": true,
+      "validationPassed": true,
+      "scores": {
+        "languageCorrectness": 10,
+        "teachFirstEnforcement": 10,
+        "activityVariety": 10,
+        "chunkQuality": 10,
+        "distractorQuality": 10,
+        "ageAppropriateness": 10,
+        "interestPersonalisation": 5,
+        "fieldCompleteness": 10,
+        "i1Difficulty": 9,
+        "nativeLanguageInstructions": 10
+      },
+      "notes": [
+        "Distractor \"Good evening!\" appears to be in target language (de), not native",
+        "Distractor \"Good night!\" appears to be in target language (de), not native",
+        "Distractor \"What's your name?\" appears to be in target language (de), not native",
+        "Distractor \"Hello again!\" appears to be in target language (de), not native",
+        "Distractor \"Good morning!\" appears to be in target language (de), not native"
+      ]
+    },
+    {
+      "provider": "groq",
+      "totalScore": 88,
+      "responseTimeMs": 4193,
+      "parseSuccess": true,
+      "assemblySuccess": true,
+      "validationPassed": true,
+      "scores": {
+        "languageCorrectness": 7,
+        "teachFirstEnforcement": 10,
+        "activityVariety": 10,
+        "chunkQuality": 10,
+        "distractorQuality": 10,
+        "ageAppropriateness": 7,
+        "interestPersonalisation": 5,
+        "fieldCompleteness": 10,
+        "i1Difficulty": 9,
+        "nativeLanguageInstructions": 10
+      },
+      "notes": [
+        "targetPhrase \"Hallo, wie geht es dir?\" detected as es, expected de",
+        "Distractor \"What's your name?\" appears to be in target language (de), not native",
+        "Distractor \"I don't like sports\" appears to be in target language (de), not native",
+        "Distractor \"I don't like learning languages\" appears to be in target language (de), not native",
+        "Distractor \"I don't like this game\" appears to be in target language (de), not native"
+      ]
+    },
+    {
+      "provider": "deepinfra",
+      "totalScore": 0,
+      "responseTimeMs": 17117,
+      "parseSuccess": false,
+      "assemblySuccess": false,
+      "validationPassed": false,
+      "scores": {
+        "languageCorrectness": 0,
+        "teachFirstEnforcement": 0,
+        "activityVariety": 0,
+        "chunkQuality": 0,
+        "distractorQuality": 0,
+        "ageAppropriateness": 0,
+        "interestPersonalisation": 0,
+        "fieldCompleteness": 0,
+        "i1Difficulty": 0,
+        "nativeLanguageInstructions": 0
+      },
+      "notes": [
+        "Generation failed — zero scores"
+      ]
+    }
+  ]
+}

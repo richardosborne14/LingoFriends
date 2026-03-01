@@ -1,0 +1,624 @@
+{
+  "scenario": {
+    "targetLanguage": "German",
+    "nativeLanguage": "French",
+    "topic": "School Phrases",
+    "ageGroup": "15-18",
+    "level": "A2"
+  },
+  "score": {
+    "provider": "groq",
+    "lessonTitle": "Test: School Phrases",
+    "combination": {
+      "targetLanguage": "German",
+      "nativeLanguage": "French",
+      "topic": "School Phrases",
+      "ageGroup": "15-18",
+      "level": "A2"
+    },
+    "responseTimeMs": 4480,
+    "parseSuccess": true,
+    "assemblySuccess": true,
+    "validationResult": {
+      "valid": true,
+      "errors": [],
+      "warnings": []
+    },
+    "scores": {
+      "languageCorrectness": 10,
+      "teachFirstEnforcement": 10,
+      "activityVariety": 10,
+      "chunkQuality": 10,
+      "distractorQuality": 10,
+      "ageAppropriateness": 10,
+      "interestPersonalisation": 5,
+      "fieldCompleteness": 10,
+      "i1Difficulty": 9,
+      "nativeLanguageInstructions": 1
+    },
+    "totalScore": 85,
+    "rawChunks": [
+      {
+        "targetPhrase": "Ich verstehe das nicht",
+        "nativeTranslation": "Je ne comprends pas cela",
+        "exampleSentence": "Ich verstehe das nicht, kannst du es mir erklären?",
+        "usageNote": "Utilisez cette phrase lorsque vous n'avez pas compris une explication ou une instruction à l'école",
+        "explanation": "C'est important de demander des éclaircissements pour bien comprendre les choses, surtout à l'école",
+        "distractors": [
+          "Je comprends tout",
+          "C'est facile",
+          "Je sais déjà"
+        ],
+        "correctUsageContext": "Lorsque le professeur explique un concept difficile en classe",
+        "wrongUsageContexts": [
+          "Lorsque vous discutez avec vos amis pendant la récréation",
+          "Lorsque vous regardez un film amusant",
+          "Lorsque vous faites du sport"
+        ],
+        "coachingText": "N'ayez pas peur de demander de l'aide, c'est tout à fait normal de ne pas tout comprendre tout de suite !"
+      },
+      {
+        "targetPhrase": "Kann ich bitte gehen?",
+        "nativeTranslation": "Puis-je aller s'il vous plaît ?",
+        "exampleSentence": "Kann ich bitte gehen, ich muss à la bibliothèque pour un projet?",
+        "usageNote": "Demandez la permission avant de quitter la classe pour une raison valable",
+        "explanation": "Il est important de demander la permission pour montrer du respect envers votre professeur et la classe",
+        "distractors": [
+          "Je m'en vais",
+          "Je suis parti",
+          "Je vais où je veux"
+        ],
+        "correctUsageContext": "Lorsque vous devez sortir de la classe pour une raison urgente ou importante",
+        "wrongUsageContexts": [
+          "Lorsque vous voulez simplement vous échapper de la classe",
+          "Lorsque vous voulez jouer avec vos amis",
+          "Lorsque vous voulez aller à la cantine"
+        ],
+        "coachingText": "N'oubliez pas de demander poliment avant de quitter la classe, c'est une question de respect et de sécurité !"
+      },
+      {
+        "targetPhrase": "Ich brauche Hilfe",
+        "nativeTranslation": "J'ai besoin d'aide",
+        "exampleSentence": "Ich brauche Hilfe, ich ne sais pas comment résoudre ce problème de mathématiques",
+        "usageNote": "N'hésitez pas à demander de l'aide si vous avez des difficultés avec un devoir ou un projet",
+        "explanation": "Demander de l'aide est un signe de force, pas de faiblesse, et cela vous aidera à apprendre et à progresser",
+        "distractors": [
+          "Je sais tout",
+          "Je n'ai pas besoin d'aide",
+          "Je suis seul"
+        ],
+        "correctUsageContext": "Lorsque vous avez des difficultés avec un devoir ou un projet et que vous ne savez pas comment procéder",
+        "wrongUsageContexts": [
+          "Lorsque vous voulez simplement vous débarrasser d'un travail",
+          "Lorsque vous voulez jouer avec vos amis",
+          "Lorsque vous voulez regarder un film"
+        ],
+        "coachingText": "N'ayez pas peur de demander de l'aide, c'est un moyen de montrer que vous êtes prêt à apprendre et à vous améliorer !"
+      }
+    ],
+    "rawLesson": {
+      "id": "test-1772363592091",
+      "title": "Test: School Phrases",
+      "icon": "📚",
+      "skillPathId": "Test: School Phrases",
+      "lessonIndex": 0,
+      "steps": [
+        {
+          "tutorText": "📚 New phrase: \"Ich verstehe das nicht\"",
+          "helpText": "C'est important de demander des éclaircissements pour bien comprendre les choses, surtout à l'école",
+          "coachingText": "N'ayez pas peur de demander de l'aide, c'est tout à fait normal de ne pas tout comprendre tout de suite !",
+          "activity": {
+            "type": "info",
+            "title": "Ich verstehe das nicht",
+            "content": "Ich verstehe das nicht = \"Je ne comprends pas cela\"",
+            "explanation": "C'est important de demander des éclaircissements pour bien comprendre les choses, surtout à l'école",
+            "example": "Ich verstehe das nicht, kannst du es mir erklären?",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Ich verstehe das nicht\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Ich verstehe das nicht\" means \"Je ne comprends pas cela\"",
+            "isTrue": true,
+            "hint": "\"Ich verstehe das nicht\" = \"Je ne comprends pas cela\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Ich verstehe das nicht\" mean?",
+          "helpText": "Remember: \"Ich verstehe das nicht\" = \"Je ne comprends pas cela\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Ich verstehe das nicht\" mean?",
+            "options": [
+              "Je ne comprends pas cela",
+              "Je comprends tout",
+              "C'est facile",
+              "Je sais déjà"
+            ],
+            "correctIndex": 0,
+            "hint": "\"Ich verstehe das nicht\" = \"Je ne comprends pas cela\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Ich verstehe das nicht\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Ich verstehe das nicht\" means \"Je ne comprends pas cela\"",
+            "isTrue": true,
+            "hint": "\"Ich verstehe das nicht\" = \"Je ne comprends pas cela\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Ich verstehe das nicht\" mean?",
+          "helpText": "Remember: \"Ich verstehe das nicht\" = \"Je ne comprends pas cela\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Ich verstehe das nicht\" mean?",
+            "options": [
+              "Je ne comprends pas cela",
+              "Je comprends tout",
+              "C'est facile",
+              "Je sais déjà"
+            ],
+            "correctIndex": 0,
+            "hint": "\"Ich verstehe das nicht\" = \"Je ne comprends pas cela\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "📚 New phrase: \"Kann ich bitte gehen?\"",
+          "helpText": "Il est important de demander la permission pour montrer du respect envers votre professeur et la classe",
+          "coachingText": "N'oubliez pas de demander poliment avant de quitter la classe, c'est une question de respect et de sécurité !",
+          "activity": {
+            "type": "info",
+            "title": "Kann ich bitte gehen?",
+            "content": "Kann ich bitte gehen? = \"Puis-je aller s'il vous plaît ?\"",
+            "explanation": "Il est important de demander la permission pour montrer du respect envers votre professeur et la classe",
+            "example": "Kann ich bitte gehen, ich muss à la bibliothèque pour un projet?",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"Puis-je aller s'il vous plaît ?\"",
+          "helpText": "The correct phrase is: \"Kann ich bitte gehen?\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "Kann ich bitte gehen?",
+            "scrambledWords": [
+              "bitte",
+              "Kann",
+              "gehen?",
+              "ich"
+            ],
+            "hint": "\"Kann ich bitte gehen?\" = \"Puis-je aller s'il vous plaît ?\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Practice time! Complete this phrase.",
+          "helpText": "The full phrase is: \"Kann ich bitte gehen?\"",
+          "activity": {
+            "type": "fill_blank",
+            "sentence": "Kann ich bitte ___",
+            "correctAnswer": "gehen?",
+            "acceptedAnswers": [
+              "gehen?",
+              "gehen"
+            ],
+            "hint": "\"Kann ich bitte gehen?\" = \"Puis-je aller s'il vous plaît ?\"",
+            "sunDrops": 2
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Kann ich bitte gehen?\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Kann ich bitte gehen?\" means \"Je m'en vais\"",
+            "isTrue": false,
+            "hint": "\"Kann ich bitte gehen?\" = \"Puis-je aller s'il vous plaît ?\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Kann ich bitte gehen?\" mean?",
+          "helpText": "Remember: \"Kann ich bitte gehen?\" = \"Puis-je aller s'il vous plaît ?\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Kann ich bitte gehen?\" mean?",
+            "options": [
+              "Je m'en vais",
+              "Je suis parti",
+              "Je vais où je veux",
+              "Puis-je aller s'il vous plaît ?"
+            ],
+            "correctIndex": 3,
+            "hint": "\"Kann ich bitte gehen?\" = \"Puis-je aller s'il vous plaît ?\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "📚 New phrase: \"Ich brauche Hilfe\"",
+          "helpText": "Demander de l'aide est un signe de force, pas de faiblesse, et cela vous aidera à apprendre et à progresser",
+          "coachingText": "N'ayez pas peur de demander de l'aide, c'est un moyen de montrer que vous êtes prêt à apprendre et à vous améliorer !",
+          "activity": {
+            "type": "info",
+            "title": "Ich brauche Hilfe",
+            "content": "Ich brauche Hilfe = \"J'ai besoin d'aide\"",
+            "explanation": "Demander de l'aide est un signe de force, pas de faiblesse, et cela vous aidera à apprendre et à progresser",
+            "example": "Ich brauche Hilfe, ich ne sais pas comment résoudre ce problème de mathématiques",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"J'ai besoin d'aide\"",
+          "helpText": "The correct phrase is: \"Ich brauche Hilfe\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "Ich brauche Hilfe",
+            "scrambledWords": [
+              "Hilfe",
+              "Ich",
+              "brauche"
+            ],
+            "hint": "\"Ich brauche Hilfe\" = \"J'ai besoin d'aide\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"J'ai besoin d'aide\" in ge?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "J'ai besoin d'aide",
+            "correctAnswer": "Ich brauche Hilfe",
+            "acceptedAnswers": [
+              "Ich brauche Hilfe",
+              "ich brauche hilfe"
+            ],
+            "hint": "It starts with \"Ich...\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"J'ai besoin d'aide\"",
+          "helpText": "The correct phrase is: \"Ich brauche Hilfe\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "Ich brauche Hilfe",
+            "scrambledWords": [
+              "Hilfe",
+              "Ich",
+              "brauche"
+            ],
+            "hint": "\"Ich brauche Hilfe\" = \"J'ai besoin d'aide\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"J'ai besoin d'aide\" in ge?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "J'ai besoin d'aide",
+            "correctAnswer": "Ich brauche Hilfe",
+            "acceptedAnswers": [
+              "Ich brauche Hilfe",
+              "ich brauche hilfe"
+            ],
+            "hint": "It starts with \"Ich...\"",
+            "sunDrops": 3
+          }
+        }
+      ],
+      "totalSunDrops": 23
+    },
+    "notes": [
+      "No interests provided to check against",
+      "tutorText appears to be in de, expected fr",
+      "tutorText appears to be in en, expected fr",
+      "tutorText appears to be in de, expected fr",
+      "tutorText appears to be in en, expected fr",
+      "tutorText appears to be in de, expected fr",
+      "tutorText appears to be in de, expected fr",
+      "tutorText appears to be in de, expected fr",
+      "tutorText appears to be in en, expected fr",
+      "tutorText appears to be in de, expected fr",
+      "tutorText appears to be in de, expected fr",
+      "tutorText appears to be in en, expected fr",
+      "tutorText appears to be in en, expected fr",
+      "tutorText appears to be in en, expected fr",
+      "tutorText appears to be in en, expected fr"
+    ]
+  },
+  "rawChunks": [
+    {
+      "targetPhrase": "Ich verstehe das nicht",
+      "nativeTranslation": "Je ne comprends pas cela",
+      "exampleSentence": "Ich verstehe das nicht, kannst du es mir erklären?",
+      "usageNote": "Utilisez cette phrase lorsque vous n'avez pas compris une explication ou une instruction à l'école",
+      "explanation": "C'est important de demander des éclaircissements pour bien comprendre les choses, surtout à l'école",
+      "distractors": [
+        "Je comprends tout",
+        "C'est facile",
+        "Je sais déjà"
+      ],
+      "correctUsageContext": "Lorsque le professeur explique un concept difficile en classe",
+      "wrongUsageContexts": [
+        "Lorsque vous discutez avec vos amis pendant la récréation",
+        "Lorsque vous regardez un film amusant",
+        "Lorsque vous faites du sport"
+      ],
+      "coachingText": "N'ayez pas peur de demander de l'aide, c'est tout à fait normal de ne pas tout comprendre tout de suite !"
+    },
+    {
+      "targetPhrase": "Kann ich bitte gehen?",
+      "nativeTranslation": "Puis-je aller s'il vous plaît ?",
+      "exampleSentence": "Kann ich bitte gehen, ich muss à la bibliothèque pour un projet?",
+      "usageNote": "Demandez la permission avant de quitter la classe pour une raison valable",
+      "explanation": "Il est important de demander la permission pour montrer du respect envers votre professeur et la classe",
+      "distractors": [
+        "Je m'en vais",
+        "Je suis parti",
+        "Je vais où je veux"
+      ],
+      "correctUsageContext": "Lorsque vous devez sortir de la classe pour une raison urgente ou importante",
+      "wrongUsageContexts": [
+        "Lorsque vous voulez simplement vous échapper de la classe",
+        "Lorsque vous voulez jouer avec vos amis",
+        "Lorsque vous voulez aller à la cantine"
+      ],
+      "coachingText": "N'oubliez pas de demander poliment avant de quitter la classe, c'est une question de respect et de sécurité !"
+    },
+    {
+      "targetPhrase": "Ich brauche Hilfe",
+      "nativeTranslation": "J'ai besoin d'aide",
+      "exampleSentence": "Ich brauche Hilfe, ich ne sais pas comment résoudre ce problème de mathématiques",
+      "usageNote": "N'hésitez pas à demander de l'aide si vous avez des difficultés avec un devoir ou un projet",
+      "explanation": "Demander de l'aide est un signe de force, pas de faiblesse, et cela vous aidera à apprendre et à progresser",
+      "distractors": [
+        "Je sais tout",
+        "Je n'ai pas besoin d'aide",
+        "Je suis seul"
+      ],
+      "correctUsageContext": "Lorsque vous avez des difficultés avec un devoir ou un projet et que vous ne savez pas comment procéder",
+      "wrongUsageContexts": [
+        "Lorsque vous voulez simplement vous débarrasser d'un travail",
+        "Lorsque vous voulez jouer avec vos amis",
+        "Lorsque vous voulez regarder un film"
+      ],
+      "coachingText": "N'ayez pas peur de demander de l'aide, c'est un moyen de montrer que vous êtes prêt à apprendre et à vous améliorer !"
+    }
+  ],
+  "rawLesson": {
+    "id": "test-1772363592091",
+    "title": "Test: School Phrases",
+    "icon": "📚",
+    "skillPathId": "Test: School Phrases",
+    "lessonIndex": 0,
+    "steps": [
+      {
+        "tutorText": "📚 New phrase: \"Ich verstehe das nicht\"",
+        "helpText": "C'est important de demander des éclaircissements pour bien comprendre les choses, surtout à l'école",
+        "coachingText": "N'ayez pas peur de demander de l'aide, c'est tout à fait normal de ne pas tout comprendre tout de suite !",
+        "activity": {
+          "type": "info",
+          "title": "Ich verstehe das nicht",
+          "content": "Ich verstehe das nicht = \"Je ne comprends pas cela\"",
+          "explanation": "C'est important de demander des éclaircissements pour bien comprendre les choses, surtout à l'école",
+          "example": "Ich verstehe das nicht, kannst du es mir erklären?",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Ich verstehe das nicht\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Ich verstehe das nicht\" means \"Je ne comprends pas cela\"",
+          "isTrue": true,
+          "hint": "\"Ich verstehe das nicht\" = \"Je ne comprends pas cela\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Ich verstehe das nicht\" mean?",
+        "helpText": "Remember: \"Ich verstehe das nicht\" = \"Je ne comprends pas cela\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Ich verstehe das nicht\" mean?",
+          "options": [
+            "Je ne comprends pas cela",
+            "Je comprends tout",
+            "C'est facile",
+            "Je sais déjà"
+          ],
+          "correctIndex": 0,
+          "hint": "\"Ich verstehe das nicht\" = \"Je ne comprends pas cela\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Ich verstehe das nicht\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Ich verstehe das nicht\" means \"Je ne comprends pas cela\"",
+          "isTrue": true,
+          "hint": "\"Ich verstehe das nicht\" = \"Je ne comprends pas cela\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Ich verstehe das nicht\" mean?",
+        "helpText": "Remember: \"Ich verstehe das nicht\" = \"Je ne comprends pas cela\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Ich verstehe das nicht\" mean?",
+          "options": [
+            "Je ne comprends pas cela",
+            "Je comprends tout",
+            "C'est facile",
+            "Je sais déjà"
+          ],
+          "correctIndex": 0,
+          "hint": "\"Ich verstehe das nicht\" = \"Je ne comprends pas cela\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "📚 New phrase: \"Kann ich bitte gehen?\"",
+        "helpText": "Il est important de demander la permission pour montrer du respect envers votre professeur et la classe",
+        "coachingText": "N'oubliez pas de demander poliment avant de quitter la classe, c'est une question de respect et de sécurité !",
+        "activity": {
+          "type": "info",
+          "title": "Kann ich bitte gehen?",
+          "content": "Kann ich bitte gehen? = \"Puis-je aller s'il vous plaît ?\"",
+          "explanation": "Il est important de demander la permission pour montrer du respect envers votre professeur et la classe",
+          "example": "Kann ich bitte gehen, ich muss à la bibliothèque pour un projet?",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"Puis-je aller s'il vous plaît ?\"",
+        "helpText": "The correct phrase is: \"Kann ich bitte gehen?\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "Kann ich bitte gehen?",
+          "scrambledWords": [
+            "bitte",
+            "Kann",
+            "gehen?",
+            "ich"
+          ],
+          "hint": "\"Kann ich bitte gehen?\" = \"Puis-je aller s'il vous plaît ?\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Practice time! Complete this phrase.",
+        "helpText": "The full phrase is: \"Kann ich bitte gehen?\"",
+        "activity": {
+          "type": "fill_blank",
+          "sentence": "Kann ich bitte ___",
+          "correctAnswer": "gehen?",
+          "acceptedAnswers": [
+            "gehen?",
+            "gehen"
+          ],
+          "hint": "\"Kann ich bitte gehen?\" = \"Puis-je aller s'il vous plaît ?\"",
+          "sunDrops": 2
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Kann ich bitte gehen?\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Kann ich bitte gehen?\" means \"Je m'en vais\"",
+          "isTrue": false,
+          "hint": "\"Kann ich bitte gehen?\" = \"Puis-je aller s'il vous plaît ?\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Kann ich bitte gehen?\" mean?",
+        "helpText": "Remember: \"Kann ich bitte gehen?\" = \"Puis-je aller s'il vous plaît ?\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Kann ich bitte gehen?\" mean?",
+          "options": [
+            "Je m'en vais",
+            "Je suis parti",
+            "Je vais où je veux",
+            "Puis-je aller s'il vous plaît ?"
+          ],
+          "correctIndex": 3,
+          "hint": "\"Kann ich bitte gehen?\" = \"Puis-je aller s'il vous plaît ?\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "📚 New phrase: \"Ich brauche Hilfe\"",
+        "helpText": "Demander de l'aide est un signe de force, pas de faiblesse, et cela vous aidera à apprendre et à progresser",
+        "coachingText": "N'ayez pas peur de demander de l'aide, c'est un moyen de montrer que vous êtes prêt à apprendre et à vous améliorer !",
+        "activity": {
+          "type": "info",
+          "title": "Ich brauche Hilfe",
+          "content": "Ich brauche Hilfe = \"J'ai besoin d'aide\"",
+          "explanation": "Demander de l'aide est un signe de force, pas de faiblesse, et cela vous aidera à apprendre et à progresser",
+          "example": "Ich brauche Hilfe, ich ne sais pas comment résoudre ce problème de mathématiques",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"J'ai besoin d'aide\"",
+        "helpText": "The correct phrase is: \"Ich brauche Hilfe\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "Ich brauche Hilfe",
+          "scrambledWords": [
+            "Hilfe",
+            "Ich",
+            "brauche"
+          ],
+          "hint": "\"Ich brauche Hilfe\" = \"J'ai besoin d'aide\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"J'ai besoin d'aide\" in ge?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "J'ai besoin d'aide",
+          "correctAnswer": "Ich brauche Hilfe",
+          "acceptedAnswers": [
+            "Ich brauche Hilfe",
+            "ich brauche hilfe"
+          ],
+          "hint": "It starts with \"Ich...\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"J'ai besoin d'aide\"",
+        "helpText": "The correct phrase is: \"Ich brauche Hilfe\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "Ich brauche Hilfe",
+          "scrambledWords": [
+            "Hilfe",
+            "Ich",
+            "brauche"
+          ],
+          "hint": "\"Ich brauche Hilfe\" = \"J'ai besoin d'aide\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"J'ai besoin d'aide\" in ge?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "J'ai besoin d'aide",
+          "correctAnswer": "Ich brauche Hilfe",
+          "acceptedAnswers": [
+            "Ich brauche Hilfe",
+            "ich brauche hilfe"
+          ],
+          "hint": "It starts with \"Ich...\"",
+          "sunDrops": 3
+        }
+      }
+    ],
+    "totalSunDrops": 23
+  }
+}

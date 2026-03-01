@@ -1,0 +1,654 @@
+{
+  "scenario": {
+    "targetLanguage": "German",
+    "nativeLanguage": "English",
+    "topic": "Family & Friends",
+    "ageGroup": "11-14",
+    "level": "A1"
+  },
+  "score": {
+    "provider": "groq",
+    "lessonTitle": "Test: Family & Friends",
+    "combination": {
+      "targetLanguage": "German",
+      "nativeLanguage": "English",
+      "topic": "Family & Friends",
+      "ageGroup": "11-14",
+      "level": "A1"
+    },
+    "responseTimeMs": 4051,
+    "parseSuccess": true,
+    "assemblySuccess": true,
+    "validationResult": {
+      "valid": true,
+      "errors": [],
+      "warnings": []
+    },
+    "scores": {
+      "languageCorrectness": 10,
+      "teachFirstEnforcement": 10,
+      "activityVariety": 10,
+      "chunkQuality": 10,
+      "distractorQuality": 10,
+      "ageAppropriateness": 10,
+      "interestPersonalisation": 5,
+      "fieldCompleteness": 10,
+      "i1Difficulty": 6,
+      "nativeLanguageInstructions": 10
+    },
+    "totalScore": 91,
+    "rawChunks": [
+      {
+        "targetPhrase": "Meine Familie ist sehr nett",
+        "nativeTranslation": "My family is very nice",
+        "exampleSentence": "Meine Familie ist sehr nett, sie spielen Fußball mit mir",
+        "usageNote": "Use this phrase to describe your family in a positive way",
+        "explanation": "You can say this when someone asks about your family, it shows you love and appreciate them",
+        "distractors": [
+          "My family is boring",
+          "I don't have a family",
+          "My family is mean"
+        ],
+        "correctUsageContext": "When a friend asks about your family",
+        "wrongUsageContexts": [
+          "When talking about your favorite food",
+          "During a math test",
+          "When you're alone"
+        ],
+        "coachingText": "Let's talk about our families, what can you say about yours?"
+      },
+      {
+        "targetPhrase": "Mein bester Freund spielt Gitarre",
+        "nativeTranslation": "My best friend plays guitar",
+        "exampleSentence": "Mein bester Freund spielt Gitarre in einer Band",
+        "usageNote": "Use this phrase to talk about your friend's hobbies or interests",
+        "explanation": "This shows you care about what your friends like to do and can start nice conversations",
+        "distractors": [
+          "My best friend hates music",
+          "I don't have friends",
+          "My friend plays football only"
+        ],
+        "correctUsageContext": "When discussing hobbies with classmates",
+        "wrongUsageContexts": [
+          "When ordering food",
+          "During a quiet time in the library",
+          "When you're sleeping"
+        ],
+        "coachingText": "Friends like to share fun things about each other, what's something cool about your friend?"
+      },
+      {
+        "targetPhrase": "Ich gehe mit meinen Freunden ins Konzert",
+        "nativeTranslation": "I'm going to the concert with my friends",
+        "exampleSentence": "Ich gehe mit meinen Freunden ins Konzert, um unsere Lieblingsband zu sehen",
+        "usageNote": "Use this phrase to talk about plans with friends",
+        "explanation": "It's a great way to share your exciting plans and invite others to join you",
+        "distractors": [
+          "I'm going alone to the park",
+          "I don't like concerts",
+          "My friends are boring"
+        ],
+        "correctUsageContext": "When making plans for the weekend with friends",
+        "wrongUsageContexts": [
+          "When writing a test",
+          "During a family dinner",
+          "When you're at home alone"
+        ],
+        "coachingText": "What are you looking forward to doing with your friends, let's talk about your plans?"
+      }
+    ],
+    "rawLesson": {
+      "id": "test-1772363639034",
+      "title": "Test: Family & Friends",
+      "icon": "📚",
+      "skillPathId": "Test: Family & Friends",
+      "lessonIndex": 0,
+      "steps": [
+        {
+          "tutorText": "📚 New phrase: \"Meine Familie ist sehr nett\"",
+          "helpText": "You can say this when someone asks about your family, it shows you love and appreciate them",
+          "coachingText": "Let's talk about our families, what can you say about yours?",
+          "activity": {
+            "type": "info",
+            "title": "Meine Familie ist sehr nett",
+            "content": "Meine Familie ist sehr nett = \"My family is very nice\"",
+            "explanation": "You can say this when someone asks about your family, it shows you love and appreciate them",
+            "example": "Meine Familie ist sehr nett, sie spielen Fußball mit mir",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Meine Familie ist sehr nett\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Meine Familie ist sehr nett\" means \"My family is boring\"",
+            "isTrue": false,
+            "hint": "\"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Meine Familie ist sehr nett\" mean?",
+          "helpText": "Remember: \"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Meine Familie ist sehr nett\" mean?",
+            "options": [
+              "My family is boring",
+              "I don't have a family",
+              "My family is very nice",
+              "My family is mean"
+            ],
+            "correctIndex": 2,
+            "hint": "\"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Meine Familie ist sehr nett\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Meine Familie ist sehr nett\" means \"My family is boring\"",
+            "isTrue": false,
+            "hint": "\"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Meine Familie ist sehr nett\" mean?",
+          "helpText": "Remember: \"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Meine Familie ist sehr nett\" mean?",
+            "options": [
+              "My family is boring",
+              "I don't have a family",
+              "My family is very nice",
+              "My family is mean"
+            ],
+            "correctIndex": 2,
+            "hint": "\"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "📚 New phrase: \"Mein bester Freund spielt Gitarre\"",
+          "helpText": "This shows you care about what your friends like to do and can start nice conversations",
+          "coachingText": "Friends like to share fun things about each other, what's something cool about your friend?",
+          "activity": {
+            "type": "info",
+            "title": "Mein bester Freund spielt Gitarre",
+            "content": "Mein bester Freund spielt Gitarre = \"My best friend plays guitar\"",
+            "explanation": "This shows you care about what your friends like to do and can start nice conversations",
+            "example": "Mein bester Freund spielt Gitarre in einer Band",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Match the phrases with their meanings!",
+          "helpText": "Find the pair: \"Mein bester Freund spielt Gitarre\" = \"My best friend plays guitar\"",
+          "activity": {
+            "type": "matching",
+            "pairs": [
+              {
+                "left": "I don't have friends",
+                "right": "My friend plays football only"
+              },
+              {
+                "left": "My friend plays football only",
+                "right": "My best friend hates music"
+              },
+              {
+                "left": "Mein bester Freund spielt Gitarre",
+                "right": "My best friend plays guitar"
+              },
+              {
+                "left": "My best friend hates music",
+                "right": "I don't have friends"
+              }
+            ],
+            "hint": "\"Mein bester Freund spielt Gitarre\" means \"My best friend plays guitar\"",
+            "sunDrops": 2
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Mein bester Freund spielt Gitarre\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Mein bester Freund spielt Gitarre\" means \"My best friend hates music\"",
+            "isTrue": false,
+            "hint": "\"Mein bester Freund spielt Gitarre\" = \"My best friend plays guitar\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"My best friend plays guitar\" in ge?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "My best friend plays guitar",
+            "correctAnswer": "Mein bester Freund spielt Gitarre",
+            "acceptedAnswers": [
+              "Mein bester Freund spielt Gitarre",
+              "mein bester freund spielt gitarre"
+            ],
+            "hint": "It starts with \"Mei...\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"My best friend plays guitar\"",
+          "helpText": "The correct phrase is: \"Mein bester Freund spielt Gitarre\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "Mein bester Freund spielt Gitarre",
+            "scrambledWords": [
+              "Mein",
+              "spielt",
+              "Freund",
+              "Gitarre",
+              "bester"
+            ],
+            "hint": "\"Mein bester Freund spielt Gitarre\" = \"My best friend plays guitar\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "📚 New phrase: \"Ich gehe mit meinen Freunden ins Konzert\"",
+          "helpText": "It's a great way to share your exciting plans and invite others to join you",
+          "coachingText": "What are you looking forward to doing with your friends, let's talk about your plans?",
+          "activity": {
+            "type": "info",
+            "title": "Ich gehe mit meinen Freunden ins Konzert",
+            "content": "Ich gehe mit meinen Freunden ins Konzert = \"I'm going to the concert with my friends\"",
+            "explanation": "It's a great way to share your exciting plans and invite others to join you",
+            "example": "Ich gehe mit meinen Freunden ins Konzert, um unsere Lieblingsband zu sehen",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"I'm going to the concert with my friends\" in ge?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "I'm going to the concert with my friends",
+            "correctAnswer": "Ich gehe mit meinen Freunden ins Konzert",
+            "acceptedAnswers": [
+              "Ich gehe mit meinen Freunden ins Konzert",
+              "ich gehe mit meinen freunden ins konzert"
+            ],
+            "hint": "It starts with \"Ich...\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"I'm going to the concert with my friends\"",
+          "helpText": "The correct phrase is: \"Ich gehe mit meinen Freunden ins Konzert\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "Ich gehe mit meinen Freunden ins Konzert",
+            "scrambledWords": [
+              "Ich",
+              "meinen",
+              "Freunden",
+              "gehe",
+              "ins",
+              "mit",
+              "Konzert"
+            ],
+            "hint": "\"Ich gehe mit meinen Freunden ins Konzert\" = \"I'm going to the concert with my friends\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"I'm going to the concert with my friends\" in ge?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "I'm going to the concert with my friends",
+            "correctAnswer": "Ich gehe mit meinen Freunden ins Konzert",
+            "acceptedAnswers": [
+              "Ich gehe mit meinen Freunden ins Konzert",
+              "ich gehe mit meinen freunden ins konzert"
+            ],
+            "hint": "It starts with \"Ich...\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"I'm going to the concert with my friends\"",
+          "helpText": "The correct phrase is: \"Ich gehe mit meinen Freunden ins Konzert\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "Ich gehe mit meinen Freunden ins Konzert",
+            "scrambledWords": [
+              "Ich",
+              "meinen",
+              "Freunden",
+              "gehe",
+              "ins",
+              "mit",
+              "Konzert"
+            ],
+            "hint": "\"Ich gehe mit meinen Freunden ins Konzert\" = \"I'm going to the concert with my friends\"",
+            "sunDrops": 3
+          }
+        }
+      ],
+      "totalSunDrops": 25
+    },
+    "notes": [
+      "Distractor \"My best friend hates music\" appears to be in target language (de), not native",
+      "Distractor \"I don't have friends\" appears to be in target language (de), not native",
+      "Distractor \"My friend plays football only\" appears to be in target language (de), not native",
+      "Distractor \"I don't like concerts\" appears to be in target language (de), not native",
+      "Distractor \"My friends are boring\" appears to be in target language (de), not native",
+      "No interests provided to check against",
+      "Average phrase length 5.7 words — may be too complex for A1"
+    ]
+  },
+  "rawChunks": [
+    {
+      "targetPhrase": "Meine Familie ist sehr nett",
+      "nativeTranslation": "My family is very nice",
+      "exampleSentence": "Meine Familie ist sehr nett, sie spielen Fußball mit mir",
+      "usageNote": "Use this phrase to describe your family in a positive way",
+      "explanation": "You can say this when someone asks about your family, it shows you love and appreciate them",
+      "distractors": [
+        "My family is boring",
+        "I don't have a family",
+        "My family is mean"
+      ],
+      "correctUsageContext": "When a friend asks about your family",
+      "wrongUsageContexts": [
+        "When talking about your favorite food",
+        "During a math test",
+        "When you're alone"
+      ],
+      "coachingText": "Let's talk about our families, what can you say about yours?"
+    },
+    {
+      "targetPhrase": "Mein bester Freund spielt Gitarre",
+      "nativeTranslation": "My best friend plays guitar",
+      "exampleSentence": "Mein bester Freund spielt Gitarre in einer Band",
+      "usageNote": "Use this phrase to talk about your friend's hobbies or interests",
+      "explanation": "This shows you care about what your friends like to do and can start nice conversations",
+      "distractors": [
+        "My best friend hates music",
+        "I don't have friends",
+        "My friend plays football only"
+      ],
+      "correctUsageContext": "When discussing hobbies with classmates",
+      "wrongUsageContexts": [
+        "When ordering food",
+        "During a quiet time in the library",
+        "When you're sleeping"
+      ],
+      "coachingText": "Friends like to share fun things about each other, what's something cool about your friend?"
+    },
+    {
+      "targetPhrase": "Ich gehe mit meinen Freunden ins Konzert",
+      "nativeTranslation": "I'm going to the concert with my friends",
+      "exampleSentence": "Ich gehe mit meinen Freunden ins Konzert, um unsere Lieblingsband zu sehen",
+      "usageNote": "Use this phrase to talk about plans with friends",
+      "explanation": "It's a great way to share your exciting plans and invite others to join you",
+      "distractors": [
+        "I'm going alone to the park",
+        "I don't like concerts",
+        "My friends are boring"
+      ],
+      "correctUsageContext": "When making plans for the weekend with friends",
+      "wrongUsageContexts": [
+        "When writing a test",
+        "During a family dinner",
+        "When you're at home alone"
+      ],
+      "coachingText": "What are you looking forward to doing with your friends, let's talk about your plans?"
+    }
+  ],
+  "rawLesson": {
+    "id": "test-1772363639034",
+    "title": "Test: Family & Friends",
+    "icon": "📚",
+    "skillPathId": "Test: Family & Friends",
+    "lessonIndex": 0,
+    "steps": [
+      {
+        "tutorText": "📚 New phrase: \"Meine Familie ist sehr nett\"",
+        "helpText": "You can say this when someone asks about your family, it shows you love and appreciate them",
+        "coachingText": "Let's talk about our families, what can you say about yours?",
+        "activity": {
+          "type": "info",
+          "title": "Meine Familie ist sehr nett",
+          "content": "Meine Familie ist sehr nett = \"My family is very nice\"",
+          "explanation": "You can say this when someone asks about your family, it shows you love and appreciate them",
+          "example": "Meine Familie ist sehr nett, sie spielen Fußball mit mir",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Meine Familie ist sehr nett\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Meine Familie ist sehr nett\" means \"My family is boring\"",
+          "isTrue": false,
+          "hint": "\"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Meine Familie ist sehr nett\" mean?",
+        "helpText": "Remember: \"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Meine Familie ist sehr nett\" mean?",
+          "options": [
+            "My family is boring",
+            "I don't have a family",
+            "My family is very nice",
+            "My family is mean"
+          ],
+          "correctIndex": 2,
+          "hint": "\"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Meine Familie ist sehr nett\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Meine Familie ist sehr nett\" means \"My family is boring\"",
+          "isTrue": false,
+          "hint": "\"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Meine Familie ist sehr nett\" mean?",
+        "helpText": "Remember: \"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Meine Familie ist sehr nett\" mean?",
+          "options": [
+            "My family is boring",
+            "I don't have a family",
+            "My family is very nice",
+            "My family is mean"
+          ],
+          "correctIndex": 2,
+          "hint": "\"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "📚 New phrase: \"Mein bester Freund spielt Gitarre\"",
+        "helpText": "This shows you care about what your friends like to do and can start nice conversations",
+        "coachingText": "Friends like to share fun things about each other, what's something cool about your friend?",
+        "activity": {
+          "type": "info",
+          "title": "Mein bester Freund spielt Gitarre",
+          "content": "Mein bester Freund spielt Gitarre = \"My best friend plays guitar\"",
+          "explanation": "This shows you care about what your friends like to do and can start nice conversations",
+          "example": "Mein bester Freund spielt Gitarre in einer Band",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Match the phrases with their meanings!",
+        "helpText": "Find the pair: \"Mein bester Freund spielt Gitarre\" = \"My best friend plays guitar\"",
+        "activity": {
+          "type": "matching",
+          "pairs": [
+            {
+              "left": "I don't have friends",
+              "right": "My friend plays football only"
+            },
+            {
+              "left": "My friend plays football only",
+              "right": "My best friend hates music"
+            },
+            {
+              "left": "Mein bester Freund spielt Gitarre",
+              "right": "My best friend plays guitar"
+            },
+            {
+              "left": "My best friend hates music",
+              "right": "I don't have friends"
+            }
+          ],
+          "hint": "\"Mein bester Freund spielt Gitarre\" means \"My best friend plays guitar\"",
+          "sunDrops": 2
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Mein bester Freund spielt Gitarre\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Mein bester Freund spielt Gitarre\" means \"My best friend hates music\"",
+          "isTrue": false,
+          "hint": "\"Mein bester Freund spielt Gitarre\" = \"My best friend plays guitar\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"My best friend plays guitar\" in ge?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "My best friend plays guitar",
+          "correctAnswer": "Mein bester Freund spielt Gitarre",
+          "acceptedAnswers": [
+            "Mein bester Freund spielt Gitarre",
+            "mein bester freund spielt gitarre"
+          ],
+          "hint": "It starts with \"Mei...\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"My best friend plays guitar\"",
+        "helpText": "The correct phrase is: \"Mein bester Freund spielt Gitarre\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "Mein bester Freund spielt Gitarre",
+          "scrambledWords": [
+            "Mein",
+            "spielt",
+            "Freund",
+            "Gitarre",
+            "bester"
+          ],
+          "hint": "\"Mein bester Freund spielt Gitarre\" = \"My best friend plays guitar\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "📚 New phrase: \"Ich gehe mit meinen Freunden ins Konzert\"",
+        "helpText": "It's a great way to share your exciting plans and invite others to join you",
+        "coachingText": "What are you looking forward to doing with your friends, let's talk about your plans?",
+        "activity": {
+          "type": "info",
+          "title": "Ich gehe mit meinen Freunden ins Konzert",
+          "content": "Ich gehe mit meinen Freunden ins Konzert = \"I'm going to the concert with my friends\"",
+          "explanation": "It's a great way to share your exciting plans and invite others to join you",
+          "example": "Ich gehe mit meinen Freunden ins Konzert, um unsere Lieblingsband zu sehen",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"I'm going to the concert with my friends\" in ge?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "I'm going to the concert with my friends",
+          "correctAnswer": "Ich gehe mit meinen Freunden ins Konzert",
+          "acceptedAnswers": [
+            "Ich gehe mit meinen Freunden ins Konzert",
+            "ich gehe mit meinen freunden ins konzert"
+          ],
+          "hint": "It starts with \"Ich...\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"I'm going to the concert with my friends\"",
+        "helpText": "The correct phrase is: \"Ich gehe mit meinen Freunden ins Konzert\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "Ich gehe mit meinen Freunden ins Konzert",
+          "scrambledWords": [
+            "Ich",
+            "meinen",
+            "Freunden",
+            "gehe",
+            "ins",
+            "mit",
+            "Konzert"
+          ],
+          "hint": "\"Ich gehe mit meinen Freunden ins Konzert\" = \"I'm going to the concert with my friends\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"I'm going to the concert with my friends\" in ge?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "I'm going to the concert with my friends",
+          "correctAnswer": "Ich gehe mit meinen Freunden ins Konzert",
+          "acceptedAnswers": [
+            "Ich gehe mit meinen Freunden ins Konzert",
+            "ich gehe mit meinen freunden ins konzert"
+          ],
+          "hint": "It starts with \"Ich...\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"I'm going to the concert with my friends\"",
+        "helpText": "The correct phrase is: \"Ich gehe mit meinen Freunden ins Konzert\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "Ich gehe mit meinen Freunden ins Konzert",
+          "scrambledWords": [
+            "Ich",
+            "meinen",
+            "Freunden",
+            "gehe",
+            "ins",
+            "mit",
+            "Konzert"
+          ],
+          "hint": "\"Ich gehe mit meinen Freunden ins Konzert\" = \"I'm going to the concert with my friends\"",
+          "sunDrops": 3
+        }
+      }
+    ],
+    "totalSunDrops": 25
+  }
+}

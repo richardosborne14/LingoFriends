@@ -1,0 +1,92 @@
+{
+  "suiteName": "Lesson Completion & Scoring",
+  "provider": "groq",
+  "timestamp": "2026-03-01T11:06:03.615Z",
+  "totalTests": 1,
+  "passed": 0,
+  "failed": 1,
+  "warnings": 0,
+  "duration": 1751,
+  "tests": [
+    {
+      "testId": "04-lesson-completion",
+      "testName": "Lesson Completion & Scoring",
+      "status": "FAIL",
+      "duration": 1751,
+      "assertions": [
+        {
+          "description": "Profile created",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "XP updated",
+          "passed": true,
+          "expected": 15,
+          "actual": 15,
+          "severity": "error"
+        },
+        {
+          "description": "SunDrops updated",
+          "passed": true,
+          "expected": 8,
+          "actual": 8,
+          "severity": "error"
+        },
+        {
+          "description": "Streak incremented",
+          "passed": true,
+          "expected": 1,
+          "actual": 1,
+          "severity": "error"
+        },
+        {
+          "description": "Lesson history created (collection may not exist)",
+          "passed": true,
+          "expected": true,
+          "actual": true,
+          "severity": "warning"
+        },
+        {
+          "description": "Tree sunDropsEarned updated",
+          "passed": true,
+          "expected": 8,
+          "actual": 8,
+          "severity": "error"
+        },
+        {
+          "description": "Tree lessonsCompleted incremented",
+          "passed": true,
+          "expected": 1,
+          "actual": 1,
+          "severity": "error"
+        },
+        {
+          "description": "daily_xp_today tracked",
+          "passed": true,
+          "expected": 15,
+          "actual": 15,
+          "severity": "error"
+        },
+        {
+          "description": "daily_cap exists and > 0",
+          "passed": true,
+          "expected": ">0",
+          "actual": 50,
+          "severity": "error"
+        },
+        {
+          "description": "XP earned within daily cap",
+          "passed": true,
+          "expected": "<= 50",
+          "actual": 15,
+          "severity": "error"
+        }
+      ],
+      "errors": [
+        "lesson_history: Create lesson_history failed: HTTP 404 — {\"data\":{},\"message\":\"Missing or invalid collection context.\",\"status\":404}"
+      ],
+      "warnings": []
+    }
+  ]
+}

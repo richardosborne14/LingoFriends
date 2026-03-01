@@ -1,0 +1,90 @@
+{
+  "suiteName": "Lesson Completion & Scoring",
+  "provider": "groq",
+  "timestamp": "2026-03-01T11:08:11.639Z",
+  "totalTests": 1,
+  "passed": 0,
+  "failed": 0,
+  "warnings": 1,
+  "duration": 1775,
+  "tests": [
+    {
+      "testId": "04-lesson-completion",
+      "testName": "Lesson Completion & Scoring",
+      "status": "WARN",
+      "duration": 1774,
+      "assertions": [
+        {
+          "description": "Profile created",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "XP updated",
+          "passed": true,
+          "expected": 15,
+          "actual": 15,
+          "severity": "error"
+        },
+        {
+          "description": "SunDrops updated",
+          "passed": true,
+          "expected": 8,
+          "actual": 8,
+          "severity": "error"
+        },
+        {
+          "description": "Streak incremented",
+          "passed": true,
+          "expected": 1,
+          "actual": 1,
+          "severity": "error"
+        },
+        {
+          "description": "lesson_history collection exists (Phase 2.1+)",
+          "passed": false,
+          "expected": "collection",
+          "actual": "missing",
+          "severity": "warning"
+        },
+        {
+          "description": "Tree sunDropsEarned updated",
+          "passed": true,
+          "expected": 8,
+          "actual": 8,
+          "severity": "error"
+        },
+        {
+          "description": "Tree lessonsCompleted incremented",
+          "passed": true,
+          "expected": 1,
+          "actual": 1,
+          "severity": "error"
+        },
+        {
+          "description": "daily_xp_today tracked",
+          "passed": true,
+          "expected": 15,
+          "actual": 15,
+          "severity": "error"
+        },
+        {
+          "description": "daily_cap exists and > 0",
+          "passed": true,
+          "expected": ">0",
+          "actual": 50,
+          "severity": "error"
+        },
+        {
+          "description": "XP earned within daily cap",
+          "passed": true,
+          "expected": "<= 50",
+          "actual": 15,
+          "severity": "error"
+        }
+      ],
+      "errors": [],
+      "warnings": []
+    }
+  ]
+}

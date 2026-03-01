@@ -1,0 +1,668 @@
+{
+  "scenario": {
+    "targetLanguage": "German",
+    "nativeLanguage": "French",
+    "topic": "School Phrases",
+    "ageGroup": "15-18",
+    "level": "A2"
+  },
+  "score": {
+    "provider": "groq",
+    "lessonTitle": "Test: School Phrases",
+    "combination": {
+      "targetLanguage": "German",
+      "nativeLanguage": "French",
+      "topic": "School Phrases",
+      "ageGroup": "15-18",
+      "level": "A2"
+    },
+    "responseTimeMs": 4301,
+    "parseSuccess": true,
+    "assemblySuccess": true,
+    "validationResult": {
+      "valid": true,
+      "errors": [],
+      "warnings": []
+    },
+    "scores": {
+      "languageCorrectness": 10,
+      "teachFirstEnforcement": 10,
+      "activityVariety": 10,
+      "chunkQuality": 10,
+      "distractorQuality": 10,
+      "ageAppropriateness": 10,
+      "interestPersonalisation": 5,
+      "fieldCompleteness": 10,
+      "i1Difficulty": 9,
+      "nativeLanguageInstructions": 3
+    },
+    "totalScore": 87,
+    "rawChunks": [
+      {
+        "targetPhrase": "Ich verstehe das nicht",
+        "nativeTranslation": "Je ne comprends pas",
+        "exampleSentence": "Ich verstehe das nicht, kann ich eine Erklärung haben?",
+        "usageNote": "Utilisez cette phrase lorsque vous n'avez pas compris quelque chose en classe",
+        "explanation": "C'est une phrase utile pour demander des explications supplémentaires lorsque vous êtes perdu",
+        "distractors": [
+          "Je suis désolé",
+          "Je m'appelle",
+          "J'aime le football"
+        ],
+        "correctUsageContext": "Lorsque le professeur explique un problème mathématique complexe",
+        "wrongUsageContexts": [
+          "Lorsque vous présentez un projet que vous avez réalisé",
+          "Lorsque vous parlez avec des amis pendant la récréation",
+          "Lorsque vous expliquez un problème à un camarade"
+        ],
+        "coachingText": "N'ayez pas peur de demander de l'aide, c'est tout à fait normal de ne pas tout comprendre tout de suite !"
+      },
+      {
+        "targetPhrase": "Kann ich auf die Toilette gehen?",
+        "nativeTranslation": "Puis-je aller aux toilettes ?",
+        "exampleSentence": "Kann ich auf die Toilette gehen, bitte?",
+        "usageNote": "Utilisez cette phrase lorsque vous avez besoin d'aller aux toilettes pendant les cours",
+        "explanation": "Il est important de demander la permission avant de quitter la salle de classe",
+        "distractors": [
+          "Je veux boire de l'eau",
+          "Je suis fatigué",
+          "J'ai faim"
+        ],
+        "correctUsageContext": "Lorsque vous ressentez vraiment le besoin d'aller aux toilettes pendant un cours",
+        "wrongUsageContexts": [
+          "Lorsque vous voulez sortir de la salle de classe pour rencontrer des amis",
+          "Lorsque vous voulez éviter de faire un exercice",
+          "Lorsque vous voulez jouer avec votre téléphone"
+        ],
+        "coachingText": "N'oubliez pas de demander poliment, cela montre que vous êtes responsable et respectueux"
+      },
+      {
+        "targetPhrase": "Ich bin fertig",
+        "nativeTranslation": "J'ai terminé",
+        "exampleSentence": "Ich bin fertig, kann ich vous montrer mon travail?",
+        "usageNote": "Utilisez cette phrase lorsque vous avez fini un exercice ou un projet en classe",
+        "explanation": "C'est une façon de signaler au professeur que vous avez achevé votre tâche et que vous êtes prêt à la soumettre",
+        "distractors": [
+          "Je commence maintenant",
+          "Je suis perdu",
+          "Je suis fatigué"
+        ],
+        "correctUsageContext": "Lorsque vous avez terminé un devoir ou un projet et que vous souhaitez le soumettre",
+        "wrongUsageContexts": [
+          "Lorsque vous commencez à travailler sur un projet",
+          "Lorsque vous prenez une pause",
+          "Lorsque vous discutez avec des camarades"
+        ],
+        "coachingText": "Soyez fiers de vos réalisations et n'hésitez pas à les partager avec votre professeur !"
+      }
+    ],
+    "rawLesson": {
+      "id": "test-1772363629976",
+      "title": "Test: School Phrases",
+      "icon": "📚",
+      "skillPathId": "Test: School Phrases",
+      "lessonIndex": 0,
+      "steps": [
+        {
+          "tutorText": "📚 New phrase: \"Ich verstehe das nicht\"",
+          "helpText": "C'est une phrase utile pour demander des explications supplémentaires lorsque vous êtes perdu",
+          "coachingText": "N'ayez pas peur de demander de l'aide, c'est tout à fait normal de ne pas tout comprendre tout de suite !",
+          "activity": {
+            "type": "info",
+            "title": "Ich verstehe das nicht",
+            "content": "Ich verstehe das nicht = \"Je ne comprends pas\"",
+            "explanation": "C'est une phrase utile pour demander des explications supplémentaires lorsque vous êtes perdu",
+            "example": "Ich verstehe das nicht, kann ich eine Erklärung haben?",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Ich verstehe das nicht\" mean?",
+          "helpText": "Remember: \"Ich verstehe das nicht\" = \"Je ne comprends pas\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Ich verstehe das nicht\" mean?",
+            "options": [
+              "Je suis désolé",
+              "Je m'appelle",
+              "J'aime le football",
+              "Je ne comprends pas"
+            ],
+            "correctIndex": 3,
+            "hint": "\"Ich verstehe das nicht\" = \"Je ne comprends pas\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Ich verstehe das nicht\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Ich verstehe das nicht\" means \"Je ne comprends pas\"",
+            "isTrue": true,
+            "hint": "\"Ich verstehe das nicht\" = \"Je ne comprends pas\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Ich verstehe das nicht\" mean?",
+          "helpText": "Remember: \"Ich verstehe das nicht\" = \"Je ne comprends pas\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Ich verstehe das nicht\" mean?",
+            "options": [
+              "Je suis désolé",
+              "Je m'appelle",
+              "J'aime le football",
+              "Je ne comprends pas"
+            ],
+            "correctIndex": 3,
+            "hint": "\"Ich verstehe das nicht\" = \"Je ne comprends pas\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Ich verstehe das nicht\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Ich verstehe das nicht\" means \"Je ne comprends pas\"",
+            "isTrue": true,
+            "hint": "\"Ich verstehe das nicht\" = \"Je ne comprends pas\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "📚 New phrase: \"Kann ich auf die Toilette gehen?\"",
+          "helpText": "Il est important de demander la permission avant de quitter la salle de classe",
+          "coachingText": "N'oubliez pas de demander poliment, cela montre que vous êtes responsable et respectueux",
+          "activity": {
+            "type": "info",
+            "title": "Kann ich auf die Toilette gehen?",
+            "content": "Kann ich auf die Toilette gehen? = \"Puis-je aller aux toilettes ?\"",
+            "explanation": "Il est important de demander la permission avant de quitter la salle de classe",
+            "example": "Kann ich auf die Toilette gehen, bitte?",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Match the phrases with their meanings!",
+          "helpText": "Find the pair: \"Kann ich auf die Toilette gehen?\" = \"Puis-je aller aux toilettes ?\"",
+          "activity": {
+            "type": "matching",
+            "pairs": [
+              {
+                "left": "Je suis fatigué",
+                "right": "J'ai faim"
+              },
+              {
+                "left": "J'ai faim",
+                "right": "Je veux boire de l'eau"
+              },
+              {
+                "left": "Kann ich auf die Toilette gehen?",
+                "right": "Puis-je aller aux toilettes ?"
+              },
+              {
+                "left": "Je veux boire de l'eau",
+                "right": "Je suis fatigué"
+              }
+            ],
+            "hint": "\"Kann ich auf die Toilette gehen?\" means \"Puis-je aller aux toilettes ?\"",
+            "sunDrops": 2
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Kann ich auf die Toilette gehen?\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Kann ich auf die Toilette gehen?\" means \"Puis-je aller aux toilettes ?\"",
+            "isTrue": true,
+            "hint": "\"Kann ich auf die Toilette gehen?\" = \"Puis-je aller aux toilettes ?\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Kann ich auf die Toilette gehen?\" mean?",
+          "helpText": "Remember: \"Kann ich auf die Toilette gehen?\" = \"Puis-je aller aux toilettes ?\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Kann ich auf die Toilette gehen?\" mean?",
+            "options": [
+              "Je veux boire de l'eau",
+              "Puis-je aller aux toilettes ?",
+              "Je suis fatigué",
+              "J'ai faim"
+            ],
+            "correctIndex": 1,
+            "hint": "\"Kann ich auf die Toilette gehen?\" = \"Puis-je aller aux toilettes ?\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Match the phrases with their meanings!",
+          "helpText": "Find the pair: \"Kann ich auf die Toilette gehen?\" = \"Puis-je aller aux toilettes ?\"",
+          "activity": {
+            "type": "matching",
+            "pairs": [
+              {
+                "left": "Je suis fatigué",
+                "right": "J'ai faim"
+              },
+              {
+                "left": "J'ai faim",
+                "right": "Je veux boire de l'eau"
+              },
+              {
+                "left": "Kann ich auf die Toilette gehen?",
+                "right": "Puis-je aller aux toilettes ?"
+              },
+              {
+                "left": "Je veux boire de l'eau",
+                "right": "Je suis fatigué"
+              }
+            ],
+            "hint": "\"Kann ich auf die Toilette gehen?\" means \"Puis-je aller aux toilettes ?\"",
+            "sunDrops": 2
+          }
+        },
+        {
+          "tutorText": "📚 New phrase: \"Ich bin fertig\"",
+          "helpText": "C'est une façon de signaler au professeur que vous avez achevé votre tâche et que vous êtes prêt à la soumettre",
+          "coachingText": "Soyez fiers de vos réalisations et n'hésitez pas à les partager avec votre professeur !",
+          "activity": {
+            "type": "info",
+            "title": "Ich bin fertig",
+            "content": "Ich bin fertig = \"J'ai terminé\"",
+            "explanation": "C'est une façon de signaler au professeur que vous avez achevé votre tâche et que vous êtes prêt à la soumettre",
+            "example": "Ich bin fertig, kann ich vous montrer mon travail?",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"J'ai terminé\"",
+          "helpText": "The correct phrase is: \"Ich bin fertig\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "Ich bin fertig",
+            "scrambledWords": [
+              "bin",
+              "Ich",
+              "fertig"
+            ],
+            "hint": "\"Ich bin fertig\" = \"J'ai terminé\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"J'ai terminé\" in ge?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "J'ai terminé",
+            "correctAnswer": "Ich bin fertig",
+            "acceptedAnswers": [
+              "Ich bin fertig",
+              "ich bin fertig"
+            ],
+            "hint": "It starts with \"Ich...\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"J'ai terminé\"",
+          "helpText": "The correct phrase is: \"Ich bin fertig\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "Ich bin fertig",
+            "scrambledWords": [
+              "bin",
+              "Ich",
+              "fertig"
+            ],
+            "hint": "\"Ich bin fertig\" = \"J'ai terminé\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"J'ai terminé\" in ge?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "J'ai terminé",
+            "correctAnswer": "Ich bin fertig",
+            "acceptedAnswers": [
+              "Ich bin fertig",
+              "ich bin fertig"
+            ],
+            "hint": "It starts with \"Ich...\"",
+            "sunDrops": 3
+          }
+        }
+      ],
+      "totalSunDrops": 22
+    },
+    "notes": [
+      "Distractor \"J'ai faim\" appears to be in target language (de), not native",
+      "No interests provided to check against",
+      "tutorText appears to be in de, expected fr",
+      "tutorText appears to be in de, expected fr",
+      "tutorText appears to be in en, expected fr",
+      "tutorText appears to be in de, expected fr",
+      "tutorText appears to be in en, expected fr",
+      "tutorText appears to be in de, expected fr",
+      "tutorText appears to be in en, expected fr",
+      "tutorText appears to be in en, expected fr",
+      "tutorText appears to be in de, expected fr",
+      "tutorText appears to be in en, expected fr",
+      "tutorText appears to be in de, expected fr"
+    ]
+  },
+  "rawChunks": [
+    {
+      "targetPhrase": "Ich verstehe das nicht",
+      "nativeTranslation": "Je ne comprends pas",
+      "exampleSentence": "Ich verstehe das nicht, kann ich eine Erklärung haben?",
+      "usageNote": "Utilisez cette phrase lorsque vous n'avez pas compris quelque chose en classe",
+      "explanation": "C'est une phrase utile pour demander des explications supplémentaires lorsque vous êtes perdu",
+      "distractors": [
+        "Je suis désolé",
+        "Je m'appelle",
+        "J'aime le football"
+      ],
+      "correctUsageContext": "Lorsque le professeur explique un problème mathématique complexe",
+      "wrongUsageContexts": [
+        "Lorsque vous présentez un projet que vous avez réalisé",
+        "Lorsque vous parlez avec des amis pendant la récréation",
+        "Lorsque vous expliquez un problème à un camarade"
+      ],
+      "coachingText": "N'ayez pas peur de demander de l'aide, c'est tout à fait normal de ne pas tout comprendre tout de suite !"
+    },
+    {
+      "targetPhrase": "Kann ich auf die Toilette gehen?",
+      "nativeTranslation": "Puis-je aller aux toilettes ?",
+      "exampleSentence": "Kann ich auf die Toilette gehen, bitte?",
+      "usageNote": "Utilisez cette phrase lorsque vous avez besoin d'aller aux toilettes pendant les cours",
+      "explanation": "Il est important de demander la permission avant de quitter la salle de classe",
+      "distractors": [
+        "Je veux boire de l'eau",
+        "Je suis fatigué",
+        "J'ai faim"
+      ],
+      "correctUsageContext": "Lorsque vous ressentez vraiment le besoin d'aller aux toilettes pendant un cours",
+      "wrongUsageContexts": [
+        "Lorsque vous voulez sortir de la salle de classe pour rencontrer des amis",
+        "Lorsque vous voulez éviter de faire un exercice",
+        "Lorsque vous voulez jouer avec votre téléphone"
+      ],
+      "coachingText": "N'oubliez pas de demander poliment, cela montre que vous êtes responsable et respectueux"
+    },
+    {
+      "targetPhrase": "Ich bin fertig",
+      "nativeTranslation": "J'ai terminé",
+      "exampleSentence": "Ich bin fertig, kann ich vous montrer mon travail?",
+      "usageNote": "Utilisez cette phrase lorsque vous avez fini un exercice ou un projet en classe",
+      "explanation": "C'est une façon de signaler au professeur que vous avez achevé votre tâche et que vous êtes prêt à la soumettre",
+      "distractors": [
+        "Je commence maintenant",
+        "Je suis perdu",
+        "Je suis fatigué"
+      ],
+      "correctUsageContext": "Lorsque vous avez terminé un devoir ou un projet et que vous souhaitez le soumettre",
+      "wrongUsageContexts": [
+        "Lorsque vous commencez à travailler sur un projet",
+        "Lorsque vous prenez une pause",
+        "Lorsque vous discutez avec des camarades"
+      ],
+      "coachingText": "Soyez fiers de vos réalisations et n'hésitez pas à les partager avec votre professeur !"
+    }
+  ],
+  "rawLesson": {
+    "id": "test-1772363629976",
+    "title": "Test: School Phrases",
+    "icon": "📚",
+    "skillPathId": "Test: School Phrases",
+    "lessonIndex": 0,
+    "steps": [
+      {
+        "tutorText": "📚 New phrase: \"Ich verstehe das nicht\"",
+        "helpText": "C'est une phrase utile pour demander des explications supplémentaires lorsque vous êtes perdu",
+        "coachingText": "N'ayez pas peur de demander de l'aide, c'est tout à fait normal de ne pas tout comprendre tout de suite !",
+        "activity": {
+          "type": "info",
+          "title": "Ich verstehe das nicht",
+          "content": "Ich verstehe das nicht = \"Je ne comprends pas\"",
+          "explanation": "C'est une phrase utile pour demander des explications supplémentaires lorsque vous êtes perdu",
+          "example": "Ich verstehe das nicht, kann ich eine Erklärung haben?",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Ich verstehe das nicht\" mean?",
+        "helpText": "Remember: \"Ich verstehe das nicht\" = \"Je ne comprends pas\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Ich verstehe das nicht\" mean?",
+          "options": [
+            "Je suis désolé",
+            "Je m'appelle",
+            "J'aime le football",
+            "Je ne comprends pas"
+          ],
+          "correctIndex": 3,
+          "hint": "\"Ich verstehe das nicht\" = \"Je ne comprends pas\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Ich verstehe das nicht\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Ich verstehe das nicht\" means \"Je ne comprends pas\"",
+          "isTrue": true,
+          "hint": "\"Ich verstehe das nicht\" = \"Je ne comprends pas\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Ich verstehe das nicht\" mean?",
+        "helpText": "Remember: \"Ich verstehe das nicht\" = \"Je ne comprends pas\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Ich verstehe das nicht\" mean?",
+          "options": [
+            "Je suis désolé",
+            "Je m'appelle",
+            "J'aime le football",
+            "Je ne comprends pas"
+          ],
+          "correctIndex": 3,
+          "hint": "\"Ich verstehe das nicht\" = \"Je ne comprends pas\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Ich verstehe das nicht\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Ich verstehe das nicht\" means \"Je ne comprends pas\"",
+          "isTrue": true,
+          "hint": "\"Ich verstehe das nicht\" = \"Je ne comprends pas\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "📚 New phrase: \"Kann ich auf die Toilette gehen?\"",
+        "helpText": "Il est important de demander la permission avant de quitter la salle de classe",
+        "coachingText": "N'oubliez pas de demander poliment, cela montre que vous êtes responsable et respectueux",
+        "activity": {
+          "type": "info",
+          "title": "Kann ich auf die Toilette gehen?",
+          "content": "Kann ich auf die Toilette gehen? = \"Puis-je aller aux toilettes ?\"",
+          "explanation": "Il est important de demander la permission avant de quitter la salle de classe",
+          "example": "Kann ich auf die Toilette gehen, bitte?",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Match the phrases with their meanings!",
+        "helpText": "Find the pair: \"Kann ich auf die Toilette gehen?\" = \"Puis-je aller aux toilettes ?\"",
+        "activity": {
+          "type": "matching",
+          "pairs": [
+            {
+              "left": "Je suis fatigué",
+              "right": "J'ai faim"
+            },
+            {
+              "left": "J'ai faim",
+              "right": "Je veux boire de l'eau"
+            },
+            {
+              "left": "Kann ich auf die Toilette gehen?",
+              "right": "Puis-je aller aux toilettes ?"
+            },
+            {
+              "left": "Je veux boire de l'eau",
+              "right": "Je suis fatigué"
+            }
+          ],
+          "hint": "\"Kann ich auf die Toilette gehen?\" means \"Puis-je aller aux toilettes ?\"",
+          "sunDrops": 2
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Kann ich auf die Toilette gehen?\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Kann ich auf die Toilette gehen?\" means \"Puis-je aller aux toilettes ?\"",
+          "isTrue": true,
+          "hint": "\"Kann ich auf die Toilette gehen?\" = \"Puis-je aller aux toilettes ?\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Kann ich auf die Toilette gehen?\" mean?",
+        "helpText": "Remember: \"Kann ich auf die Toilette gehen?\" = \"Puis-je aller aux toilettes ?\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Kann ich auf die Toilette gehen?\" mean?",
+          "options": [
+            "Je veux boire de l'eau",
+            "Puis-je aller aux toilettes ?",
+            "Je suis fatigué",
+            "J'ai faim"
+          ],
+          "correctIndex": 1,
+          "hint": "\"Kann ich auf die Toilette gehen?\" = \"Puis-je aller aux toilettes ?\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Match the phrases with their meanings!",
+        "helpText": "Find the pair: \"Kann ich auf die Toilette gehen?\" = \"Puis-je aller aux toilettes ?\"",
+        "activity": {
+          "type": "matching",
+          "pairs": [
+            {
+              "left": "Je suis fatigué",
+              "right": "J'ai faim"
+            },
+            {
+              "left": "J'ai faim",
+              "right": "Je veux boire de l'eau"
+            },
+            {
+              "left": "Kann ich auf die Toilette gehen?",
+              "right": "Puis-je aller aux toilettes ?"
+            },
+            {
+              "left": "Je veux boire de l'eau",
+              "right": "Je suis fatigué"
+            }
+          ],
+          "hint": "\"Kann ich auf die Toilette gehen?\" means \"Puis-je aller aux toilettes ?\"",
+          "sunDrops": 2
+        }
+      },
+      {
+        "tutorText": "📚 New phrase: \"Ich bin fertig\"",
+        "helpText": "C'est une façon de signaler au professeur que vous avez achevé votre tâche et que vous êtes prêt à la soumettre",
+        "coachingText": "Soyez fiers de vos réalisations et n'hésitez pas à les partager avec votre professeur !",
+        "activity": {
+          "type": "info",
+          "title": "Ich bin fertig",
+          "content": "Ich bin fertig = \"J'ai terminé\"",
+          "explanation": "C'est une façon de signaler au professeur que vous avez achevé votre tâche et que vous êtes prêt à la soumettre",
+          "example": "Ich bin fertig, kann ich vous montrer mon travail?",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"J'ai terminé\"",
+        "helpText": "The correct phrase is: \"Ich bin fertig\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "Ich bin fertig",
+          "scrambledWords": [
+            "bin",
+            "Ich",
+            "fertig"
+          ],
+          "hint": "\"Ich bin fertig\" = \"J'ai terminé\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"J'ai terminé\" in ge?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "J'ai terminé",
+          "correctAnswer": "Ich bin fertig",
+          "acceptedAnswers": [
+            "Ich bin fertig",
+            "ich bin fertig"
+          ],
+          "hint": "It starts with \"Ich...\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"J'ai terminé\"",
+        "helpText": "The correct phrase is: \"Ich bin fertig\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "Ich bin fertig",
+          "scrambledWords": [
+            "bin",
+            "Ich",
+            "fertig"
+          ],
+          "hint": "\"Ich bin fertig\" = \"J'ai terminé\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"J'ai terminé\" in ge?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "J'ai terminé",
+          "correctAnswer": "Ich bin fertig",
+          "acceptedAnswers": [
+            "Ich bin fertig",
+            "ich bin fertig"
+          ],
+          "hint": "It starts with \"Ich...\"",
+          "sunDrops": 3
+        }
+      }
+    ],
+    "totalSunDrops": 22
+  }
+}

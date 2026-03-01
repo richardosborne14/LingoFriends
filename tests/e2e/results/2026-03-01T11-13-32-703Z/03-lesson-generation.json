@@ -1,0 +1,1047 @@
+{
+  "suiteName": "Lesson Generation & Validation",
+  "provider": "groq",
+  "timestamp": "2026-03-01T11:13:59.538Z",
+  "totalTests": 5,
+  "passed": 5,
+  "failed": 0,
+  "warnings": 0,
+  "duration": 22781,
+  "tests": [
+    {
+      "testId": "03-German",
+      "testName": "German/English — \"Greetings\"",
+      "status": "PASS",
+      "duration": 3913,
+      "assertions": [
+        {
+          "description": "AI returned valid JSON",
+          "passed": true,
+          "expected": true,
+          "actual": true,
+          "severity": "error"
+        },
+        {
+          "description": "AI returned chunks",
+          "passed": true,
+          "expected": ">0",
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has targetPhrase",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has nativeTranslation",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has 3 distractors",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has correctUsageContext",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has wrongUsageContexts (3)",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Distractor \"Good night\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "Good night",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"Goodbye\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "Goodbye",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"How are you\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "How are you",
+          "severity": "warning"
+        },
+        {
+          "description": "Chunk has targetPhrase",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has nativeTranslation",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has 3 distractors",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has correctUsageContext",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has wrongUsageContexts (3)",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Distractor \"What's your name?\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "What's your name?",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"I'm tired\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "I'm tired",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"I love music\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "I love music",
+          "severity": "warning"
+        },
+        {
+          "description": "Chunk has targetPhrase",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has nativeTranslation",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has 3 distractors",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has correctUsageContext",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has wrongUsageContexts (3)",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Distractor \"Hello again\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "Hello again",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"See you soon\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "See you soon",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"I'm hungry\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "I'm hungry",
+          "severity": "warning"
+        },
+        {
+          "description": "Lesson assembly succeeded",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Lesson validation passed",
+          "passed": true,
+          "expected": true,
+          "actual": true,
+          "severity": "error"
+        },
+        {
+          "description": "First step is INFO (teach-first)",
+          "passed": true,
+          "expected": "info",
+          "actual": "info",
+          "severity": "error"
+        },
+        {
+          "description": "SunDrops sum matches total",
+          "passed": true,
+          "expected": 24,
+          "actual": 24,
+          "severity": "warning"
+        },
+        {
+          "description": "Quality score ≥ 50/100",
+          "passed": true,
+          "expected": "≥50",
+          "actual": 91,
+          "severity": "warning"
+        }
+      ],
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "testId": "03-French",
+      "testName": "French/English — \"Food & Drinks\"",
+      "status": "PASS",
+      "duration": 4002,
+      "assertions": [
+        {
+          "description": "AI returned valid JSON",
+          "passed": true,
+          "expected": true,
+          "actual": true,
+          "severity": "error"
+        },
+        {
+          "description": "AI returned chunks",
+          "passed": true,
+          "expected": ">0",
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has targetPhrase",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has nativeTranslation",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has 3 distractors",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has correctUsageContext",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has wrongUsageContexts (3)",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Distractor \"I want a bottle of s\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "I want a bottle of soda",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"Can I have a cookie\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "Can I have a cookie",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"Where is the bathroo\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "Where is the bathroom",
+          "severity": "warning"
+        },
+        {
+          "description": "Chunk has targetPhrase",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has nativeTranslation",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has 3 distractors",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has correctUsageContext",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has wrongUsageContexts (3)",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Distractor \"I want to order more\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "I want to order more food",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"Can I have the menu\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "Can I have the menu",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"Where is the restroo\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "Where is the restroom",
+          "severity": "warning"
+        },
+        {
+          "description": "Chunk has targetPhrase",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has nativeTranslation",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has 3 distractors",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has correctUsageContext",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has wrongUsageContexts (3)",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Distractor \"I want to order a bi\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "I want to order a big meal",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"Can I have a salad\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "Can I have a salad",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"Where is the playgro\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "Where is the playground",
+          "severity": "warning"
+        },
+        {
+          "description": "Lesson assembly succeeded",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Lesson validation passed",
+          "passed": true,
+          "expected": true,
+          "actual": true,
+          "severity": "error"
+        },
+        {
+          "description": "First step is INFO (teach-first)",
+          "passed": true,
+          "expected": "info",
+          "actual": "info",
+          "severity": "error"
+        },
+        {
+          "description": "SunDrops sum matches total",
+          "passed": true,
+          "expected": 23,
+          "actual": 23,
+          "severity": "warning"
+        },
+        {
+          "description": "Quality score ≥ 50/100",
+          "passed": true,
+          "expected": "≥50",
+          "actual": 94,
+          "severity": "warning"
+        }
+      ],
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "testId": "03-German",
+      "testName": "German/French — \"School Phrases\"",
+      "status": "PASS",
+      "duration": 4306,
+      "assertions": [
+        {
+          "description": "AI returned valid JSON",
+          "passed": true,
+          "expected": true,
+          "actual": true,
+          "severity": "error"
+        },
+        {
+          "description": "AI returned chunks",
+          "passed": true,
+          "expected": ">0",
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has targetPhrase",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has nativeTranslation",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has 3 distractors",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has correctUsageContext",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has wrongUsageContexts (3)",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Distractor \"Je suis désolé\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "Je suis désolé",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"Je m'appelle\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "Je m'appelle",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"J'aime le football\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "J'aime le football",
+          "severity": "warning"
+        },
+        {
+          "description": "Chunk has targetPhrase",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has nativeTranslation",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has 3 distractors",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has correctUsageContext",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has wrongUsageContexts (3)",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Distractor \"Je veux boire de l'e\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "Je veux boire de l'eau",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"Je suis fatigué\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "Je suis fatigué",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"J'ai faim\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "J'ai faim",
+          "severity": "warning"
+        },
+        {
+          "description": "Chunk has targetPhrase",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has nativeTranslation",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has 3 distractors",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has correctUsageContext",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has wrongUsageContexts (3)",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Distractor \"Je commence maintena\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "Je commence maintenant",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"Je suis perdu\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "Je suis perdu",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"Je suis fatigué\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "Je suis fatigué",
+          "severity": "warning"
+        },
+        {
+          "description": "Lesson assembly succeeded",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Lesson validation passed",
+          "passed": true,
+          "expected": true,
+          "actual": true,
+          "severity": "error"
+        },
+        {
+          "description": "First step is INFO (teach-first)",
+          "passed": true,
+          "expected": "info",
+          "actual": "info",
+          "severity": "error"
+        },
+        {
+          "description": "SunDrops sum matches total",
+          "passed": true,
+          "expected": 22,
+          "actual": 22,
+          "severity": "warning"
+        },
+        {
+          "description": "Quality score ≥ 50/100",
+          "passed": true,
+          "expected": "≥50",
+          "actual": 87,
+          "severity": "warning"
+        }
+      ],
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "testId": "03-German",
+      "testName": "German/English — \"Food & Drinks\"",
+      "status": "PASS",
+      "duration": 4000,
+      "assertions": [
+        {
+          "description": "AI returned valid JSON",
+          "passed": true,
+          "expected": true,
+          "actual": true,
+          "severity": "error"
+        },
+        {
+          "description": "AI returned chunks",
+          "passed": true,
+          "expected": ">0",
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has targetPhrase",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has nativeTranslation",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has 3 distractors",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has correctUsageContext",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has wrongUsageContexts (3)",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Distractor \"I don't like to eat \" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "I don't like to eat fruit",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"I eat fruit every ni\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "I eat fruit every night",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"I only eat fruit in \" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "I only eat fruit in summer",
+          "severity": "warning"
+        },
+        {
+          "description": "Chunk has targetPhrase",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has nativeTranslation",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has 3 distractors",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has correctUsageContext",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has wrongUsageContexts (3)",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Distractor \"I want a big glass o\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "I want a big glass of water",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"I don't need a glass\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "I don't need a glass of water",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"I can have a glass o\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "I can have a glass of water later",
+          "severity": "warning"
+        },
+        {
+          "description": "Chunk has targetPhrase",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has nativeTranslation",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has 3 distractors",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has correctUsageContext",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has wrongUsageContexts (3)",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Distractor \"The ice cream is not\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "The ice cream is not delicious",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"I don't like ice cre\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "I don't like ice cream",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"I only eat ice cream\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "I only eat ice cream on Fridays",
+          "severity": "warning"
+        },
+        {
+          "description": "Lesson assembly succeeded",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Lesson validation passed",
+          "passed": true,
+          "expected": true,
+          "actual": true,
+          "severity": "error"
+        },
+        {
+          "description": "First step is INFO (teach-first)",
+          "passed": true,
+          "expected": "info",
+          "actual": "info",
+          "severity": "error"
+        },
+        {
+          "description": "SunDrops sum matches total",
+          "passed": true,
+          "expected": 25,
+          "actual": 25,
+          "severity": "warning"
+        },
+        {
+          "description": "Quality score ≥ 50/100",
+          "passed": true,
+          "expected": "≥50",
+          "actual": 94,
+          "severity": "warning"
+        }
+      ],
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "testId": "03-German",
+      "testName": "German/English — \"Family & Friends\"",
+      "status": "PASS",
+      "duration": 4054,
+      "assertions": [
+        {
+          "description": "AI returned valid JSON",
+          "passed": true,
+          "expected": true,
+          "actual": true,
+          "severity": "error"
+        },
+        {
+          "description": "AI returned chunks",
+          "passed": true,
+          "expected": ">0",
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has targetPhrase",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has nativeTranslation",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has 3 distractors",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has correctUsageContext",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has wrongUsageContexts (3)",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Distractor \"My family is boring\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "My family is boring",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"I don't have a famil\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "I don't have a family",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"My family is mean\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "My family is mean",
+          "severity": "warning"
+        },
+        {
+          "description": "Chunk has targetPhrase",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has nativeTranslation",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has 3 distractors",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has correctUsageContext",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has wrongUsageContexts (3)",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Distractor \"My best friend hates\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "My best friend hates music",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"I don't have friends\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "I don't have friends",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"My friend plays foot\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "My friend plays football only",
+          "severity": "warning"
+        },
+        {
+          "description": "Chunk has targetPhrase",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has nativeTranslation",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has 3 distractors",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has correctUsageContext",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Chunk has wrongUsageContexts (3)",
+          "passed": true,
+          "expected": 3,
+          "actual": 3,
+          "severity": "error"
+        },
+        {
+          "description": "Distractor \"I'm going alone to t\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "I'm going alone to the park",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"I don't like concert\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "I don't like concerts",
+          "severity": "warning"
+        },
+        {
+          "description": "Distractor \"My friends are borin\" ≠ correct answer",
+          "passed": true,
+          "expected": "!= correct",
+          "actual": "My friends are boring",
+          "severity": "warning"
+        },
+        {
+          "description": "Lesson assembly succeeded",
+          "passed": true,
+          "severity": "error"
+        },
+        {
+          "description": "Lesson validation passed",
+          "passed": true,
+          "expected": true,
+          "actual": true,
+          "severity": "error"
+        },
+        {
+          "description": "First step is INFO (teach-first)",
+          "passed": true,
+          "expected": "info",
+          "actual": "info",
+          "severity": "error"
+        },
+        {
+          "description": "SunDrops sum matches total",
+          "passed": true,
+          "expected": 25,
+          "actual": 25,
+          "severity": "warning"
+        },
+        {
+          "description": "Quality score ≥ 50/100",
+          "passed": true,
+          "expected": "≥50",
+          "actual": 91,
+          "severity": "warning"
+        }
+      ],
+      "errors": [],
+      "warnings": []
+    }
+  ]
+}

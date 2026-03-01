@@ -8,7 +8,10 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:e2e": "npx tsx tests/e2e/test-runner.ts",
+    "test:e2e:lesson": "npx tsx tests/e2e/test-runner.ts --only 03-lesson-generation",
+    "test:e2e:compare": "npx tsx tests/e2e/test-runner.ts --only 08-cross-llm-comparison"
   },
   "dependencies": {
     "@google/genai": "^1.30.0",

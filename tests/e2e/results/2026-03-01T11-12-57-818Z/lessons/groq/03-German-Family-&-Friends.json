@@ -1,0 +1,669 @@
+{
+  "scenario": {
+    "targetLanguage": "German",
+    "nativeLanguage": "English",
+    "topic": "Family & Friends",
+    "ageGroup": "11-14",
+    "level": "A1"
+  },
+  "score": {
+    "provider": "groq",
+    "lessonTitle": "Test: Family & Friends",
+    "combination": {
+      "targetLanguage": "German",
+      "nativeLanguage": "English",
+      "topic": "Family & Friends",
+      "ageGroup": "11-14",
+      "level": "A1"
+    },
+    "responseTimeMs": 3881,
+    "parseSuccess": true,
+    "assemblySuccess": true,
+    "validationResult": {
+      "valid": true,
+      "errors": [],
+      "warnings": []
+    },
+    "scores": {
+      "languageCorrectness": 10,
+      "teachFirstEnforcement": 10,
+      "activityVariety": 10,
+      "chunkQuality": 10,
+      "distractorQuality": 10,
+      "ageAppropriateness": 10,
+      "interestPersonalisation": 5,
+      "fieldCompleteness": 10,
+      "i1Difficulty": 6,
+      "nativeLanguageInstructions": 10
+    },
+    "totalScore": 91,
+    "rawChunks": [
+      {
+        "targetPhrase": "Meine Familie ist sehr nett",
+        "nativeTranslation": "My family is very nice",
+        "exampleSentence": "Ich liebe es, Zeit mit meiner Familie zu verbringen, weil meine Familie ist sehr nett",
+        "usageNote": "Use this phrase to describe your family in a positive way",
+        "explanation": "You can tell your friends how much you love your family with this phrase",
+        "distractors": [
+          "My family is very boring",
+          "I don't like my family",
+          "My family is very old"
+        ],
+        "correctUsageContext": "When someone asks about your family",
+        "wrongUsageContexts": [
+          "When talking about your favorite food",
+          "When describing a movie",
+          "When discussing a sports game"
+        ],
+        "coachingText": "Let's talk about our families! What do you think about your family?"
+      },
+      {
+        "targetPhrase": "Mein bester Freund spielt Fußball",
+        "nativeTranslation": "My best friend plays soccer",
+        "exampleSentence": "Ich gehe zu den Spielen, weil mein bester Freund spielt Fußball",
+        "usageNote": "Use this phrase to talk about your friend's interests or hobbies",
+        "explanation": "You can use this phrase to explain why you like watching sports",
+        "distractors": [
+          "My best friend hates soccer",
+          "My best friend is very tall",
+          "My best friend loves reading"
+        ],
+        "correctUsageContext": "When talking about your friend's hobbies",
+        "wrongUsageContexts": [
+          "When discussing what you ate for breakfast",
+          "When talking about your favorite music",
+          "When describing a book you read"
+        ],
+        "coachingText": "Do you have a friend who loves sports? Let's talk about them!"
+      },
+      {
+        "targetPhrase": "Ich liebe es, mit meinen Freunden Musik zu hören",
+        "nativeTranslation": "I love listening to music with my friends",
+        "exampleSentence": "Wir hören immer Musik zusammen, weil ich liebe es, mit meinen Freunden Musik zu hören",
+        "usageNote": "Use this phrase to describe a fun activity you do with your friends",
+        "explanation": "You can tell others about your favorite things to do with friends",
+        "distractors": [
+          "I hate listening to music with my friends",
+          "I only listen to music alone",
+          "I love watching movies with my family"
+        ],
+        "correctUsageContext": "When talking about your favorite activities with friends",
+        "wrongUsageContexts": [
+          "When discussing a test at school",
+          "When talking about what you had for lunch",
+          "When describing a trip to the park"
+        ],
+        "coachingText": "What do you like to do with your friends? Do you like listening to music together?"
+      }
+    ],
+    "rawLesson": {
+      "id": "test-1772363600796",
+      "title": "Test: Family & Friends",
+      "icon": "📚",
+      "skillPathId": "Test: Family & Friends",
+      "lessonIndex": 0,
+      "steps": [
+        {
+          "tutorText": "📚 New phrase: \"Meine Familie ist sehr nett\"",
+          "helpText": "You can tell your friends how much you love your family with this phrase",
+          "coachingText": "Let's talk about our families! What do you think about your family?",
+          "activity": {
+            "type": "info",
+            "title": "Meine Familie ist sehr nett",
+            "content": "Meine Familie ist sehr nett = \"My family is very nice\"",
+            "explanation": "You can tell your friends how much you love your family with this phrase",
+            "example": "Ich liebe es, Zeit mit meiner Familie zu verbringen, weil meine Familie ist sehr nett",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Meine Familie ist sehr nett\" mean?",
+          "helpText": "Remember: \"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Meine Familie ist sehr nett\" mean?",
+            "options": [
+              "My family is very boring",
+              "I don't like my family",
+              "My family is very nice",
+              "My family is very old"
+            ],
+            "correctIndex": 2,
+            "hint": "\"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Meine Familie ist sehr nett\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Meine Familie ist sehr nett\" means \"My family is very boring\"",
+            "isTrue": false,
+            "hint": "\"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Meine Familie ist sehr nett\" mean?",
+          "helpText": "Remember: \"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Meine Familie ist sehr nett\" mean?",
+            "options": [
+              "My family is very boring",
+              "I don't like my family",
+              "My family is very nice",
+              "My family is very old"
+            ],
+            "correctIndex": 2,
+            "hint": "\"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Meine Familie ist sehr nett\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Meine Familie ist sehr nett\" means \"My family is very boring\"",
+            "isTrue": false,
+            "hint": "\"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "📚 New phrase: \"Mein bester Freund spielt Fußball\"",
+          "helpText": "You can use this phrase to explain why you like watching sports",
+          "coachingText": "Do you have a friend who loves sports? Let's talk about them!",
+          "activity": {
+            "type": "info",
+            "title": "Mein bester Freund spielt Fußball",
+            "content": "Mein bester Freund spielt Fußball = \"My best friend plays soccer\"",
+            "explanation": "You can use this phrase to explain why you like watching sports",
+            "example": "Ich gehe zu den Spielen, weil mein bester Freund spielt Fußball",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Let's check — what does \"Mein bester Freund spielt Fußball\" mean?",
+          "helpText": "Remember: \"Mein bester Freund spielt Fußball\" = \"My best friend plays soccer\"",
+          "activity": {
+            "type": "multiple_choice",
+            "question": "What does \"Mein bester Freund spielt Fußball\" mean?",
+            "options": [
+              "My best friend hates soccer",
+              "My best friend is very tall",
+              "My best friend loves reading",
+              "My best friend plays soccer"
+            ],
+            "correctIndex": 3,
+            "hint": "\"Mein bester Freund spielt Fußball\" = \"My best friend plays soccer\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Match the phrases with their meanings!",
+          "helpText": "Find the pair: \"Mein bester Freund spielt Fußball\" = \"My best friend plays soccer\"",
+          "activity": {
+            "type": "matching",
+            "pairs": [
+              {
+                "left": "My best friend is very tall",
+                "right": "My best friend loves reading"
+              },
+              {
+                "left": "My best friend loves reading",
+                "right": "My best friend hates soccer"
+              },
+              {
+                "left": "Mein bester Freund spielt Fußball",
+                "right": "My best friend plays soccer"
+              },
+              {
+                "left": "My best friend hates soccer",
+                "right": "My best friend is very tall"
+              }
+            ],
+            "hint": "\"Mein bester Freund spielt Fußball\" means \"My best friend plays soccer\"",
+            "sunDrops": 2
+          }
+        },
+        {
+          "tutorText": "Quick check: Is this statement true or false?",
+          "helpText": "Think about what \"Mein bester Freund spielt Fußball\" means...",
+          "activity": {
+            "type": "true_false",
+            "statement": "\"Mein bester Freund spielt Fußball\" means \"My best friend hates soccer\"",
+            "isTrue": false,
+            "hint": "\"Mein bester Freund spielt Fußball\" = \"My best friend plays soccer\"",
+            "sunDrops": 1
+          }
+        },
+        {
+          "tutorText": "Practice time! Complete this phrase.",
+          "helpText": "The full phrase is: \"Mein bester Freund spielt Fußball\"",
+          "activity": {
+            "type": "fill_blank",
+            "sentence": "Mein bester Freund spielt ___",
+            "correctAnswer": "Fußball",
+            "acceptedAnswers": [
+              "Fußball",
+              "fußball"
+            ],
+            "hint": "\"Mein bester Freund spielt Fußball\" = \"My best friend plays soccer\"",
+            "sunDrops": 2
+          }
+        },
+        {
+          "tutorText": "📚 New phrase: \"Ich liebe es, mit meinen Freunden Musik zu hören\"",
+          "helpText": "You can tell others about your favorite things to do with friends",
+          "coachingText": "What do you like to do with your friends? Do you like listening to music together?",
+          "activity": {
+            "type": "info",
+            "title": "Ich liebe es, mit meinen Freunden Musik zu hören",
+            "content": "Ich liebe es, mit meinen Freunden Musik zu hören = \"I love listening to music with my friends\"",
+            "explanation": "You can tell others about your favorite things to do with friends",
+            "example": "Wir hören immer Musik zusammen, weil ich liebe es, mit meinen Freunden Musik zu hören",
+            "sunDrops": 0
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"I love listening to music with my friends\" in ge?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "I love listening to music with my friends",
+            "correctAnswer": "Ich liebe es, mit meinen Freunden Musik zu hören",
+            "acceptedAnswers": [
+              "Ich liebe es, mit meinen Freunden Musik zu hören",
+              "ich liebe es, mit meinen freunden musik zu hören",
+              "Ich liebe es mit meinen Freunden Musik zu hören",
+              "ich liebe es mit meinen freunden musik zu hören"
+            ],
+            "hint": "It starts with \"Ich...\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"I love listening to music with my friends\"",
+          "helpText": "The correct phrase is: \"Ich liebe es, mit meinen Freunden Musik zu hören\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "Ich liebe es, mit meinen Freunden Musik zu hören",
+            "scrambledWords": [
+              "Freunden",
+              "Musik",
+              "mit",
+              "es,",
+              "Ich",
+              "zu",
+              "hören",
+              "liebe",
+              "meinen"
+            ],
+            "hint": "\"Ich liebe es, mit meinen Freunden Musik zu hören\" = \"I love listening to music with my friends\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Your turn! How do you say \"I love listening to music with my friends\" in ge?",
+          "helpText": "Think about the phrase we just practised...",
+          "activity": {
+            "type": "translate",
+            "sourcePhrase": "I love listening to music with my friends",
+            "correctAnswer": "Ich liebe es, mit meinen Freunden Musik zu hören",
+            "acceptedAnswers": [
+              "Ich liebe es, mit meinen Freunden Musik zu hören",
+              "ich liebe es, mit meinen freunden musik zu hören",
+              "Ich liebe es mit meinen Freunden Musik zu hören",
+              "ich liebe es mit meinen freunden musik zu hören"
+            ],
+            "hint": "It starts with \"Ich...\"",
+            "sunDrops": 3
+          }
+        },
+        {
+          "tutorText": "Arrange the words to form: \"I love listening to music with my friends\"",
+          "helpText": "The correct phrase is: \"Ich liebe es, mit meinen Freunden Musik zu hören\"",
+          "activity": {
+            "type": "word_arrange",
+            "targetSentence": "Ich liebe es, mit meinen Freunden Musik zu hören",
+            "scrambledWords": [
+              "Freunden",
+              "Musik",
+              "mit",
+              "es,",
+              "Ich",
+              "zu",
+              "hören",
+              "liebe",
+              "meinen"
+            ],
+            "hint": "\"Ich liebe es, mit meinen Freunden Musik zu hören\" = \"I love listening to music with my friends\"",
+            "sunDrops": 3
+          }
+        }
+      ],
+      "totalSunDrops": 22
+    },
+    "notes": [
+      "Distractor \"I don't like my family\" appears to be in target language (de), not native",
+      "Distractor \"My best friend hates soccer\" appears to be in target language (de), not native",
+      "Distractor \"My best friend loves reading\" appears to be in target language (de), not native",
+      "Distractor \"I love watching movies with my family\" appears to be in target language (de), not native",
+      "No interests provided to check against",
+      "Average phrase length 6.3 words — may be too complex for A1"
+    ]
+  },
+  "rawChunks": [
+    {
+      "targetPhrase": "Meine Familie ist sehr nett",
+      "nativeTranslation": "My family is very nice",
+      "exampleSentence": "Ich liebe es, Zeit mit meiner Familie zu verbringen, weil meine Familie ist sehr nett",
+      "usageNote": "Use this phrase to describe your family in a positive way",
+      "explanation": "You can tell your friends how much you love your family with this phrase",
+      "distractors": [
+        "My family is very boring",
+        "I don't like my family",
+        "My family is very old"
+      ],
+      "correctUsageContext": "When someone asks about your family",
+      "wrongUsageContexts": [
+        "When talking about your favorite food",
+        "When describing a movie",
+        "When discussing a sports game"
+      ],
+      "coachingText": "Let's talk about our families! What do you think about your family?"
+    },
+    {
+      "targetPhrase": "Mein bester Freund spielt Fußball",
+      "nativeTranslation": "My best friend plays soccer",
+      "exampleSentence": "Ich gehe zu den Spielen, weil mein bester Freund spielt Fußball",
+      "usageNote": "Use this phrase to talk about your friend's interests or hobbies",
+      "explanation": "You can use this phrase to explain why you like watching sports",
+      "distractors": [
+        "My best friend hates soccer",
+        "My best friend is very tall",
+        "My best friend loves reading"
+      ],
+      "correctUsageContext": "When talking about your friend's hobbies",
+      "wrongUsageContexts": [
+        "When discussing what you ate for breakfast",
+        "When talking about your favorite music",
+        "When describing a book you read"
+      ],
+      "coachingText": "Do you have a friend who loves sports? Let's talk about them!"
+    },
+    {
+      "targetPhrase": "Ich liebe es, mit meinen Freunden Musik zu hören",
+      "nativeTranslation": "I love listening to music with my friends",
+      "exampleSentence": "Wir hören immer Musik zusammen, weil ich liebe es, mit meinen Freunden Musik zu hören",
+      "usageNote": "Use this phrase to describe a fun activity you do with your friends",
+      "explanation": "You can tell others about your favorite things to do with friends",
+      "distractors": [
+        "I hate listening to music with my friends",
+        "I only listen to music alone",
+        "I love watching movies with my family"
+      ],
+      "correctUsageContext": "When talking about your favorite activities with friends",
+      "wrongUsageContexts": [
+        "When discussing a test at school",
+        "When talking about what you had for lunch",
+        "When describing a trip to the park"
+      ],
+      "coachingText": "What do you like to do with your friends? Do you like listening to music together?"
+    }
+  ],
+  "rawLesson": {
+    "id": "test-1772363600796",
+    "title": "Test: Family & Friends",
+    "icon": "📚",
+    "skillPathId": "Test: Family & Friends",
+    "lessonIndex": 0,
+    "steps": [
+      {
+        "tutorText": "📚 New phrase: \"Meine Familie ist sehr nett\"",
+        "helpText": "You can tell your friends how much you love your family with this phrase",
+        "coachingText": "Let's talk about our families! What do you think about your family?",
+        "activity": {
+          "type": "info",
+          "title": "Meine Familie ist sehr nett",
+          "content": "Meine Familie ist sehr nett = \"My family is very nice\"",
+          "explanation": "You can tell your friends how much you love your family with this phrase",
+          "example": "Ich liebe es, Zeit mit meiner Familie zu verbringen, weil meine Familie ist sehr nett",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Meine Familie ist sehr nett\" mean?",
+        "helpText": "Remember: \"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Meine Familie ist sehr nett\" mean?",
+          "options": [
+            "My family is very boring",
+            "I don't like my family",
+            "My family is very nice",
+            "My family is very old"
+          ],
+          "correctIndex": 2,
+          "hint": "\"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Meine Familie ist sehr nett\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Meine Familie ist sehr nett\" means \"My family is very boring\"",
+          "isTrue": false,
+          "hint": "\"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Meine Familie ist sehr nett\" mean?",
+        "helpText": "Remember: \"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Meine Familie ist sehr nett\" mean?",
+          "options": [
+            "My family is very boring",
+            "I don't like my family",
+            "My family is very nice",
+            "My family is very old"
+          ],
+          "correctIndex": 2,
+          "hint": "\"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Meine Familie ist sehr nett\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Meine Familie ist sehr nett\" means \"My family is very boring\"",
+          "isTrue": false,
+          "hint": "\"Meine Familie ist sehr nett\" = \"My family is very nice\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "📚 New phrase: \"Mein bester Freund spielt Fußball\"",
+        "helpText": "You can use this phrase to explain why you like watching sports",
+        "coachingText": "Do you have a friend who loves sports? Let's talk about them!",
+        "activity": {
+          "type": "info",
+          "title": "Mein bester Freund spielt Fußball",
+          "content": "Mein bester Freund spielt Fußball = \"My best friend plays soccer\"",
+          "explanation": "You can use this phrase to explain why you like watching sports",
+          "example": "Ich gehe zu den Spielen, weil mein bester Freund spielt Fußball",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Let's check — what does \"Mein bester Freund spielt Fußball\" mean?",
+        "helpText": "Remember: \"Mein bester Freund spielt Fußball\" = \"My best friend plays soccer\"",
+        "activity": {
+          "type": "multiple_choice",
+          "question": "What does \"Mein bester Freund spielt Fußball\" mean?",
+          "options": [
+            "My best friend hates soccer",
+            "My best friend is very tall",
+            "My best friend loves reading",
+            "My best friend plays soccer"
+          ],
+          "correctIndex": 3,
+          "hint": "\"Mein bester Freund spielt Fußball\" = \"My best friend plays soccer\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Match the phrases with their meanings!",
+        "helpText": "Find the pair: \"Mein bester Freund spielt Fußball\" = \"My best friend plays soccer\"",
+        "activity": {
+          "type": "matching",
+          "pairs": [
+            {
+              "left": "My best friend is very tall",
+              "right": "My best friend loves reading"
+            },
+            {
+              "left": "My best friend loves reading",
+              "right": "My best friend hates soccer"
+            },
+            {
+              "left": "Mein bester Freund spielt Fußball",
+              "right": "My best friend plays soccer"
+            },
+            {
+              "left": "My best friend hates soccer",
+              "right": "My best friend is very tall"
+            }
+          ],
+          "hint": "\"Mein bester Freund spielt Fußball\" means \"My best friend plays soccer\"",
+          "sunDrops": 2
+        }
+      },
+      {
+        "tutorText": "Quick check: Is this statement true or false?",
+        "helpText": "Think about what \"Mein bester Freund spielt Fußball\" means...",
+        "activity": {
+          "type": "true_false",
+          "statement": "\"Mein bester Freund spielt Fußball\" means \"My best friend hates soccer\"",
+          "isTrue": false,
+          "hint": "\"Mein bester Freund spielt Fußball\" = \"My best friend plays soccer\"",
+          "sunDrops": 1
+        }
+      },
+      {
+        "tutorText": "Practice time! Complete this phrase.",
+        "helpText": "The full phrase is: \"Mein bester Freund spielt Fußball\"",
+        "activity": {
+          "type": "fill_blank",
+          "sentence": "Mein bester Freund spielt ___",
+          "correctAnswer": "Fußball",
+          "acceptedAnswers": [
+            "Fußball",
+            "fußball"
+          ],
+          "hint": "\"Mein bester Freund spielt Fußball\" = \"My best friend plays soccer\"",
+          "sunDrops": 2
+        }
+      },
+      {
+        "tutorText": "📚 New phrase: \"Ich liebe es, mit meinen Freunden Musik zu hören\"",
+        "helpText": "You can tell others about your favorite things to do with friends",
+        "coachingText": "What do you like to do with your friends? Do you like listening to music together?",
+        "activity": {
+          "type": "info",
+          "title": "Ich liebe es, mit meinen Freunden Musik zu hören",
+          "content": "Ich liebe es, mit meinen Freunden Musik zu hören = \"I love listening to music with my friends\"",
+          "explanation": "You can tell others about your favorite things to do with friends",
+          "example": "Wir hören immer Musik zusammen, weil ich liebe es, mit meinen Freunden Musik zu hören",
+          "sunDrops": 0
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"I love listening to music with my friends\" in ge?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "I love listening to music with my friends",
+          "correctAnswer": "Ich liebe es, mit meinen Freunden Musik zu hören",
+          "acceptedAnswers": [
+            "Ich liebe es, mit meinen Freunden Musik zu hören",
+            "ich liebe es, mit meinen freunden musik zu hören",
+            "Ich liebe es mit meinen Freunden Musik zu hören",
+            "ich liebe es mit meinen freunden musik zu hören"
+          ],
+          "hint": "It starts with \"Ich...\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"I love listening to music with my friends\"",
+        "helpText": "The correct phrase is: \"Ich liebe es, mit meinen Freunden Musik zu hören\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "Ich liebe es, mit meinen Freunden Musik zu hören",
+          "scrambledWords": [
+            "Freunden",
+            "Musik",
+            "mit",
+            "es,",
+            "Ich",
+            "zu",
+            "hören",
+            "liebe",
+            "meinen"
+          ],
+          "hint": "\"Ich liebe es, mit meinen Freunden Musik zu hören\" = \"I love listening to music with my friends\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Your turn! How do you say \"I love listening to music with my friends\" in ge?",
+        "helpText": "Think about the phrase we just practised...",
+        "activity": {
+          "type": "translate",
+          "sourcePhrase": "I love listening to music with my friends",
+          "correctAnswer": "Ich liebe es, mit meinen Freunden Musik zu hören",
+          "acceptedAnswers": [
+            "Ich liebe es, mit meinen Freunden Musik zu hören",
+            "ich liebe es, mit meinen freunden musik zu hören",
+            "Ich liebe es mit meinen Freunden Musik zu hören",
+            "ich liebe es mit meinen freunden musik zu hören"
+          ],
+          "hint": "It starts with \"Ich...\"",
+          "sunDrops": 3
+        }
+      },
+      {
+        "tutorText": "Arrange the words to form: \"I love listening to music with my friends\"",
+        "helpText": "The correct phrase is: \"Ich liebe es, mit meinen Freunden Musik zu hören\"",
+        "activity": {
+          "type": "word_arrange",
+          "targetSentence": "Ich liebe es, mit meinen Freunden Musik zu hören",
+          "scrambledWords": [
+            "Freunden",
+            "Musik",
+            "mit",
+            "es,",
+            "Ich",
+            "zu",
+            "hören",
+            "liebe",
+            "meinen"
+          ],
+          "hint": "\"Ich liebe es, mit meinen Freunden Musik zu hören\" = \"I love listening to music with my friends\"",
+          "sunDrops": 3
+        }
+      }
+    ],
+    "totalSunDrops": 22
+  }
+}
