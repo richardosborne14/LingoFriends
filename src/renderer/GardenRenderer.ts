@@ -36,6 +36,7 @@ import { createObject, updatePlacedObjectAnimations } from './objects/objectFact
 import { buildAvatar } from './AvatarBuilder';
 import { AtmosphereBuilder } from './AtmosphereBuilder';
 import { makeLearningTree, calculateGrowthStage, type LearningTreeOptions } from './objects/learningTrees';
+import { buildCabin } from './objects/cabin';
 import { TreeStatus } from '../types/game';
 
 // ============================================================================
@@ -332,9 +333,17 @@ export class GardenRenderer {
     const hemiLight = new THREE.HemisphereLight(0x87CEEB, 0x44AA44, 0.3);
     this.state.scene.add(hemiLight);
     
-    // Atmosphere: fence, border, clouds (skip stars/moon for daytime)
+    // Atmosphere: fence, border, clouds, outer terrain
     AtmosphereBuilder.buildDaytime(this.state.scene);
-    
+
+    // Cabin — positioned in the NW corner just outside the fence.
+    // Fence sits at ±5 world units (GRID_SIZE=10, TILE_WIDTH=1 → centre at 0).
+    // x=-7.5, z=-7.5 places the cabin clearly behind the fence in the
+    // upper-left isometric quadrant, visible as background scenery.
+    // Scale 1.5 makes it substantial enough to read at frustum=14 zoom.
+    const cabin = buildCabin({ position: { x: -7.5, z: -7.5 }, scale: 1.5 });
+    this.state.scene.add(cabin);
+
     // Object layer for placed objects
     this.state.scene.add(this.state.objectLayer);
     
@@ -786,6 +795,22 @@ export class GardenRenderer {
     
     // Create the 3D tree using the procedural generator
     const treeGroup = makeLearningTree(options);
+
+    // Invisible cylindrical hitbox — much larger than the visual trunk/leaves.
+    // Three.js raycasting is geometry-based (not pixel-based), so a transparent
+    // mesh is still fully clickable.  Radius 0.6 world units ≈ 60% of a tile
+    // width, giving a generous tap target for kids on small touchscreens.
+    // depthWrite: false prevents the invisible cylinder from occluding objects
+    // drawn after it in the render pass.
+    const hitboxGeo = new THREE.CylinderGeometry(0.6, 0.6, 2.5, 8);
+    const hitboxMat = new THREE.MeshBasicMaterial({
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+    });
+    const hitbox = new THREE.Mesh(hitboxGeo, hitboxMat);
+    hitbox.position.y = 1.25; // Vertically centre the cylinder over the tile
+    treeGroup.add(hitbox);
     
     // Add to scene and tracking map
     this.state.scene.add(treeGroup);

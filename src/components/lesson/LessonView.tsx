@@ -644,9 +644,12 @@ export const LessonView: React.FC<LessonViewProps> = ({
           </motion.div>
         )}
 
-        {/* Audio replay button — prominent on INFO steps, compact on quiz steps */}
+        {/* Audio replay button — prominent on INFO steps, compact on quiz steps.
+            key={currentStepIndex} forces a clean remount on every step change,
+            preventing the spinner from persisting from the previous step (Bug 9). */}
         {hasAudio && (
           <motion.div
+            key={state.currentStepIndex}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}

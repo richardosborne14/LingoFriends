@@ -86,6 +86,7 @@ export class AtmosphereBuilder {
    * @param scene - The Three.js scene to decorate
    */
   static buildDaytime(scene: THREE.Scene): void {
+    AtmosphereBuilder.addOuterTerrain(scene);
     AtmosphereBuilder.addDaytimeClouds(scene);
     AtmosphereBuilder.addFence(scene);
     AtmosphereBuilder.addBorder(scene);
@@ -204,7 +205,11 @@ export class AtmosphereBuilder {
 
   /**
    * Add bright white fluffy clouds for daytime sky.
-   * Same positions as night clouds but with white material.
+   *
+   * Uses MeshBasicMaterial (not MeshLambertMaterial) so cloud spheres are
+   * always pure white regardless of directional light direction.  With
+   * MeshLambertMaterial, faces turned away from the sun become grey —
+   * which is what caused the "grey blob" artefact (Bug 16, Task 2.3.1).
    *
    * Mobile perf: cap at 4 clouds on small viewports (< 768px).
    * Each cloud is 5 sphere draw calls, so skipping one saves ~5 draw calls/frame.
@@ -216,7 +221,8 @@ export class AtmosphereBuilder {
 
     configs.forEach(([x, y, z, s]) => {
       const group = new THREE.Group();
-      const material = new THREE.MeshLambertMaterial({ color: 0xFFFFFF });
+      // MeshBasicMaterial: unlit, always crisp white — no grey shading from sun angle
+      const material = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
 
       const blobs: [number, number][] = [
         [0, 0],
@@ -239,6 +245,46 @@ export class AtmosphereBuilder {
       group.position.set(x, y, z);
       scene.add(group);
     });
+  }
+
+  // ==========================================================================
+  // OUTER TERRAIN
+  // ==========================================================================
+
+  /**
+   * Add a large flat grass plane that extends beyond the fence on all sides.
+   *
+   * Without this, the scene background colour (sky blue) bleeds through
+   * underneath the fence — making it look like the garden is floating in the
+   * sky rather than sitting in a meadow.  The plane sits just below tile
+   * surface level so it seamlessly extends the green border slab outward.
+   *
+   * Dimensions: 50×50 world units (fence is ±5, so this extends ~20 units
+   * past the fence in each direction — well beyond any camera frustum crop).
+   *
+   * Using MeshLambertMaterial so it picks up sun + hemisphere lighting, which
+   * gives it a natural warmth that matches the tile colours.
+   */
+  private static addOuterTerrain(scene: THREE.Scene): void {
+    // Slightly muted meadow green — different from the dark border (0x0F2E0A)
+    // but cohesive with the garden palette.  A little yellow-green keeps it
+    // looking sunny rather than murky.
+    const terrainMaterial = new THREE.MeshLambertMaterial({ color: 0x4A7C2F });
+
+    const plane = new THREE.Mesh(
+      new THREE.PlaneGeometry(50, 50),
+      terrainMaterial,
+    );
+
+    // PlaneGeometry is XY — rotate 90° so it lies flat in the XZ plane
+    plane.rotation.x = -Math.PI / 2;
+
+    // Position just below tile surface so it doesn't z-fight with the border slab
+    // Tile top surface is at y=0; border slab top is at y ≈ -0.025; we go to -0.06
+    plane.position.set(0, -0.06, 0);
+    plane.receiveShadow = true;
+
+    scene.add(plane);
   }
 
   // ==========================================================================

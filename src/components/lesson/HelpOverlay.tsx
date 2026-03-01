@@ -21,6 +21,15 @@ import { requestHelp, HelpContext, HelpResponse } from '../../services/helpServi
 import { regenerateQuestion, RegenerationReason } from '../../services/questionRegenerationService';
 import type { LessonStep } from '../../types/game';
 import { useSounds } from '../../hooks/useSounds';
+// Google TTS — always use the highest quality Journey voices (Task 2.3.3 Bug 8).
+// Replaces the browser's native window.speechSynthesis which is robotic and
+// inconsistent with the rest of the lesson audio pipeline.
+import {
+  generateSpeech,
+  playAudio as playTTSAudio,
+  stopAudio as stopTTSAudio,
+} from '../../../services/ttsService';
+import type { TargetLanguage } from '../../../types';
 
 // ============================================
 // Web Speech API Type Declarations
@@ -171,9 +180,6 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({
   // Voice input reference
   const recognitionRef = useRef<WebSpeechRecognition | null>(null);
   
-  // Text-to-speech
-  const ttsRef = useRef<SpeechSynthesisUtterance | null>(null);
-  
   // ============================================
   // VOICE INPUT
   // ============================================
@@ -242,39 +248,45 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({
   // ============================================
   
   /**
-   * Speak the AI's response aloud for accessibility.
+   * Speak the AI's response aloud using Google Cloud TTS (Journey voice).
+   *
+   * Help responses are always in the user's native language (English by
+   * default). We resolve the language from the lessonContext so the correct
+   * Journey voice is selected — consistent with the rest of the lesson.
+   *
+   * Note: async fire-and-forget — errors are logged, never thrown.
    */
   const speakResponse = useCallback((text: string) => {
-    if (!('speechSynthesis' in window)) {
-      setState(prev => ({ ...prev, error: 'Text-to-speech not supported' }));
-      return;
-    }
-    
-    // Stop any ongoing speech
-    window.speechSynthesis.cancel();
-    
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.9; // Slightly slower for clarity
-    utterance.pitch = 1.1; // Slightly higher pitch for friendliness
-    
-    utterance.onend = () => {
-      setState(prev => ({ ...prev, isSpeaking: false }));
-    };
-    
-    utterance.onerror = () => {
-      setState(prev => ({ ...prev, isSpeaking: false }));
-    };
-    
-    ttsRef.current = utterance;
-    window.speechSynthesis.speak(utterance);
+    // Resolve the native language from lesson context (default: English)
+    const nativeLang: TargetLanguage =
+      (lessonContext?.userProfile?.nativeLanguage as TargetLanguage) ?? 'English';
+
+    // Stop anything currently playing before starting new audio
+    stopTTSAudio();
     setState(prev => ({ ...prev, isSpeaking: true }));
-  }, []);
-  
+
+    generateSpeech(text, { language: nativeLang, speakingRate: 0.9 })
+      .then(result => {
+        if (!result) {
+          console.warn('[HelpOverlay] TTS returned null — no audio to play');
+          setState(prev => ({ ...prev, isSpeaking: false }));
+          return;
+        }
+        return playTTSAudio(result.audioContent, () => {
+          setState(prev => ({ ...prev, isSpeaking: false }));
+        });
+      })
+      .catch(err => {
+        console.error('[HelpOverlay] TTS playback error:', err);
+        setState(prev => ({ ...prev, isSpeaking: false }));
+      });
+  }, [lessonContext]);
+
   /**
-   * Stop TTS playback.
+   * Stop TTS playback immediately.
    */
   const stopSpeaking = useCallback(() => {
-    window.speechSynthesis.cancel();
+    stopTTSAudio();
     setState(prev => ({ ...prev, isSpeaking: false }));
   }, []);
   
@@ -407,7 +419,8 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
-      window.speechSynthesis.cancel();
+      // Stop Google TTS on unmount — prevents orphaned audio after overlay closes
+      stopTTSAudio();
     };
   }, []);
   

@@ -10,6 +10,12 @@
  * - Stops audio cleanly on step change or unmount
  * - Never blocks lesson progress — audio failures are silent
  *
+ * Bug fixes (Task 2.3.3):
+ * - Bug 3: Added pregen-complete retry effect so step 0 auto-plays
+ *   even when pre-generation finishes after the initial 800ms timer
+ * - Bug 9: autoPlayQueuedForStepRef prevents double-play; the key prop
+ *   on AudioReplayButton in LessonView.tsx resets the spinner per-step
+ *
  * @module useLessonAudio
  * @see docs/phase-1.3-activity-improvements/task-2-tts-autoplay-caching.md
  */
@@ -137,7 +143,7 @@ function extractStepPhrase(step: LessonStep): string | null {
       return activity.targetSentence || null;
 
     case GameActivityType.MULTIPLE_CHOICE:
-    case GameActivityType.TRUE_FALSE:
+    case GameActivityType.TRUE_FALSE: {
       // For these, extract the target phrase from the question
       // Questions like: What does "Bonjour" mean? → extract "Bonjour"
       const question = activity.question || activity.statement || '';
@@ -151,6 +157,7 @@ function extractStepPhrase(step: LessonStep): string | null {
         }
       }
       return null;
+    }
 
     case GameActivityType.MATCHING:
       // Return the first pair's left side (target language)
@@ -260,7 +267,7 @@ export function useLessonAudio({
   // Audio map: chunk text → ChunkAudio
   const audioMapRef = useRef<Map<string, ChunkAudio>>(new Map());
 
-  // Track current step to detect changes
+  // Track current step to detect changes (sentinel: -1)
   const prevStepRef = useRef<number>(-1);
 
   // Auto-play timer ref for cleanup
@@ -268,6 +275,20 @@ export function useLessonAudio({
 
   // Track if component is mounted
   const isMountedRef = useRef(true);
+
+  /**
+   * Tracks the step index for which we have already queued an auto-play.
+   * Initialised to -2 (different from prevStepRef sentinel of -1)
+   * so step 0 is always a fresh candidate on first mount.
+   *
+   * Pattern:
+   * - When the step-change effect queues a play, it sets this to `currentStepIndex`.
+   * - The pregen-complete retry checks this ref. If it already equals
+   *   `currentStepIndex`, the initial timer beat pregen and we skip the retry.
+   * - If it doesn't match, pregen finished before/after the timer fired but
+   *   auto-play hasn't been queued yet — the retry fires.
+   */
+  const autoPlayQueuedForStepRef = useRef<number>(-2);
 
   // ──────────────────────────────────────────────────────────────
   // Pre-generate all lesson audio on mount
@@ -380,8 +401,11 @@ export function useLessonAudio({
     // Task 2.0.07: Play coaching text on ALL steps
     // coachingText is AI-generated intro text spoken by the NPC teacher
     const coachingText = extractCoachingText(currentStep);
-    
+
     if (coachingText) {
+      // Mark as queued so the pregen-complete retry doesn't double-play
+      autoPlayQueuedForStepRef.current = currentStepIndex;
+
       // Auto-play coaching text after delay (gives UI time to settle)
       autoPlayTimerRef.current = setTimeout(() => {
         if (isMountedRef.current) {
@@ -393,6 +417,9 @@ export function useLessonAudio({
       if (currentStep?.activity?.type === GameActivityType.INFO) {
         const phraseText = extractStepPhrase(currentStep);
         if (phraseText) {
+          // Mark as queued so the pregen-complete retry doesn't double-play
+          autoPlayQueuedForStepRef.current = currentStepIndex;
+
           autoPlayTimerRef.current = setTimeout(() => {
             if (isMountedRef.current) {
               playPhraseAudio(phraseText);
@@ -408,6 +435,60 @@ export function useLessonAudio({
       }
     };
   }, [currentStepIndex, autoPlay, autoPlayDelay, lesson.steps, playPhraseAudio]);
+
+  // ──────────────────────────────────────────────────────────────
+  // Pregen-complete retry — closes the step-0 race condition (Bug 3 fix)
+  //
+  // Race condition: on first render the step-change effect fires an
+  // auto-play timer at T+800ms, but audioMapRef may still be empty
+  // (pre-gen takes 1-3 s for a full lesson).  playPhraseAudio falls
+  // back to on-demand generation which works — UNLESS the API is slow
+  // or returns null, in which case step 0 silently gets no audio.
+  //
+  // When pre-generation finishes, check whether auto-play has already
+  // been queued for the current step.  If not, queue it now — the audio
+  // is in the map and will play immediately (no API call needed).
+  //
+  // autoPlayQueuedForStepRef is the guard:
+  //   - If it equals currentStepIndex → the 800ms timer already queued
+  //     a play before pregen finished.  Skip to avoid double-play.
+  //   - Otherwise → pregen beat the timer (or timer failed).  Play now.
+  // ──────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!isPregenComplete || !autoPlay) return;
+
+    // Already queued a play for this step index — don't double-play
+    if (autoPlayQueuedForStepRef.current === currentStepIndex) return;
+
+    const currentStep = lesson.steps[currentStepIndex];
+    if (!currentStep) return;
+
+    // Determine the text to play (same priority as the step-change effect)
+    const coachingText = extractCoachingText(currentStep);
+    const isInfoStep = currentStep.activity?.type === GameActivityType.INFO;
+    const phraseText = extractStepPhrase(currentStep);
+
+    const textToPlay = coachingText || (isInfoStep ? phraseText : null);
+    if (!textToPlay) return;
+
+    // Mark queued and schedule play — audio is in the map so latency is ~0
+    autoPlayQueuedForStepRef.current = currentStepIndex;
+
+    autoPlayTimerRef.current = setTimeout(() => {
+      if (isMountedRef.current) {
+        playPhraseAudio(textToPlay);
+      }
+    }, 300); // Short delay so UI has settled before audio starts
+
+    return () => {
+      if (autoPlayTimerRef.current) {
+        clearTimeout(autoPlayTimerRef.current);
+      }
+    };
+    // Intentionally narrow deps: only fires once when pregen completes.
+    // currentStepIndex et al. are accessed via closure refs, not reactive state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPregenComplete]);
 
   // ──────────────────────────────────────────────────────────────
   // Cleanup on unmount
