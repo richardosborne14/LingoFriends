@@ -18,6 +18,7 @@ import { SunDropBurst } from './SunDropBurst';
 import { PenaltyBurst } from './PenaltyBurst';
 import { SunDropCounter } from './SunDropCounter';
 import { LessonComplete } from './LessonComplete';
+import { LessonIntroCard } from './LessonIntroCard';
 import { ActivityRouter, ActivityProps } from './activities/ActivityRouter';
 import { ProgressBar } from '../../../components/ui/ProgressBar';
 import { LessonPlan, LessonStep } from '../../types/game';
@@ -155,6 +156,21 @@ export const LessonView: React.FC<LessonViewProps> = ({
     isRegenerating: false,
     steps: lesson.steps, // Store mutable copy of steps for regeneration
   }));
+
+  /**
+   * Task 2.3.4 — Lesson Intro Card gate.
+   *
+   * Show the LessonIntroCard before any lesson steps if introChunks
+   * are present on the lesson plan. This is a separate boolean (not part
+   * of LessonState) because it's a one-shot gate, not lesson progress.
+   *
+   * Initialised eagerly: true if the lesson has intro data, false otherwise.
+   * Falls back to false for legacy lessons that lack introChunks — those
+   * start directly at step 0, same as before this feature existed.
+   */
+  const [showIntroCard, setShowIntroCard] = useState<boolean>(
+    () => !!(lesson.introChunks && lesson.introChunks.length > 0)
+  );
 
   // Track start time for session duration reporting to learnerProfileService.
   // useRef so it doesn't trigger re-renders and survives across state updates.
@@ -481,9 +497,14 @@ export const LessonView: React.FC<LessonViewProps> = ({
   /**
    * Handle replaying the lesson.
    * Reset start time so replay duration is measured correctly.
+   * Also re-shows the intro card so the learner sees the phrase list again.
    */
   const handleReplay = useCallback(() => {
     lessonStartTimeRef.current = Date.now();
+    // Re-show the intro card if the lesson has one
+    if (lesson.introChunks && lesson.introChunks.length > 0) {
+      setShowIntroCard(true);
+    }
     setState({
       currentStepIndex: 0,
       sunDropsEarned: 0,
@@ -495,11 +516,45 @@ export const LessonView: React.FC<LessonViewProps> = ({
       isRegenerating: false,
       steps: lesson.steps, // Reset to original steps
     });
-  }, [lesson.steps]);
+  }, [lesson.steps, lesson.introChunks]);
 
   // ============================================
   // RENDER
   // ============================================
+
+  /**
+   * Task 2.3.4 — Lesson intro card gate.
+   *
+   * Shown before step 0 when the lesson has introChunks.
+   * Gives learners a mental map of what they're about to learn.
+   * Not part of SunDrop progression — purely orientation.
+   *
+   * onStart dismisses the card and begins the first INFO step.
+   * onSkip also dismisses — for returning learners who know the content.
+   */
+  if (showIntroCard && lesson.introChunks && lesson.introChunks.length > 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-green-50 to-amber-50 px-4 py-8">
+        {/* Close / exit button in corner */}
+        <div className="absolute top-4 left-4">
+          <button
+            style={CLOSE_BUTTON_STYLE}
+            onClick={onExit}
+            aria-label="Close lesson"
+          >
+            ×
+          </button>
+        </div>
+
+        <LessonIntroCard
+          lessonTitle={lesson.title}
+          chunks={lesson.introChunks}
+          onStart={() => setShowIntroCard(false)}
+          onSkip={() => setShowIntroCard(false)}
+        />
+      </div>
+    );
+  }
 
   // Show completion screen if lesson is done
   if (state.isComplete) {

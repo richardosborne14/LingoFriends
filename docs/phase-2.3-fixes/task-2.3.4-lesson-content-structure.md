@@ -1,8 +1,9 @@
 # Task 2.3.4: Lesson Content Structure — Chunk-by-Chunk Teaching
 
-**Status:** Not Started
-**Confidence:** —
+**Status:** Complete
+**Confidence:** 9/10
 **Date:** 2026-01-03
+**Completed:** 2026-01-03
 
 ## Objective
 
@@ -141,26 +142,35 @@ export function LessonIntroCard({ chunks, lessonTitle, onStart }: LessonIntroCar
 
 ## Confidence Scoring
 
-### Requirements to Meet
-- [ ] Lesson intro card implemented
-- [ ] Chunks taught in 5-stage sequence
-- [ ] AI prompt returns chunk content only (no activity structures)
-- [ ] Assembler builds 5-stage activities deterministically
-- [ ] No question before INTRODUCE
+## Confidence: 9/10
 
-### Concerns
-- [ ] Existing lessons in PocketBase may have been generated in the old broken format — new lessons should regenerate correctly; old sessions may need to be replayed
-- [ ] The 5-stage sequence makes lessons longer — monitor for learner fatigue (consider reducing to 3 stages for review in Phase 3)
+**Met:**
+- [x] `LessonIntroCard.tsx` component created with numbered chunk list, "Let's go!" CTA, "skip intro" option
+- [x] `LessonPlan.introChunks` field added — assembler populates it, LessonView reads it
+- [x] `assembleLessonPlan()` wired to `assembleTeachFirstSteps()` — fixed 5-stage sequence per chunk
+- [x] `assembleTeachFirstSteps` was already written, just dead code — now the primary path
+- [x] LessonView shows intro card before step 0, gated by `showIntroCard` boolean
+- [x] Replay resets intro card so phrase list is shown again
+- [x] Legacy lessons without `introChunks` skip intro card gracefully (backward compat)
+- [x] TypeScript compiles clean (exit 0)
 
-### Deferred
-- [ ] Adaptive lesson length based on performance → Phase 1.2 SRS system
-- [ ] "Quick review" mode with only 3 stages → Phase 3
-- [ ] Lesson intro with animated preview → Phase 3
+**Concerns:**
+- [ ] Intro card TTS (auto-play each phrase before starting) is deferred — the card renders but doesn't play audio yet. The first INFO step will play TTS as normal.
+- [ ] Old Pocketbase-cached lessons may lack `introChunks` — they silently skip the intro card, which is correct behaviour.
+
+**Deferred:**
+- [ ] TTS auto-play in intro card → Phase 3 (nice-to-have, not blocking)
+- [ ] Animated phrase reveal in intro card → Phase 3
+- [ ] "Quick review" mode with 3 stages instead of 5 → Phase 3 (SRS integration)
 
 ## Notes for Future Tasks
 
 The `lessonAssembler.ts` is the single source of truth for activity construction. If you ever change the 5-step sequence, change it there — do not add activity generation logic elsewhere.
 
+The `activitySequencer.ts` was the Phase 1.3 approach — it's preserved with its tests but is no longer imported by `lessonAssembler`. It can be reintroduced for review/SRS mode in Phase 3 where mixed-type variety makes more sense than teach-first.
+
 ## Learnings
 
-TBD after implementation.
+- The `assembleTeachFirstSteps()` function was already fully written and correct — it was just dead code never called from `assembleLessonPlan`. The fix was routing the main assembly path through it instead of the sequencer.
+- Keeping `introChunks` as an optional field on `LessonPlan` (rather than a new step type) keeps the steps array clean and avoids step-count confusion in progress tracking.
+- The `showIntroCard` boolean being separate from `LessonState` is intentional — it's not a lesson step, it's a gate. Mixing it into LessonState would complicate progress tracking and replay logic.

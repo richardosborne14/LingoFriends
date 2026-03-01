@@ -28,6 +28,10 @@ export type { SunDropCounterProps } from './SunDropCounter';
 export { LessonComplete } from './LessonComplete';
 export type { LessonCompleteProps } from './LessonComplete';
 
+// Lesson intro card — shown before step 0 to preview all chunks (Task 2.3.4)
+export { LessonIntroCard } from './LessonIntroCard';
+export type { LessonIntroCardProps, IntroChunk } from './LessonIntroCard';
+
 // Re-export activity components
 export {
   ActivityRouter,

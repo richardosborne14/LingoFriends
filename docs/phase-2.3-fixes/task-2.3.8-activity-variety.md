@@ -1,8 +1,9 @@
 # Task 2.3.8: Fix Activity Variety & Teach-First Progression
 
-**Status:** Not Started
-**Confidence:** —
+**Status:** Complete
+**Confidence:** 9/10
 **Date:** 2026-01-03
+**Completed:** 2026-01-03
 
 ## Objective
 
@@ -157,26 +158,33 @@ For each phrase/chunk, provide:
 
 ## Confidence Scoring
 
-### Requirements to Meet
-- [ ] 5-stage sequence enforced per chunk
-- [ ] RECOGNIZE and APPLY are meaningfully different question types
-- [ ] AI prompt requests full chunk content (distractors + usage context)
-- [ ] Assembler builds all 5 stages deterministically
-- [ ] TRUE_FALSE removed from mandatory rotation
+## Confidence: 9/10
 
-### Concerns
-- [ ] If the AI doesn't return `usageContext` or `usageDistractors`, the APPLY step will fail validation — need robust fallback
-- [ ] Some short phrases (1–2 words) may not lend themselves to a meaningful FILL_BLANK — handle edge cases
+**Met:**
+- [x] `assembleLessonPlan()` now uses `assembleTeachFirstSteps()` — fixed 5-stage sequence per chunk
+- [x] Each chunk gets exactly: INFO → MC(meaning) → FILL_BLANK → TRANSLATE → MC(usage)
+- [x] RECOGNIZE and APPLY use completely different question text AND different options (translation distractors vs. situational distractors) — they were already in the codebase via `buildRecognizeStep` and `buildApplyStep`
+- [x] TRUE_FALSE removed from mandatory lesson sequence (still available as a builder function for future review mode)
+- [x] `aiPedagogyClient.ts` already requests `distractors`, `correctUsageContext`, `wrongUsageContexts` — AI prompt was already correct
+- [x] TypeScript compiles clean
 
-### Deferred
-- [ ] TRUE_FALSE in spaced-repetition review rounds → Phase 1.2 SRS
-- [ ] MATCHING_PAIRS activity for vocabulary review → Phase 3
-- [ ] WORD_ARRANGE for complex sentence construction → Phase 3
+**Concerns:**
+- [ ] FILL_BLANK always blanks the last word ("Guten ___"), which may be trivially easy for very short phrases — a future improvement could blank the most semantically rich word. Not blocking for now.
+- [ ] A 3-chunk lesson is now 15 steps long, which may fatigue young learners. Monitoring needed. Consider 3-stage option for review mode (Phase 3).
+
+**Deferred:**
+- [ ] `lessonValidator.ts` assertion that no two consecutive same-type activities appear for the same chunk → Phase 3 regression guard
+- [ ] Intelligent blank selection (blank the key verb, not just the last word) → Phase 3
+- [ ] TRUE_FALSE and MATCHING for SRS review rounds → Phase 3
 
 ## Notes for Future Tasks
 
-The `lessonValidator.ts` should be updated to assert that no two consecutive activities of the same type appear for the same chunk. This prevents regressions.
+The root cause of repetitiveness was the `activitySequencer` being applied globally across all chunks rather than per-chunk. The global approach allowed the same type (e.g., MULTIPLE_CHOICE) to appear at position 2 AND position 4 for the same chunk. The fix was switching to the fixed per-chunk 5-step sequence.
+
+The `activitySequencer.ts` is preserved with full tests — it can still be useful for constructing varied review sessions where the learner has already learned all the chunks and variety matters more than strict teach-first ordering.
 
 ## Learnings
 
-TBD after implementation.
+- **Diagnosis insight**: The Phase 1.3 sequencer was architected well (it correctly prevents *consecutive* duplicates globally) but the wrong unit of analysis. Pedagogy requires no duplicates *within a single chunk's steps*, not globally. The sequencer could have produced `MC → FB → MC` on chunks 1-2-1 respectively, which globally looks fine but chunk 1 gets MC twice.
+- **Fix simplicity**: The teach-first functions (`buildRecognizeStep`, `buildApplyStep`, etc.) were already fully implemented — this was a routing fix, not a new implementation.
+- **Distinct MC questions**: `buildRecognizeStep` and `buildApplyStep` produce meaningfully different questions because they use different fields (`nativeTranslation`/`distractors` vs `correctUsageContext`/`wrongUsageContexts`). The AI was already providing all four fields. No AI prompt changes were needed.

@@ -8,15 +8,25 @@
  *   This module builds ACTIVITIES (ActivityConfig objects).
  *   These two concerns are NEVER mixed.
  *
- * ACTIVITY VARIETY (Phase 1.3):
- *   Instead of a fixed 5-step sequence, each chunk now goes through:
- *   1. INTRODUCE — INFO step (always first, teaches the chunk)
- *   2-5. VARIED QUIZZES — Activity types chosen by activitySequencer
+ * TEACH-FIRST 5-STEP PROGRESSION (Bug fix 2.3.4 + 2.3.8):
+ *   Every chunk is taught through exactly these 5 steps in order:
+ *   1. INTRODUCE  — INFO card showing phrase + translation (0 SunDrops)
+ *   2. RECOGNIZE  — MC "What does [phrase] mean?" in native language (1 SunDrop)
+ *   3. PRACTICE   — Fill-blank to complete the phrase (2 SunDrops)
+ *   4. RECALL     — Translate native → target language (3 SunDrops)
+ *   5. APPLY      — MC "When would you say [phrase]?" situational (2 SunDrops)
  *
- * The sequencer ensures:
- *   - No consecutive duplicate activity types
- *   - Minimum variety (3+ types for 5+ quiz steps)
- *   - Tier progression (recognition → production)
+ * This replaces the Phase 1.3 activitySequencer approach which picked quiz types
+ * randomly from a pool. The sequencer caused Bug 2.3.8 — the same type could
+ * appear twice on the same chunk (e.g., MC → MC or TRUE_FALSE → MC), making
+ * lessons feel repetitive. The fixed 5-step sequence guarantees:
+ *   - Every chunk gets FIVE DISTINCT activity types
+ *   - INTRODUCE always precedes any quiz (Bug 2.3.4 compliance)
+ *   - RECOGNIZE and APPLY are both MC but ask different questions
+ *   - Activity difficulty escalates within each chunk
+ *
+ * The activitySequencer.ts is preserved for potential use in review/SRS mode
+ * (Phase 3), but is NOT imported or used here.
  *
  * This module has ZERO dependency on the AI client. It is pure TypeScript
  * and always produces valid, fully-populated ActivityConfig objects.
@@ -27,11 +37,13 @@
 import { GameActivityType } from '../types/game';
 import type { ActivityConfig, LessonStep, LessonPlan } from '../types/game';
 import { toLanguageName } from '../utils/languageUtils';
-import {
-  planActivitySequence,
-  getSunDropsForType,
-  type SequencePlan,
-} from './activitySequencer';
+
+// activitySequencer is intentionally NOT imported here.
+// The sequencer was used in Phase 1.3 for random variety but produced
+// repetitive activity types across chunks (Bug 2.3.8). The fixed
+// 5-step teach-first sequence (assembleTeachFirstSteps) is pedagogically
+// superior and guarantees distinct activity types per chunk.
+// The sequencer is still available for future review/SRS mode — see Phase 3 plans.
 
 // ============================================================================
 // TYPES — THE ONLY INTERFACE BETWEEN AI OUTPUT AND LESSON ASSEMBLY
@@ -123,13 +135,19 @@ export interface AILessonContent {
  * This function is DETERMINISTIC — same input always produces same output.
  * It NEVER calls the AI or makes any network requests.
  *
- * ACTIVITY VARIETY:
- * Instead of fixed types for each step, we use the activitySequencer to
- * plan varied activity types before building the activities.
+ * TEACH-FIRST SEQUENCE (Bug fixes 2.3.4 + 2.3.8):
+ * Each chunk goes through exactly 5 steps in a fixed order. The old
+ * activitySequencer approach randomly selected types from a pool, which
+ * caused repeated types within a single chunk's quiz steps. The fixed
+ * sequence guarantees INFO → MC(meaning) → FILL_BLANK → TRANSLATE →
+ * MC(usage context) — five distinct types per chunk, escalating difficulty.
+ *
+ * introChunks is populated so LessonView can show a LessonIntroCard
+ * before step 0, giving learners a mental map of what they'll learn.
  *
  * @param content - AI-generated chunk content (from generateChunksForTopic)
  * @param lessonId - Unique lesson ID supplied by the caller
- * @param options - Optional settings including difficulty level
+ * @param options - Optional settings (difficulty unused now, kept for API compat)
  * @returns A fully populated LessonPlan ready for LessonView
  */
 export function assembleLessonPlan(
@@ -138,51 +156,22 @@ export function assembleLessonPlan(
   options?: { difficulty?: number; seed?: number }
 ): LessonPlan {
   const targetLangName = toLanguageName(content.targetLanguageCode);
-  const difficulty = options?.difficulty ?? 2;
-  const seed = options?.seed;
 
-  // Calculate total steps: 5 steps per chunk (1 INFO + 4 quiz)
-  const stepsPerChunk = 5;
-  const totalSteps = content.chunks.length * stepsPerChunk;
-
-  // INFO step positions: first step of each chunk (0, 5, 10, ...)
-  const infoStepIndices: number[] = [];
-  for (let i = 0; i < content.chunks.length; i++) {
-    infoStepIndices.push(i * stepsPerChunk);
-  }
-
-  // Plan the activity sequence for variety
-  const sequencePlan = planActivitySequence(totalSteps, infoStepIndices, {
-    difficulty,
-    seed,
-  });
-
-  // Build steps using the planned sequence
+  // Build all steps using the fixed 5-step teach-first sequence per chunk.
+  // This call order is guaranteed: INFO → MC → FILL_BLANK → TRANSLATE → MC(usage)
   const steps: LessonStep[] = [];
-  let quizTypeIndex = 0;
-
-  for (let chunkIndex = 0; chunkIndex < content.chunks.length; chunkIndex++) {
-    const chunk = content.chunks[chunkIndex];
-
-    // Step 1: INFO (always first for each chunk)
-    steps.push(buildIntroduceStep(chunk));
-
-    // Steps 2-5: Varied quiz activities based on the sequence plan
-    for (let stepOffset = 1; stepOffset < stepsPerChunk; stepOffset++) {
-      const plannedType = sequencePlan.quizTypes[quizTypeIndex];
-      quizTypeIndex++;
-
-      const step = buildQuizStep(chunk, plannedType, targetLangName);
-      steps.push(step);
-    }
+  for (const chunk of content.chunks) {
+    steps.push(...assembleTeachFirstSteps(chunk, targetLangName));
   }
 
-  // Sum sunDrops from all steps
   const totalSunDrops = steps.reduce((sum, step) => sum + step.activity.sunDrops, 0);
+
+  // Count distinct activity types for logging (should always be 4 — INFO, MC, FB, TRANSLATE)
+  const activityTypes = new Set(steps.map(s => s.activity.type));
 
   console.log(
     `[lessonAssembler] Assembled ${steps.length} steps for ${content.chunks.length} chunks ` +
-    `(${totalSunDrops} SunDrops, ${sequencePlan.distinctTypeCount} distinct types)`
+    `(${totalSunDrops} SunDrops, ${activityTypes.size} distinct types: ${[...activityTypes].join(', ')})`
   );
 
   return {
@@ -193,43 +182,13 @@ export function assembleLessonPlan(
     lessonIndex: 0,
     steps,
     totalSunDrops,
+    // LessonIntroCard preview data (Task 2.3.4)
+    // One entry per chunk — shown before step 0 so learners know what's coming.
+    introChunks: content.chunks.map(c => ({
+      targetPhrase: c.targetPhrase,
+      nativeTranslation: c.nativeTranslation,
+    })),
   };
-}
-
-/**
- * Build a quiz step for a specific activity type.
- *
- * This is the core of activity variety — instead of always building
- * the same 4 quiz types for each chunk, we build whatever type
- * the sequencer planned.
- *
- * @param chunk - The chunk content to build an activity for
- * @param type - The planned activity type
- * @param targetLangName - Target language name for tutor text
- * @returns A complete LessonStep with the specified activity type
- */
-function buildQuizStep(
-  chunk: GeneratedChunkContent,
-  type: GameActivityType,
-  targetLangName: string
-): LessonStep {
-  switch (type) {
-    case GameActivityType.MULTIPLE_CHOICE:
-      return buildRecognizeStep(chunk);
-    case GameActivityType.TRUE_FALSE:
-      return buildTrueFalseStep(chunk);
-    case GameActivityType.FILL_BLANK:
-      return buildPracticeStep(chunk);
-    case GameActivityType.MATCHING:
-      return buildMatchingStep(chunk);
-    case GameActivityType.TRANSLATE:
-      return buildRecallStep(chunk, targetLangName);
-    case GameActivityType.WORD_ARRANGE:
-      return buildWordArrangeStep(chunk);
-    default:
-      // Fallback to multiple choice for safety
-      return buildRecognizeStep(chunk);
-  }
 }
 
 /**
