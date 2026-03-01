@@ -102,7 +102,7 @@ export const HelpPanel: React.FC<{
     className="bg-sky-50 border-2 border-sky-200 rounded-xl p-3 mb-3 relative"
   >
     <div className="flex gap-2">
-      <span className="text-lg flex-shrink-0">🐦</span>
+      {/* 2.3.11: Pigeon emoji removed — no character icon in help panel */}
       <p className="font-semibold text-sm text-slate-700 leading-relaxed flex-1">
         {text}
       </p>

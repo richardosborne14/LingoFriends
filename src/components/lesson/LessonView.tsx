@@ -224,7 +224,7 @@ export const LessonView: React.FC<LessonViewProps> = ({
    * - Celebration fanfare on lesson complete
    * - Skip whoosh when skipping a question
    */
-  const { playReward, playPenalty, playCelebrate, playSkip, unlock } = useSounds();
+  const { playReward, playPenalty, playSkip, unlock } = useSounds();
 
   // Unlock audio context on first user interaction (iOS Safari requirement).
   // Browsers block audio until a user gesture — this one-time listener catches
@@ -245,15 +245,10 @@ export const LessonView: React.FC<LessonViewProps> = ({
     };
   }, [unlock]);
 
-  // 2.3.12: Play celebration fanfare when lesson completes.
-  // Fires exactly once — when isComplete transitions false → true.
-  // Separate effect so it doesn't couple with the render path or animations.
-  useEffect(() => {
-    if (state.isComplete) {
-      playCelebrate();
-    }
-    // playCelebrate is stable (useCallback in useSounds), so this only fires on isComplete change
-  }, [state.isComplete, playCelebrate]);
+  // Celebration sound is played by LessonComplete itself on mount.
+  // DO NOT call playCelebrate() here — that would fire it twice because
+  // LessonComplete has its own useEffect(() => playCelebrate(), []) on mount.
+  // Owner: LessonComplete.tsx is the single source of truth for celebrate sound.
 
   // ============================================
   // HANDLERS

@@ -55,45 +55,52 @@ interface SoundState {
 // SOUND MANIFEST
 // ============================================================================
 
-/** All sounds with their configurations */
+/**
+ * All sounds with their configurations.
+ *
+ * 2.3.12: Updated to .wav — the .mp3 files were 162-byte empty placeholders
+ * downloaded from dead Freesound CDN URLs. Real WAV files were synthesised
+ * via scripts/generate-sounds.cjs (PCM sine-wave tones, no npm deps).
+ * Web Audio's decodeAudioData() handles WAV natively and efficiently.
+ */
 const SOUND_MANIFEST: Record<SoundId, SoundConfig> = {
   reward: {
-    src: '/sounds/reward.mp3',
+    src: '/sounds/reward.wav',
     volume: 0.8,
     loop: false,
   },
   celebrate: {
-    src: '/sounds/celebrate.mp3',
+    src: '/sounds/celebrate.wav',
     volume: 0.7,
     loop: false,
   },
   penalty: {
-    src: '/sounds/penalty.mp3',
+    src: '/sounds/penalty.wav',
     volume: 0.5,
     loop: false,
   },
   footstep: {
-    src: '/sounds/footstep.mp3',
+    src: '/sounds/footstep.wav',
     volume: 0.3,
     loop: true,
   },
   skip: {
-    src: '/sounds/skip.mp3',
+    src: '/sounds/skip.wav',
     volume: 0.5,
     loop: false,
   },
   tap: {
-    src: '/sounds/tap.mp3',
+    src: '/sounds/tap.wav',
     volume: 0.4,
     loop: false,
   },
   levelup: {
-    src: '/sounds/levelup.mp3',
+    src: '/sounds/levelup.wav',
     volume: 0.8,
     loop: false,
   },
   npcGreet: {
-    src: '/sounds/npc-greet.mp3',
+    src: '/sounds/npc-greet.wav',
     volume: 0.6,
     loop: false,
   },

@@ -244,7 +244,6 @@ export const WordArrange: React.FC<WordArrangeProps> = ({
           className="bg-sky-50 border-2 border-sky-200 rounded-xl p-3 mb-3 relative"
         >
           <div className="flex gap-2">
-            <span className="text-lg flex-shrink-0">🐦</span>
             <p className="font-semibold text-sm text-slate-700 leading-relaxed flex-1">{helpText}</p>
           </div>
           <button onClick={handleCloseHelp} className="absolute top-2 right-2 text-slate-400 hover:text-slate-600">✕</button>
