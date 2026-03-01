@@ -141,13 +141,27 @@ export function buildAvatar(options: AvatarOptions = DEFAULT_AVATAR): THREE.Grou
   group.add(rightEyeGroup);
   
   // ===== MOUTH =====
-  // Sphere-based mouth that scales nicely for TTS lip-sync
-  // More visible than a thin box
-  const mouthGeometry = new THREE.SphereGeometry(0.035, 8, 6);
-  const mouth = new THREE.Mesh(mouthGeometry, blackMaterial);
+  // Wide pink oval — clearly readable as a smile at garden zoom levels.
+  //
+  // The previous mouth (black sphere, radius 0.035) was invisible at runtime:
+  //   - black on dark skin looked like a shadow, not a feature
+  //   - 0.035 radius is smaller than one eye — far too small
+  //
+  // Fix:
+  //   - Rose-pink material (#E8738A) — clearly a mouth, not a shadow
+  //   - Larger sphere (0.048) and wide horizontal scale (1.8×) so it reads as
+  //     a smile even at the isometric camera distance
+  //   - Moved slightly forward (+z) so it doesn't sink into the head surface
+  const mouthPinkMaterial = new THREE.MeshToonMaterial({
+    color: 0xE8738A,
+    emissive: 0xE8738A,
+    emissiveIntensity: 0.05,
+  });
+  const mouthGeometry = new THREE.SphereGeometry(0.048, 10, 8);
+  const mouth = new THREE.Mesh(mouthGeometry, mouthPinkMaterial);
   mouth.name = 'mouth';
-  mouth.position.set(0, HEAD_Y - 0.1, eyeZ - 0.02);
-  mouth.scale.set(1.2, 0.6, 0.5); // Wider than tall (cute smile shape)
+  mouth.position.set(0, HEAD_Y - 0.095, eyeZ + 0.005);
+  mouth.scale.set(1.8, 0.7, 0.5); // Wide smile shape
   group.add(mouth);
   
   // ===== Hair =====
@@ -246,8 +260,15 @@ export function buildAvatar(options: AvatarOptions = DEFAULT_AVATAR): THREE.Grou
 // ============================================================================
 
 /**
- * Build a 3D eye assembly (sclera + iris + pupil).
- * More expressive than flat planes.
+ * Build a 3D eye assembly (sclera + iris + pupil + glint).
+ *
+ * The glint (tiny white highlight) is the single biggest factor in making
+ * cartoon eyes look alive vs dead. Without it, even correctly-sized eyes
+ * look blank and "staring". With it, the character immediately feels present.
+ *
+ * Pupil-to-iris ratio: 0.022 / 0.034 ≈ 65% — the chibi "cute" ratio.
+ * Human eyes are ~40%. At 47% (old value) they look intense; at 65% they
+ * look friendly and approachable — the target aesthetic for a kids' app.
  */
 function buildEye(
   scleraMaterial: THREE.Material,
@@ -255,24 +276,34 @@ function buildEye(
   pupilMaterial: THREE.Material
 ): THREE.Group {
   const eyeGroup = new THREE.Group();
-  
+
   // White sclera (outer sphere)
   const scleraGeometry = new THREE.SphereGeometry(0.048, 8, 6);
   const sclera = new THREE.Mesh(scleraGeometry, scleraMaterial);
   eyeGroup.add(sclera);
-  
-  // Colored iris (forward-facing hemisphere)
-  const irisGeometry = new THREE.SphereGeometry(0.032, 8, 6);
+
+  // Colored iris — slightly larger than before to soften the contrast with the sclera
+  const irisGeometry = new THREE.SphereGeometry(0.034, 8, 6);
   const iris = new THREE.Mesh(irisGeometry, irisMaterial);
-  iris.position.z = 0.025;
+  iris.position.z = 0.022;
   eyeGroup.add(iris);
-  
-  // Black pupil (small forward-facing sphere)
-  const pupilGeometry = new THREE.SphereGeometry(0.015, 6, 4);
+
+  // Pupil — 65% of iris radius for chibi "big pupil" look
+  // Old value 0.015 produced an intense, shark-like stare.
+  const pupilGeometry = new THREE.SphereGeometry(0.022, 8, 6);
   const pupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
-  pupil.position.z = 0.045;
+  pupil.position.z = 0.040;
   eyeGroup.add(pupil);
-  
+
+  // Glint — tiny white highlight that makes the eye look alive.
+  // Without this, chibi characters look vacant/creepy.
+  // Positioned top-left of the pupil surface.
+  const glintMaterial = new THREE.MeshToonMaterial({ color: 0xFFFFFF });
+  const glintGeometry = new THREE.SphereGeometry(0.007, 5, 4);
+  const glint = new THREE.Mesh(glintGeometry, glintMaterial);
+  glint.position.set(-0.008, 0.010, 0.052);
+  eyeGroup.add(glint);
+
   return eyeGroup;
 }
 
@@ -398,11 +429,14 @@ function addHair(
     const strandGeometry = new THREE.CylinderGeometry(0.045, 0.04, 0.36, 8);
     
     const leftStrand = new THREE.Mesh(strandGeometry, hairMaterial);
-    leftStrand.position.set(-headRadius * 0.82, hairY - 0.12, 0);
+    // 1.05× head radius places strands at the outer edge of the head sphere,
+    // preventing them from intersecting / clipping through the side of the head.
+    // Old value 0.82× was inside the head radius and visibly clipped.
+    leftStrand.position.set(-headRadius * 1.05, hairY - 0.12, 0);
     group.add(leftStrand);
-    
+
     const rightStrand = new THREE.Mesh(strandGeometry, hairMaterial);
-    rightStrand.position.set(headRadius * 0.82, hairY - 0.12, 0);
+    rightStrand.position.set(headRadius * 1.05, hairY - 0.12, 0);
     group.add(rightStrand);
   }
 }

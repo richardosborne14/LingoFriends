@@ -163,6 +163,11 @@ function extractStepPhrase(step: LessonStep): string | null {
       // Return the first pair's left side (target language)
       return activity.pairs?.[0]?.left || null;
 
+    case GameActivityType.COACHING_CHAT:
+      // For coaching steps, return the target phrase for replay button
+      // The coaching monologue itself is handled separately in extractAllAudioPhrases
+      return (activity as any).targetPhrase || null;
+
     default:
       return null;
   }
@@ -201,14 +206,20 @@ function extractAllAudioPhrases(
   const seen = new Set<string>();
 
   for (const step of lesson.steps) {
-    // Add coaching text (in native language - will use native language TTS)
+    // Add coaching text for pre-generation.
+    //
+    // PHASE 3 RULE 9: ALL lesson TTS uses the TARGET language voice.
+    // Even though coaching text is written in the native language with
+    // target language examples embedded, we use the target language voice.
+    // This produces perfect pronunciation of the target language words,
+    // and a charming accent on native language words — exactly what we want.
+    // The ONLY exception is the Help chat, which is not lesson audio.
     const coachingText = extractCoachingText(step);
     if (coachingText && !seen.has(coachingText)) {
       seen.add(coachingText);
-      // Coaching text uses native language voice
       phrases.push({
         text: coachingText,
-        language: 'English', // Will be overridden by actual native language
+        language, // ← ALWAYS target language voice (Phase 3, Rule 9)
         chunkId: `coaching-${lesson.steps.indexOf(step)}`,
       });
     }

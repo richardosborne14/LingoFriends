@@ -159,18 +159,17 @@ export const LessonView: React.FC<LessonViewProps> = ({
 
   /**
    * Task 2.3.4 — Lesson Intro Card gate.
-   *
-   * Show the LessonIntroCard before any lesson steps if introChunks
-   * are present on the lesson plan. This is a separate boolean (not part
-   * of LessonState) because it's a one-shot gate, not lesson progress.
-   *
-   * Initialised eagerly: true if the lesson has intro data, false otherwise.
-   * Falls back to false for legacy lessons that lack introChunks — those
-   * start directly at step 0, same as before this feature existed.
    */
   const [showIntroCard, setShowIntroCard] = useState<boolean>(
     () => !!(lesson.introChunks && lesson.introChunks.length > 0)
   );
+
+  /**
+   * Task 2.3.6 — Track whether the learner has opened help at least once.
+   * Used to stop the pulse animation on the Help button after first use,
+   * so it doesn't keep pulsing once the child knows where it is.
+   */
+  const [hasUsedHelp, setHasUsedHelp] = useState(false);
 
   // Track start time for session duration reporting to learnerProfileService.
   // useRef so it doesn't trigger re-renders and survives across state updates.
@@ -596,14 +595,19 @@ export const LessonView: React.FC<LessonViewProps> = ({
           <ProgressBar value={progress} max={100} size="sm" />
         </div>
 
-        {/* Help button - Task 2.0.07 */}
-        <button
-          onClick={() => setState(prev => ({ ...prev, showHelp: true }))}
-          className="mr-2 p-2 text-xl hover:bg-stone-100 rounded-full transition-colors"
+        {/* Help button — Task 2.3.6: prominent labelled button with pulse until first use */}
+        <motion.button
+          onClick={() => {
+            setState(prev => ({ ...prev, showHelp: true }));
+            setHasUsedHelp(true);
+          }}
+          animate={hasUsedHelp ? {} : { scale: [1, 1.07, 1] }}
+          transition={{ duration: 1.8, repeat: Infinity, repeatDelay: 4, ease: 'easeInOut' }}
+          className="mr-2 flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 text-amber-700 rounded-full font-semibold text-sm hover:bg-amber-100 transition-colors"
           aria-label="Get help"
         >
-          💬
-        </button>
+          💬 <span>Help</span>
+        </motion.button>
 
         {/* Sun Drop counter */}
         <SunDropCounter 
@@ -685,6 +689,13 @@ export const LessonView: React.FC<LessonViewProps> = ({
               onComplete={handleActivityComplete}
               onWrong={handleWrongAnswer}
               onSkip={handleSkip}
+              onReport={handleReport}
+              isReporting={state.isRegenerating}
+              targetLanguage={targetLanguage}
+              onOpenHelp={() => {
+                setState(prev => ({ ...prev, showHelp: true }));
+                setHasUsedHelp(true);
+              }}
             />
           </motion.div>
         )}

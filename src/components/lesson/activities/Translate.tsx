@@ -12,6 +12,28 @@ import { motion } from 'framer-motion';
 import { ActivityConfig } from '../../../types/game';
 import { calculateEarned } from '../../../services/sunDropService';
 import { SunDropIcon } from './ActivityWrapper';
+import type { TargetLanguage } from '../../../../types';
+import { toLanguageCode } from '../../../utils/languageUtils';
+
+// ============================================
+// WEB SPEECH API TYPES
+// ============================================
+
+/** Browser speech recognition API — not in default TS libs */
+interface WebSpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((event: WebSpeechRecognitionEvent) => void) | null;
+  onerror: ((event: Event) => void) | null;
+  onend: (() => void) | null;
+  start(): void;
+  stop(): void;
+  abort(): void;
+}
+interface WebSpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+}
 
 // ============================================
 // TYPES
@@ -28,6 +50,17 @@ export interface TranslateProps {
   onReport?: () => void;
   /** Whether a report is currently being processed */
   isReporting?: boolean;
+  /**
+   * Target language for STT recognition (e.g. 'German', 'French').
+   * Drives `recognition.lang` so the browser listens in the right language.
+   * Defaults to French if not provided.
+   */
+  targetLanguage?: TargetLanguage;
+  /**
+   * Opens the full AI help overlay from within this activity.
+   * Shown as a secondary "Ask AI" link below the static help hint.
+   */
+  onOpenHelp?: () => void;
 }
 
 interface TranslateState {
@@ -39,6 +72,10 @@ interface TranslateState {
   showHelp: boolean;
   showCorrectAnswer: boolean;
   showGiveUp: boolean;
+  /** Whether STT is actively recording */
+  isListening: boolean;
+  /** STT error to show to the user */
+  sttError: string | null;
 }
 
 // ============================================
@@ -76,6 +113,8 @@ export const Translate: React.FC<TranslateProps> = ({
   onSkip,
   onReport,
   isReporting,
+  targetLanguage,
+  onOpenHelp,
 }) => {
   if (!data.sourcePhrase || !data.correctAnswer) {
     console.error('Translate: Missing required fields', data);
@@ -83,6 +122,14 @@ export const Translate: React.FC<TranslateProps> = ({
   }
 
   const inputRef = useRef<HTMLInputElement>(null);
+  // STT recognition instance — kept in a ref so it survives re-renders
+  const recognitionRef = useRef<WebSpeechRecognition | null>(null);
+
+  // Detect STT support once at mount (not every render)
+  const sttSupported = useRef(
+    typeof window !== 'undefined' &&
+      ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)
+  );
 
   const [state, setState] = useState<TranslateState>({
     inputValue: '',
@@ -93,10 +140,78 @@ export const Translate: React.FC<TranslateProps> = ({
     showHelp: false,
     showCorrectAnswer: false,
     showGiveUp: false,
+    isListening: false,
+    sttError: null,
   });
 
   useEffect(() => {
     inputRef.current?.focus();
+  }, []);
+
+  // ============================================
+  // STT — voice input in the target language
+  // ============================================
+
+  /**
+   * Start speech recognition in the lesson's target language.
+   * When a result arrives it populates the text input so the user can
+   * review before hitting Check (or press Enter to confirm immediately).
+   */
+  const startListening = useCallback(() => {
+    const WindowWithSpeech = window as unknown as {
+      webkitSpeechRecognition?: new () => WebSpeechRecognition;
+      SpeechRecognition?: new () => WebSpeechRecognition;
+    };
+    const SpeechAPI =
+      WindowWithSpeech.webkitSpeechRecognition || WindowWithSpeech.SpeechRecognition;
+    if (!SpeechAPI) return;
+
+    const recognition = new SpeechAPI();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    // Use the lesson target language so recognition matches what kids are speaking
+    recognition.lang = toLanguageCode(targetLanguage ?? 'French');
+
+    recognition.onresult = (event: WebSpeechRecognitionEvent) => {
+      const transcript = event.results[0][0].transcript;
+      setState(prev => ({
+        ...prev,
+        inputValue: transcript,
+        isListening: false,
+        sttError: null,
+        // Clear any previous wrong-answer highlight so the new transcript starts fresh
+        isCorrect: prev.isCorrect === false ? null : prev.isCorrect,
+      }));
+    };
+
+    recognition.onerror = () => {
+      setState(prev => ({
+        ...prev,
+        isListening: false,
+        sttError: "Couldn't hear that — try again or type below",
+      }));
+    };
+
+    recognition.onend = () => {
+      setState(prev => ({ ...prev, isListening: false }));
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+    setState(prev => ({ ...prev, isListening: true, sttError: null }));
+  }, [targetLanguage]);
+
+  /**
+   * Stop recording (user tapped mic again while listening).
+   */
+  const stopListening = useCallback(() => {
+    recognitionRef.current?.stop();
+    setState(prev => ({ ...prev, isListening: false }));
+  }, []);
+
+  // Clean up recognition on unmount
+  useEffect(() => {
+    return () => { recognitionRef.current?.abort(); };
   }, []);
 
   /**
@@ -232,7 +347,7 @@ export const Translate: React.FC<TranslateProps> = ({
         </span>
       </div>
 
-      {/* Help panel */}
+      {/* Help panel — shows static hint; offers AI escalation */}
       {state.showHelp && (
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -242,6 +357,15 @@ export const Translate: React.FC<TranslateProps> = ({
           <div className="flex gap-2">
             <p className="font-semibold text-sm text-slate-700 leading-relaxed flex-1">{helpText}</p>
           </div>
+          {/* Secondary path to full AI assistant */}
+          {onOpenHelp && (
+            <button
+              onClick={() => { handleCloseHelp(); onOpenHelp(); }}
+              className="mt-2 text-xs text-purple-600 hover:text-purple-800 font-medium"
+            >
+              Ask AI for more help 🤖 →
+            </button>
+          )}
           <button onClick={handleCloseHelp} className="absolute top-2 right-2 text-slate-400 hover:text-slate-600">✕</button>
         </motion.div>
       )}
@@ -260,6 +384,50 @@ export const Translate: React.FC<TranslateProps> = ({
         )}
       </div>
 
+      {/* ── STT mic button (primary input) ── */}
+      {/* Only shown when browser supports speech recognition and activity is not complete */}
+      {sttSupported.current && !state.isComplete && (
+        <div className="mb-4">
+          <motion.button
+            whileTap={{ scale: 0.94 }}
+            onClick={state.isListening ? stopListening : startListening}
+            className={`w-full py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-3 transition-colors ${
+              state.isListening
+                ? 'bg-red-500 text-white'
+                : 'bg-green-500 text-white hover:bg-green-600'
+            }`}
+            style={{ boxShadow: state.isListening
+              ? '0 4px 0 0 rgba(239,68,68,0.3)'
+              : '0 4px 0 0 rgba(34,197,94,0.3)' }}
+            aria-label={state.isListening ? 'Stop listening' : 'Speak your answer'}
+          >
+            {state.isListening ? (
+              // Pulsing animation while recording
+              <motion.span
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 0.8, repeat: Infinity }}
+              >
+                🔴
+              </motion.span>
+            ) : '🎤'}
+            <span>{state.isListening ? 'Listening...' : 'Tap to speak'}</span>
+          </motion.button>
+
+          {/* STT error */}
+          {state.sttError && (
+            <p className="text-xs text-red-500 text-center mt-1">{state.sttError}</p>
+          )}
+
+          {/* Divider to text fallback */}
+          <div className="flex items-center gap-2 my-3">
+            <div className="flex-1 h-px bg-slate-200" />
+            <span className="text-xs text-slate-400">or type below</span>
+            <div className="flex-1 h-px bg-slate-200" />
+          </div>
+        </div>
+      )}
+
+      {/* Input field (always available as fallback) */}
       {/* Input field */}
       <motion.div
         variants={{ shake: { x: [0, -5, 5, -3, 3, 0], transition: { duration: 0.4 } } }}

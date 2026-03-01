@@ -52,6 +52,30 @@ const ANTHROPIC_BASE_URL = 'https://api.anthropic.com/v1/messages';
 // UTILITY FUNCTIONS
 // ============================================================================
 
+/**
+ * Extract clean JSON from a response that may contain markdown fences or preamble.
+ * Anthropic models are generally reliable with JSON, but this is defensive.
+ * @see deepInfraProvider.ts for detailed documentation
+ */
+function extractJSON(text: string): string {
+  const trimmed = text.trim();
+  if (trimmed.startsWith('{') || trimmed.startsWith('[')) return trimmed;
+  const fenceMatch = trimmed.match(/```(?:json)?\s*\n?([\s\S]*?)\n?\s*```/);
+  if (fenceMatch) return fenceMatch[1].trim();
+  const jsonStart = trimmed.search(/[\[{]/);
+  if (jsonStart >= 0) {
+    const opener = trimmed[jsonStart];
+    const closer = opener === '{' ? '}' : ']';
+    let depth = 0;
+    for (let i = jsonStart; i < trimmed.length; i++) {
+      if (trimmed[i] === opener) depth++;
+      if (trimmed[i] === closer) depth--;
+      if (depth === 0) return trimmed.slice(jsonStart, i + 1);
+    }
+  }
+  return trimmed;
+}
+
 const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
 
 async function retryWithBackoff<T>(
@@ -180,11 +204,19 @@ export class AnthropicProvider implements AIProvider {
       };
       
       // Extract text from Anthropic's content array format
-      const text = data.content
+      let text = data.content
         .filter((block): block is { type: 'text'; text: string } => block.type === 'text')
         .map(block => block.text)
         .join('');
-      
+
+      // Apply JSON extraction for json-mode requests.
+      // Anthropic doesn't have a native json_object mode but callers may
+      // request structured output — strip any fences defensively.
+      const { jsonMode } = options;
+      if (jsonMode) {
+        text = extractJSON(text);
+      }
+
       return {
         text,
         model: this.selectedModel,

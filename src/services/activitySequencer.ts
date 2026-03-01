@@ -72,6 +72,8 @@ const SUNDROR_BY_TYPE: Record<GameActivityType, number> = {
   [GameActivityType.WORD_ARRANGE]: 3,
   [GameActivityType.TRANSLATE]: 3,
   [GameActivityType.INFO]: 0,
+  // Phase 3: coaching discovery is non-graded — always 0 SunDrops
+  [GameActivityType.COACHING_CHAT]: 0,
 };
 
 // ============================================================================
@@ -213,6 +215,8 @@ export function getActivityDescription(type: GameActivityType): string {
     [GameActivityType.MATCHING]: 'matching pairs',
     [GameActivityType.WORD_ARRANGE]: 'word arrangement',
     [GameActivityType.TRANSLATE]: 'translation',
+    // Phase 3: coached discovery — NPC-guided, non-graded
+    [GameActivityType.COACHING_CHAT]: 'coached discovery (non-graded)',
   };
   return descriptions[type] ?? type;
 }

@@ -51,6 +51,30 @@ const GROQ_BASE_URL = 'https://api.groq.com/openai/v1/chat/completions';
 // UTILITY FUNCTIONS
 // ============================================================================
 
+/**
+ * Extract clean JSON from a response that may contain markdown fences or preamble.
+ * Groq models generally respect json_object mode, but this is defensive.
+ * @see deepInfraProvider.ts for detailed documentation
+ */
+function extractJSON(text: string): string {
+  const trimmed = text.trim();
+  if (trimmed.startsWith('{') || trimmed.startsWith('[')) return trimmed;
+  const fenceMatch = trimmed.match(/```(?:json)?\s*\n?([\s\S]*?)\n?\s*```/);
+  if (fenceMatch) return fenceMatch[1].trim();
+  const jsonStart = trimmed.search(/[\[{]/);
+  if (jsonStart >= 0) {
+    const opener = trimmed[jsonStart];
+    const closer = opener === '{' ? '}' : ']';
+    let depth = 0;
+    for (let i = jsonStart; i < trimmed.length; i++) {
+      if (trimmed[i] === opener) depth++;
+      if (trimmed[i] === closer) depth--;
+      if (depth === 0) return trimmed.slice(jsonStart, i + 1);
+    }
+  }
+  return trimmed;
+}
+
 const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
 
 async function retryWithBackoff<T>(
@@ -159,9 +183,15 @@ export class GroqProvider implements AIProvider {
         usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
       };
       
-      const text = data.choices?.[0]?.message?.content || '';
+      let text = data.choices?.[0]?.message?.content || '';
       const usage = data.usage;
-      
+
+      // Apply JSON extraction defensively even though Groq usually
+      // honours response_format correctly.
+      if (jsonMode) {
+        text = extractJSON(text);
+      }
+
       return {
         text,
         model: this.defaultModel,

@@ -57,6 +57,13 @@ export enum GameActivityType {
   TRUE_FALSE = 'true_false',
   MATCHING = 'matching',
   TRANSLATE = 'translate',
+  /**
+   * Phase 3: Coached discovery step.
+   * Replaces the static INFO card with an interactive NPC-guided exchange.
+   * Awards 0 SunDrops — this is discovery, not assessment.
+   * See: docs/phase-3-ai-assisted-content/task-3.4-coaching-chat-step.md
+   */
+  COACHING_CHAT = 'coaching_chat',
   // Phase 2:
   // LISTEN_TYPE = 'listen_type',
   // SPEAK = 'speak',
@@ -736,4 +743,6 @@ export const ACTIVITY_TYPE_MAP: Record<GameActivityType, string> = {
   [GameActivityType.TRUE_FALSE]: 'true_false',
   [GameActivityType.MATCHING]: 'matching',
   [GameActivityType.TRANSLATE]: 'translate',
+  // Phase 3: coaching_chat is its own new activity type (no legacy equivalent)
+  [GameActivityType.COACHING_CHAT]: 'coaching_chat',
 };

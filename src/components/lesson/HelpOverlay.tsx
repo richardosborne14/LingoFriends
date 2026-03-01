@@ -449,24 +449,25 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({
   return (
     <AnimatePresence>
       {visible && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-          onClick={(e) => {
-            // Close on backdrop click
-            if (e.target === e.currentTarget) {
-              stopSpeaking();
-              onClose();
-            }
-          }}
-        >
+        <>
+          {/* Invisible backdrop — clicking the lesson area (left of panel) closes it.
+              No colour so lesson content remains fully visible while help is open. */}
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 max-h-[80vh] overflow-hidden flex flex-col"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-40"
+            onClick={() => { stopSpeaking(); onClose(); }}
+          />
+
+          {/* Side panel — slides in from the right edge.
+              Kids can still see the lesson question behind it, maintaining context. */}
+          <motion.div
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+            className="fixed top-0 right-0 h-full z-50 w-full max-w-sm bg-white shadow-2xl flex flex-col border-l border-stone-200"
           >
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-stone-200">
@@ -650,7 +651,7 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({
               </button>
             </div>
           </motion.div>
-        </motion.div>
+        </>
       )}
     </AnimatePresence>
   );

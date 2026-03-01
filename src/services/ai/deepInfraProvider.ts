@@ -53,6 +53,50 @@ const DEEPINFRA_BASE_URL = 'https://api.deepinfra.com/v1/chat/completions';
 // ============================================================================
 
 /**
+ * Extract clean JSON from a response that may contain markdown fences or preamble.
+ *
+ * Smaller models (like GLM-5 9B) sometimes ignore response_format: json_object
+ * and wrap their output in markdown fences or add explanatory preamble text.
+ * This function handles all known output formats robustly.
+ *
+ * Handles:
+ *  - Clean JSON:        { ... } or [ ... ]
+ *  - Markdown-wrapped:  ```json\n{ ... }\n```
+ *  - Preamble text:     "Here is the content:\n{ ... }"
+ *  - Mixed:             "Sure!\n```json\n{ ... }\n```"
+ */
+function extractJSON(text: string): string {
+  const trimmed = text.trim();
+
+  // 1. Already clean JSON
+  if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+    return trimmed;
+  }
+
+  // 2. Strip markdown code fences (```json ... ``` or ``` ... ```)
+  const fenceMatch = trimmed.match(/```(?:json)?\s*\n?([\s\S]*?)\n?\s*```/);
+  if (fenceMatch) {
+    return fenceMatch[1].trim();
+  }
+
+  // 3. Find the first { or [ and extract to matching closer
+  const jsonStart = trimmed.search(/[\[{]/);
+  if (jsonStart >= 0) {
+    const opener = trimmed[jsonStart];
+    const closer = opener === '{' ? '}' : ']';
+    let depth = 0;
+    for (let i = jsonStart; i < trimmed.length; i++) {
+      if (trimmed[i] === opener) depth++;
+      if (trimmed[i] === closer) depth--;
+      if (depth === 0) return trimmed.slice(jsonStart, i + 1);
+    }
+  }
+
+  // 4. Return as-is and let the caller handle parse errors
+  return trimmed;
+}
+
+/**
  * Sleep helper for rate limiting.
  */
 const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
@@ -170,9 +214,16 @@ export class DeepInfraProvider implements AIProvider {
         usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
       };
       
-      const text = data.choices?.[0]?.message?.content || '';
+      let text = data.choices?.[0]?.message?.content || '';
       const usage = data.usage;
-      
+
+      // If JSON mode was requested, ensure we have clean JSON.
+      // GLM-5 may ignore response_format: json_object and wrap output
+      // in markdown fences — extractJSON strips that reliably.
+      if (jsonMode) {
+        text = extractJSON(text);
+      }
+
       return {
         text,
         model: this.defaultModel,

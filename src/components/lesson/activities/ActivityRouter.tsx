@@ -9,6 +9,7 @@
 
 import React from 'react';
 import { GameActivityType, ActivityConfig } from '../../../types/game';
+import type { TargetLanguage } from '../../../../types';
 import { MultipleChoice } from './MultipleChoice';
 import { FillBlank } from './FillBlank';
 import { WordArrange } from './WordArrange';
@@ -39,6 +40,17 @@ export interface ActivityProps {
   onReport?: () => void;
   /** Whether a report is currently being processed */
   isReporting?: boolean;
+  /**
+   * Target language code (e.g. 'German', 'French') for STT on Translate activities.
+   * Passed through to Translate so recognition.lang targets the correct language.
+   */
+  targetLanguage?: TargetLanguage;
+  /**
+   * Callback to open the AI help overlay from within an activity.
+   * Wired by LessonView so activities can surface the full AI assistant
+   * as a second tier after the local static help hint.
+   */
+  onOpenHelp?: () => void;
 }
 
 // ============================================
@@ -73,6 +85,8 @@ export const ActivityRouter: React.FC<ActivityProps> = ({
   onSkip,
   onReport,
   isReporting,
+  targetLanguage,
+  onOpenHelp,
 }) => {
   // Route to the correct component based on activity type
   switch (data.type) {
@@ -151,6 +165,8 @@ export const ActivityRouter: React.FC<ActivityProps> = ({
           onSkip={onSkip}
           onReport={onReport}
           isReporting={isReporting}
+          targetLanguage={targetLanguage}
+          onOpenHelp={onOpenHelp}
         />
       );
 
@@ -162,6 +178,26 @@ export const ActivityRouter: React.FC<ActivityProps> = ({
           data={data}
           onComplete={() => onComplete(true, 0)}
         />
+      );
+
+    case GameActivityType.COACHING_CHAT:
+      // Phase 3: Coached discovery step.
+      // The CoachingChat component is implemented in Task 3.4.
+      // Until then, fall through to the default error display.
+      // This case is here to satisfy exhaustive Record checks in TypeScript.
+      console.warn('[ActivityRouter] COACHING_CHAT should be rendered by CoachingChat component, not ActivityRouter');
+      // Fallthrough intentional — show error until Task 3.4 wires CoachingChat
+      return (
+        <div className="p-4 bg-amber-50 border-2 border-amber-300 rounded-xl text-amber-700">
+          <p className="font-bold">🚧 Coaching step coming soon!</p>
+          <p className="text-sm">This feature is being implemented in Task 3.4.</p>
+          <button
+            className="mt-2 px-4 py-2 bg-amber-400 rounded-lg text-white text-sm"
+            onClick={() => onComplete(true, 0)}
+          >
+            Continue →
+          </button>
+        </div>
       );
 
     default:
@@ -189,6 +225,8 @@ export function getActivityTypeName(type: GameActivityType): string {
     [GameActivityType.TRUE_FALSE]: 'True or False',
     [GameActivityType.MATCHING]: 'Matching Pairs',
     [GameActivityType.TRANSLATE]: 'Translate',
+    // Phase 3: coaching discovery step — non-graded, warm NPC exchange
+    [GameActivityType.COACHING_CHAT]: 'Discover',
   };
   return names[type] || 'Unknown Activity';
 }
@@ -214,6 +252,8 @@ export function getActivityDifficultyRange(type: GameActivityType): [number, num
     [GameActivityType.FILL_BLANK]: [2, 3],          // Medium, recall required
     [GameActivityType.WORD_ARRANGE]: [3, 4],        // Harder, construction
     [GameActivityType.TRANSLATE]: [3, 4],           // Harder, production
+    // Phase 3: coaching is non-graded discovery — always 0 SunDrops
+    [GameActivityType.COACHING_CHAT]: [0, 0],
   };
   return ranges[type] || [1, 2];
 }
