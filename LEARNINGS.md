@@ -497,6 +497,54 @@ Both fields are required on translate activities. The validator now enforces thi
 
 ---
 
+## 2026-01-03: Procedural 3D Garden Objects — Separation of Concerns
+
+**Problem:** Adding animals, cabin, fence, and wild decorations to the garden required clean integration without bloating the main GardenRenderer class.
+
+**Solution:** Create separate modules for each object type in `src/renderer/objects/`:
+- `animals.ts` — `createRabbit()`, `createButterfly()`, `createBird()` with simple AI state machines
+- `fence.ts` — `buildFence()` for perimeter fencing
+- `wildDecorations.ts` — `buildWildFlower()`, `buildRock()`, `buildDistantTree()` for depth
+- `cabin.ts` — `buildCabin()` with `getCabinBounds()` for click detection
+
+Each module exports factory functions and configuration objects. The main renderer imports and places them.
+
+**Code Pattern — Animal AI State Machine:**
+```typescript
+interface AnimalState {
+  position: THREE.Vector3;
+  velocity: THREE.Vector3;
+  target: THREE.Vector3;
+  behavior: 'idle' | 'walking' | 'paused';
+  pauseTimer: number;
+}
+
+function updateAnimal(state: AnimalState, delta: number, config: AnimalConfig): void {
+  switch (state.behavior) {
+    case 'idle':
+      state.pauseTimer -= delta;
+      if (state.pauseTimer <= 0) {
+        state.target = getRandomTarget(state.position, config.bounds);
+        state.behavior = 'walking';
+      }
+      break;
+    case 'walking':
+      moveToward(state, state.target, config.speed);
+      if (closeEnough(state.position, state.target)) {
+        state.behavior = 'paused';
+        state.pauseTimer = 1 + Math.random() * 2; // 1-3s pause
+      }
+      break;
+  }
+}
+```
+
+**Key Insight:** Animals don't need complex pathfinding for a kid-friendly garden. Simple random-walk with bounds check is sufficient and performant.
+
+**Apply to:** NPC visitors, pet companions, any ambient game entities
+
+---
+
 ## Quick Reference
 
 | Issue | Solution | Entry Date |
@@ -517,3 +565,4 @@ Both fields are required on translate activities. The validator now enforces thi
 | PocketBase required:true + 0 = 400 | Make counter fields required:false | 2026-02-20 |
 | Language fallback wrong language | Match on ISO codes not display names | 2026-02-20 |
 | Translate shows "Missing activity data" | Add correctAnswer to buildRecallStep() | 2026-02-20 |
+| Procedural 3D garden objects | Separate modules, simple AI state machine | 2026-01-03 |

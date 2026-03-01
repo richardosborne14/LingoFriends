@@ -231,6 +231,12 @@ export interface ActivityConfig {
  * Each step combines tutor guidance with an interactive activity.
  * 
  * Lessons have 5-8 steps, progressing in difficulty.
+ * 
+ * coachingText (Task 2.0.07):
+ * - AI-generated introduction spoken by the NPC at the start of each step
+ * - Played via TTS automatically when the step begins
+ * - Written in the user's native language with target language examples
+ * - Provides context, motivation, and personalization
  */
 export interface LessonStep {
   /** Professor Finch's guidance text (1-2 sentences) */
@@ -239,6 +245,8 @@ export interface LessonStep {
   helpText: string;
   /** The activity for this step */
   activity: ActivityConfig;
+  /** AI-generated coaching introduction (Task 2.0.07) - spoken via TTS at step start */
+  coachingText?: string;
 }
 
 /**

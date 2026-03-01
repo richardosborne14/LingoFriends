@@ -29,6 +29,12 @@ export interface MultipleChoiceProps {
   onComplete: (correct: boolean, sunDropsEarned: number) => void;
   /** Callback when wrong answer is given (for penalty) */
   onWrong: () => void;
+  /** Callback when user skips the question (optional - advances without reward/penalty) */
+  onSkip?: () => void;
+  /** Callback when user reports a broken question (optional - triggers regeneration) */
+  onReport?: () => void;
+  /** Whether a report is currently being processed */
+  isReporting?: boolean;
 }
 
 /**
@@ -109,6 +115,9 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({
   helpText,
   onComplete,
   onWrong,
+  onSkip,
+  onReport,
+  isReporting,
 }) => {
   // Validate required fields
   if (!data.question || !data.options || data.correctIndex === undefined) {
@@ -203,10 +212,15 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({
 
   /**
    * Skip this question entirely.
+   * Uses onSkip callback if provided, otherwise falls back to onComplete(false, 0).
    */
   const handleSkip = useCallback(() => {
-    onComplete(false, 0);
-  }, [onComplete]);
+    if (onSkip) {
+      onSkip();
+    } else {
+      onComplete(false, 0);
+    }
+  }, [onSkip, onComplete]);
 
   /**
    * Determine option styling based on state.
@@ -327,13 +341,30 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({
         })}
       </div>
 
-      {/* Skip button */}
+      {/* Skip and Report buttons */}
       {!state.isComplete && (
-        <div className="flex justify-end mt-3">
+        <div className="flex justify-between items-center mt-3">
+          {/* Report button - only show if onReport is provided */}
+          {onReport && (
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={onReport}
+              disabled={isReporting}
+              className={`border-2 rounded-lg px-3 py-1.5 font-bold text-xs transition-colors ${
+                isReporting
+                  ? 'bg-amber-50 border-amber-200 text-amber-400 cursor-wait'
+                  : 'bg-red-50 border-red-200 text-red-500 hover:bg-red-100 hover:border-red-300'
+              }`}
+              title="Report a problem with this question"
+            >
+              {isReporting ? '⏳ Fixing...' : '🚩 Report'}
+            </motion.button>
+          )}
+          
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={handleSkip}
-            className="bg-slate-100 text-slate-500 px-4 py-2 rounded-full font-bold text-sm hover:bg-slate-200 transition"
+            className="bg-slate-100 text-slate-500 px-4 py-2 rounded-full font-bold text-sm hover:bg-slate-200 transition ml-auto"
           >
             Skip
           </motion.button>

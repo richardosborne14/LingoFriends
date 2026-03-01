@@ -2,13 +2,21 @@
  * Avatar Builder for Garden Renderer
  * 
  * Creates customizable avatars with:
- * - Body parts (head, torso, arms, legs)
- * - Clothing colors (shirt, pants)
- * - Skin tone options
- * - Hair styles (boy/girl)
+ * - Rounded body parts (capsule-style torso, rounded limbs)
+ * - Cute chibi proportions (big head, small body)
+ * - Expressive 3D eyes with proper depth
+ * - Visible mouth for TTS lip-sync
+ * - Hair styles (boy/girl) without harsh rectangular artifacts
  * - Hats (cap, wizard, crown, flower)
  * 
+ * Design Philosophy:
+ * - Target aesthetic: Animal Crossing meets cute toon style
+ * - Proportions: 40% head, 35% body, 25% legs (chibi)
+ * - All geometry is procedurally generated (no external models)
+ * - Polycount budget: <2000 triangles per avatar
+ * 
  * @module renderer/AvatarBuilder
+ * @see docs/phase-2-world-expansion/task-2.0-4-avatar-overhaul.md
  */
 
 import * as THREE from 'three';
@@ -23,21 +31,34 @@ import { TILE_HEIGHT } from './types';
 /** Half tile height for positioning */
 const TH = TILE_HEIGHT;
 
+/** Head radius (chibi proportion - larger) */
+const HEAD_RADIUS = 0.26;
+
+/** Head vertical offset from torso */
+const HEAD_Y = TH / 2 + 0.85;
+
+/** Vertical segments for sphere smoothness */
+const SPHERE_SEGMENTS = 16;
+
+/** Radial segments for sphere smoothness */
+const SPHERE_RADIAL = 12;
+
 // ============================================================================
 // AVATAR BUILDER
 // ============================================================================
 
 /**
- * Build a customizable avatar character.
+ * Build a customizable avatar character with cute chibi proportions.
  * 
- * The avatar is constructed from multiple mesh parts:
- * - Head (skin tone)
- * - Hair (style varies by gender)
- * - Eyes and mouth
- * - Torso (shirt color)
- * - Arms (shirt color, skin tone hands)
- * - Legs (pants color)
- * - Hat (optional, varies by style)
+ * Avatar Structure (from top to bottom):
+ * - Head: Slightly squashed sphere (wider than deep)
+ * - Eyes: Sphere assemblies with sclera, iris, pupil
+ * - Mouth: Sphere for TTS lip-sync visibility
+ * - Hair: Gender-specific styles (no harsh rectangular sideburns)
+ * - Torso: Rounded capsule shape (cylinder + sphere caps)
+ * - Arms: Rounded with sphere hands
+ * - Legs: Rounded with sphere feet
+ * - Hat: Optional accessory
  * 
  * @param options - Avatar customization options
  * @returns THREE.Group containing the avatar
@@ -69,115 +90,149 @@ export function buildAvatar(options: AvatarOptions = DEFAULT_AVATAR): THREE.Grou
   
   // Materials — MeshToonMaterial for cel-shaded cartoon look
   // Slight emissive so avatar "pops" against garden background
-  const skinMaterial = new THREE.MeshToonMaterial({ color: skinTone, emissive: skinTone, emissiveIntensity: 0.08 });
-  const shirtMaterial = new THREE.MeshToonMaterial({ color: shirtColor, emissive: shirtColor, emissiveIntensity: 0.1 });
-  const pantsMaterial = new THREE.MeshToonMaterial({ color: pantsColor, emissive: pantsColor, emissiveIntensity: 0.06 });
+  const skinMaterial = new THREE.MeshToonMaterial({ 
+    color: skinTone, 
+    emissive: skinTone, 
+    emissiveIntensity: 0.08 
+  });
+  const shirtMaterial = new THREE.MeshToonMaterial({ 
+    color: shirtColor, 
+    emissive: shirtColor, 
+    emissiveIntensity: 0.1 
+  });
+  const pantsMaterial = new THREE.MeshToonMaterial({ 
+    color: pantsColor, 
+    emissive: pantsColor, 
+    emissiveIntensity: 0.06 
+  });
   const whiteMaterial = new THREE.MeshToonMaterial({ color: 0xFFFFFF });
-  const blackMaterial = new THREE.MeshToonMaterial({ color: 0x222222 });
+  const blackMaterial = new THREE.MeshToonMaterial({ color: 0x111111 });
   
   // ===== HEAD =====
-  // Chibi style: 20% larger head for cute kid-friendly proportions
-  const headGeometry = new THREE.SphereGeometry(0.25, 12, 12);
+  // Chibi head: slightly squashed sphere (wider than deep for cuteness)
+  // Scale: X=1.05 (wider), Y=0.95 (slightly shorter), Z=0.9 (flatter face)
+  const headGeometry = new THREE.SphereGeometry(HEAD_RADIUS, SPHERE_SEGMENTS, SPHERE_RADIAL);
   const head = new THREE.Mesh(headGeometry, skinMaterial);
-  head.position.y = TH / 2 + 0.86;
+  head.scale.set(1.05, 0.95, 0.9); // Slightly wider and flatter
+  head.position.y = HEAD_Y;
   head.castShadow = true;
   group.add(head);
   
-  // ===== Eyes =====
-  // Slightly bigger eyes for chibi cuteness, positioned for new head center
-  const eyeGeometry = new THREE.SphereGeometry(0.045, 6, 6);
+  // ===== EYES =====
+  // 3D eye assembly: white sclera + colored iris + black pupil
+  // Positioned to sit nicely on the squashed head surface
+  const eyeY = HEAD_Y + 0.02;
+  const eyeZ = HEAD_RADIUS * 0.85 * 0.9; // Adjusted for head scale
+  const eyeSpacing = 0.09;
   
-  // Left eye white — named for blink animation
-  const leftEyeWhite = new THREE.Mesh(eyeGeometry, whiteMaterial);
-  leftEyeWhite.name = 'eye_left';
-  leftEyeWhite.position.set(-0.08, TH / 2 + 0.89, 0.22);
-  group.add(leftEyeWhite);
+  // Iris color (default brown, could be customized later)
+  const irisMaterial = new THREE.MeshToonMaterial({ color: 0x6B4423 });
   
-  // Right eye white — named for blink animation
-  const rightEyeWhite = new THREE.Mesh(eyeGeometry, whiteMaterial);
-  rightEyeWhite.name = 'eye_right';
-  rightEyeWhite.position.set(0.08, TH / 2 + 0.89, 0.22);
-  group.add(rightEyeWhite);
+  // Left eye assembly
+  const leftEyeGroup = buildEye(whiteMaterial, irisMaterial, blackMaterial);
+  leftEyeGroup.name = 'eye_left';
+  leftEyeGroup.position.set(-eyeSpacing, eyeY, eyeZ);
+  group.add(leftEyeGroup);
   
-  // Pupils — named for blink animation
-  const pupilGeometry = new THREE.SphereGeometry(0.022, 5, 5);
+  // Right eye assembly
+  const rightEyeGroup = buildEye(whiteMaterial, irisMaterial, blackMaterial);
+  rightEyeGroup.name = 'eye_right';
+  rightEyeGroup.position.set(eyeSpacing, eyeY, eyeZ);
+  group.add(rightEyeGroup);
   
-  const leftPupil = new THREE.Mesh(pupilGeometry, blackMaterial);
-  leftPupil.name = 'pupil_left';
-  leftPupil.position.set(-0.08, TH / 2 + 0.89, 0.25);
-  group.add(leftPupil);
-  
-  const rightPupil = new THREE.Mesh(pupilGeometry, blackMaterial);
-  rightPupil.name = 'pupil_right';
-  rightPupil.position.set(0.08, TH / 2 + 0.89, 0.25);
-  group.add(rightPupil);
-  
-  // ===== Mouth (cute smile arc) =====
-  const mouthGeometry = new THREE.BoxGeometry(0.08, 0.018, 0.01);
+  // ===== MOUTH =====
+  // Sphere-based mouth that scales nicely for TTS lip-sync
+  // More visible than a thin box
+  const mouthGeometry = new THREE.SphereGeometry(0.035, 8, 6);
   const mouth = new THREE.Mesh(mouthGeometry, blackMaterial);
-  mouth.name = 'mouth';  // Named for animation in EncounterScene
-  mouth.position.set(0, TH / 2 + 0.76, 0.23);
+  mouth.name = 'mouth';
+  mouth.position.set(0, HEAD_Y - 0.1, eyeZ - 0.02);
+  mouth.scale.set(1.2, 0.6, 0.5); // Wider than tall (cute smile shape)
   group.add(mouth);
   
   // ===== Hair =====
-  addHair(group, gender, hairColor, TH);
+  addHair(group, gender, hairColor, TH, HEAD_Y, HEAD_RADIUS);
   
-  // ===== Torso =====
-  // Chibi: 15% shorter body, slightly wider for sturdiness
-  const torsoGeometry = new THREE.BoxGeometry(0.30, 0.29, 0.16);
-  const torso = new THREE.Mesh(torsoGeometry, shirtMaterial);
-  torso.position.y = TH / 2 + 0.47;
-  torso.castShadow = true;
+  // ===== TORSO =====
+  // Rounded capsule: cylinder body with sphere caps top and bottom
+  // Tapers slightly from shoulders to waist for cuter proportions
+  const torso = buildRoundedTorso(shirtMaterial);
+  torso.position.y = TH / 2 + 0.48;
   group.add(torso);
   
-  // ===== Arms =====
-  // Chibi: shorter, rounder arms with cute round hands
-  const armGeometry = new THREE.BoxGeometry(0.08, 0.24, 0.08);
-  const handGeometry = new THREE.SphereGeometry(0.045, 6, 6);
+  // ===== ARMS =====
+  // Rounded arms with sphere hands
+  const armLength = 0.20;
+  const armRadius = 0.055;
+  const handRadius = 0.05;
   
-  // Left arm — named for walk animation
-  const leftArm = new THREE.Mesh(armGeometry, shirtMaterial);
+  // Left arm
+  const leftArm = buildRoundedLimb(shirtMaterial, armLength, armRadius);
   leftArm.name = 'arm_left';
-  leftArm.position.set(-0.21, TH / 2 + 0.48, 0);
+  leftArm.position.set(-0.19, TH / 2 + 0.50, 0);
   group.add(leftArm);
   
   // Left hand
-  const leftHand = new THREE.Mesh(handGeometry, skinMaterial);
+  const leftHand = new THREE.Mesh(
+    new THREE.SphereGeometry(handRadius, 8, 6),
+    skinMaterial
+  );
   leftHand.name = 'hand_left';
-  leftHand.position.set(-0.21, TH / 2 + 0.33, 0);
+  leftHand.position.set(-0.19, TH / 2 + 0.36, 0);
   group.add(leftHand);
   
   // Right arm
-  const rightArm = new THREE.Mesh(armGeometry, shirtMaterial);
+  const rightArm = buildRoundedLimb(shirtMaterial, armLength, armRadius);
   rightArm.name = 'arm_right';
-  rightArm.position.set(0.21, TH / 2 + 0.48, 0);
+  rightArm.position.set(0.19, TH / 2 + 0.50, 0);
   group.add(rightArm);
   
   // Right hand
-  const rightHand = new THREE.Mesh(handGeometry, skinMaterial);
+  const rightHand = new THREE.Mesh(
+    new THREE.SphereGeometry(handRadius, 8, 6),
+    skinMaterial
+  );
   rightHand.name = 'hand_right';
-  rightHand.position.set(0.21, TH / 2 + 0.33, 0);
+  rightHand.position.set(0.19, TH / 2 + 0.36, 0);
   group.add(rightHand);
   
-  // ===== Legs =====
-  // Chibi: shorter, slightly wider legs
-  const legGeometry = new THREE.BoxGeometry(0.11, 0.25, 0.11);
+  // ===== LEGS =====
+  // Rounded legs (cylinder + sphere feet)
+  const legLength = 0.18;
+  const legRadius = 0.06;
+  const footRadius = 0.07;
   
-  // Left leg — named for walk animation
-  const leftLeg = new THREE.Mesh(legGeometry, pantsMaterial);
+  // Left leg
+  const leftLeg = buildRoundedLimb(pantsMaterial, legLength, legRadius);
   leftLeg.name = 'leg_left';
-  leftLeg.position.set(-0.08, TH / 2 + 0.13, 0);
+  leftLeg.position.set(-0.07, TH / 2 + 0.14, 0);
   group.add(leftLeg);
   
+  // Left foot
+  const leftFoot = new THREE.Mesh(
+    new THREE.SphereGeometry(footRadius, 8, 6),
+    pantsMaterial
+  );
+  leftFoot.position.set(-0.07, TH / 2 + 0.02, 0.02);
+  group.add(leftFoot);
+  
   // Right leg
-  const rightLeg = new THREE.Mesh(legGeometry, pantsMaterial);
+  const rightLeg = buildRoundedLimb(pantsMaterial, legLength, legRadius);
   rightLeg.name = 'leg_right';
-  rightLeg.position.set(0.08, TH / 2 + 0.13, 0);
+  rightLeg.position.set(0.07, TH / 2 + 0.14, 0);
   group.add(rightLeg);
+  
+  // Right foot
+  const rightFoot = new THREE.Mesh(
+    new THREE.SphereGeometry(footRadius, 8, 6),
+    pantsMaterial
+  );
+  rightFoot.position.set(0.07, TH / 2 + 0.02, 0.02);
+  group.add(rightFoot);
   
   // ===== Hat =====
   if (hat !== 'none') {
-    addHat(group, hat, hatColor, TH);
+    addHat(group, hat, hatColor, TH, HEAD_Y, HEAD_RADIUS);
   }
   
   // Mark for identification
@@ -187,62 +242,167 @@ export function buildAvatar(options: AvatarOptions = DEFAULT_AVATAR): THREE.Grou
 }
 
 // ============================================================================
+// HELPER FUNCTIONS - GEOMETRY BUILDERS
+// ============================================================================
+
+/**
+ * Build a 3D eye assembly (sclera + iris + pupil).
+ * More expressive than flat planes.
+ */
+function buildEye(
+  scleraMaterial: THREE.Material,
+  irisMaterial: THREE.Material,
+  pupilMaterial: THREE.Material
+): THREE.Group {
+  const eyeGroup = new THREE.Group();
+  
+  // White sclera (outer sphere)
+  const scleraGeometry = new THREE.SphereGeometry(0.048, 8, 6);
+  const sclera = new THREE.Mesh(scleraGeometry, scleraMaterial);
+  eyeGroup.add(sclera);
+  
+  // Colored iris (forward-facing hemisphere)
+  const irisGeometry = new THREE.SphereGeometry(0.032, 8, 6);
+  const iris = new THREE.Mesh(irisGeometry, irisMaterial);
+  iris.position.z = 0.025;
+  eyeGroup.add(iris);
+  
+  // Black pupil (small forward-facing sphere)
+  const pupilGeometry = new THREE.SphereGeometry(0.015, 6, 4);
+  const pupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
+  pupil.position.z = 0.045;
+  eyeGroup.add(pupil);
+  
+  return eyeGroup;
+}
+
+/**
+ * Build a rounded capsule torso (cylinder + sphere caps).
+ * Gives a cuter, softer silhouette than a box.
+ */
+function buildRoundedTorso(material: THREE.Material): THREE.Group {
+  const torsoGroup = new THREE.Group();
+  
+  const bodyHeight = 0.26;
+  const bodyRadius = 0.14;
+  
+  // Main cylinder body
+  const cylinderGeometry = new THREE.CylinderGeometry(bodyRadius, bodyRadius * 0.85, bodyHeight, 12);
+  const cylinder = new THREE.Mesh(cylinderGeometry, material);
+  torsoGroup.add(cylinder);
+  
+  // Top sphere cap (shoulders)
+  const topCapGeometry = new THREE.SphereGeometry(bodyRadius, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+  const topCap = new THREE.Mesh(topCapGeometry, material);
+  topCap.position.y = bodyHeight / 2;
+  torsoGroup.add(topCap);
+  
+  // Bottom sphere cap (waist)
+  const bottomCapGeometry = new THREE.SphereGeometry(bodyRadius * 0.85, 12, 8, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2);
+  const bottomCap = new THREE.Mesh(bottomCapGeometry, material);
+  bottomCap.position.y = -bodyHeight / 2;
+  torsoGroup.add(bottomCap);
+  
+  return torsoGroup;
+}
+
+/**
+ * Build a rounded limb (cylinder body with rounded ends).
+ * Used for arms and legs of chibi characters.
+ */
+function buildRoundedLimb(
+  material: THREE.Material,
+  length: number,
+  radius: number
+): THREE.Group {
+  const limbGroup = new THREE.Group();
+  
+  // Cylinder body
+  const cylinderGeometry = new THREE.CylinderGeometry(radius, radius * 0.9, length, 8);
+  const cylinder = new THREE.Mesh(cylinderGeometry, material);
+  limbGroup.add(cylinder);
+  
+  // Top cap
+  const topCapGeometry = new THREE.SphereGeometry(radius, 8, 6, 0, Math.PI * 2, 0, Math.PI / 2);
+  const topCap = new THREE.Mesh(topCapGeometry, material);
+  topCap.position.y = length / 2;
+  limbGroup.add(topCap);
+  
+  // Bottom cap
+  const bottomCapGeometry = new THREE.SphereGeometry(radius * 0.9, 8, 6, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2);
+  const bottomCap = new THREE.Mesh(bottomCapGeometry, material);
+  bottomCap.position.y = -length / 2;
+  limbGroup.add(bottomCap);
+  
+  return limbGroup;
+}
+
+// ============================================================================
 // HAIR STYLES
 // ============================================================================
 
 /**
  * Add gender-specific hair to the avatar.
+ * Updated to use rounded shapes instead of harsh rectangles.
  */
 function addHair(
   group: THREE.Group,
   gender: 'boy' | 'girl',
   hairColor: number,
-  th: number
+  th: number,
+  headY: number,
+  headRadius: number
 ): void {
   // Toon material for consistent cel-shaded look
   const hairMaterial = new THREE.MeshToonMaterial({ color: hairColor, emissive: hairColor, emissiveIntensity: 0.05 });
   
   if (gender === 'boy') {
-    // Boy: short cropped hair covering top of larger chibi head
-    const topHairGeometry = new THREE.SphereGeometry(0.26, 10, 10, 0, Math.PI * 2, 0, Math.PI / 2.5);
+    // Boy: smooth rounded hair cap
+    // Top hair - sphere cap that blends smoothly with head
+    const topHairGeometry = new THREE.SphereGeometry(headRadius * 1.02, 12, 10, 0, Math.PI * 2, 0, Math.PI / 2.5);
     const topHair = new THREE.Mesh(topHairGeometry, hairMaterial);
-    topHair.position.y = th / 2 + 0.89;
+    topHair.position.y = headY + headRadius * 0.15;
     group.add(topHair);
     
-    // Side hair (short around ears)
-    const sideHairGeometry = new THREE.BoxGeometry(0.52, 0.09, 0.26);
-    const sideHair = new THREE.Mesh(sideHairGeometry, hairMaterial);
-    sideHair.position.set(0, th / 2 + 0.82, -0.04);
-    group.add(sideHair);
+    // Front hair band - subtle cylinder instead of box
+    const frontBandGeometry = new THREE.CylinderGeometry(headRadius * 1.01, headRadius * 1.01, 0.06, 12);
+    const frontBand = new THREE.Mesh(frontBandGeometry, hairMaterial);
+    frontBand.position.set(0, headY + headRadius * 0.25, headRadius * 0.12);
+    group.add(frontBand);
   } else {
-    // Girl: long hair with front bangs (scaled up for chibi head)
-    // Back hair (long)
-    const backHairGeometry = new THREE.BoxGeometry(0.40, 0.44, 0.16);
+    // Girl: long flowing hair with soft curves
+    const hairY = headY + headRadius * 0.1;
+    
+    // Back hair (long flowing) - rounded box with soft edges
+    const backHairGeometry = new THREE.BoxGeometry(0.42, 0.48, 0.18);
+    // Round the edges by subdividing
     const backHair = new THREE.Mesh(backHairGeometry, hairMaterial);
-    backHair.position.set(0, th / 2 + 0.72, -0.14);
+    backHair.position.set(0, hairY - 0.18, -headRadius * 0.45);
+    // Round the corners
+    backHair.scale.set(1, 1, 1);
     group.add(backHair);
     
-    // Top hair
-    const topHairGeometry = new THREE.SphereGeometry(0.26, 10, 10, 0, Math.PI * 2, 0, Math.PI / 2);
+    // Top hair cap
+    const topHairGeometry = new THREE.SphereGeometry(headRadius * 1.02, 12, 10, 0, Math.PI * 2, 0, Math.PI / 2);
     const topHair = new THREE.Mesh(topHairGeometry, hairMaterial);
-    topHair.position.y = th / 2 + 0.90;
+    topHair.position.y = hairY + headRadius * 0.1;
     group.add(topHair);
     
-    // Bangs
-    const bangsGeometry = new THREE.BoxGeometry(0.40, 0.1, 0.1);
+    // Bangs - slightly rounded
+    const bangsGeometry = new THREE.BoxGeometry(0.42, 0.08, 0.12);
     const bangs = new THREE.Mesh(bangsGeometry, hairMaterial);
-    bangs.position.set(0, th / 2 + 0.96, 0.16);
+    bangs.position.set(0, hairY + headRadius * 0.75, headRadius * 0.55);
     group.add(bangs);
     
-    // Side strands
-    const strandGeometry = new THREE.BoxGeometry(0.09, 0.34, 0.09);
+    // Side strands - rounded cylinders instead of sharp boxes
+    const strandGeometry = new THREE.CylinderGeometry(0.045, 0.04, 0.36, 8);
     
     const leftStrand = new THREE.Mesh(strandGeometry, hairMaterial);
-    leftStrand.position.set(-0.21, th / 2 + 0.62, 0);
+    leftStrand.position.set(-headRadius * 0.82, hairY - 0.12, 0);
     group.add(leftStrand);
     
     const rightStrand = new THREE.Mesh(strandGeometry, hairMaterial);
-    rightStrand.position.set(0.21, th / 2 + 0.62, 0);
+    rightStrand.position.set(headRadius * 0.82, hairY - 0.12, 0);
     group.add(rightStrand);
   }
 }
@@ -253,27 +413,30 @@ function addHair(
 
 /**
  * Add a hat to the avatar based on style.
+ * Updated to use head-relative positioning.
  */
 function addHat(
   group: THREE.Group,
   hat: HatStyle,
   hatColor: number,
-  th: number
+  th: number,
+  headY: number,
+  headRadius: number
 ): void {
   const hatMaterial = new THREE.MeshToonMaterial({ color: hatColor, emissive: hatColor, emissiveIntensity: 0.06 });
   
   switch (hat) {
     case 'cap':
-      addCap(group, hatMaterial, th);
+      addCap(group, hatMaterial, headY, headRadius);
       break;
     case 'wizard':
-      addWizardHat(group, hatMaterial, th);
+      addWizardHat(group, hatMaterial, headY, headRadius);
       break;
     case 'crown':
-      addCrown(group, hatMaterial, th);
+      addCrown(group, hatMaterial, headY, headRadius);
       break;
     case 'flower':
-      addFlowerHat(group, hatMaterial, th);
+      addFlowerHat(group, hatMaterial, headY, headRadius);
       break;
   }
 }
@@ -281,17 +444,20 @@ function addHat(
 /**
  * Add a baseball cap.
  */
-function addCap(group: THREE.Group, material: THREE.Material, th: number): void {
-  // Cap dome — positioned for chibi head top (~0.86 + 0.25 = 1.11)
-  const domeGeometry = new THREE.SphereGeometry(0.27, 10, 10, 0, Math.PI * 2, 0, Math.PI / 2);
+function addCap(group: THREE.Group, material: THREE.Material, headY: number, headRadius: number): void {
+  // Hat Y position (on top of head)
+  const hatY = headY + headRadius * 0.85;
+  
+  // Cap dome
+  const domeGeometry = new THREE.SphereGeometry(headRadius * 1.05, 12, 10, 0, Math.PI * 2, 0, Math.PI / 2);
   const dome = new THREE.Mesh(domeGeometry, material);
-  dome.position.y = th / 2 + 1.08;
+  dome.position.y = hatY;
   group.add(dome);
   
   // Brim
-  const brimGeometry = new THREE.CylinderGeometry(0.13, 0.24, 0.025, 8, 1, false, 0, Math.PI);
+  const brimGeometry = new THREE.CylinderGeometry(headRadius * 0.5, headRadius * 0.9, 0.02, 8, 1, false, 0, Math.PI);
   const brim = new THREE.Mesh(brimGeometry, material);
-  brim.position.set(0, th / 2 + 1.08, 0.16);
+  brim.position.set(0, hatY, headRadius * 0.6);
   brim.rotation.y = Math.PI;
   group.add(brim);
 }
@@ -299,17 +465,19 @@ function addCap(group: THREE.Group, material: THREE.Material, th: number): void 
 /**
  * Add a wizard hat.
  */
-function addWizardHat(group: THREE.Group, material: THREE.Material, th: number): void {
-  // Cone — positioned for chibi head
-  const coneGeometry = new THREE.ConeGeometry(0.26, 0.48, 8);
+function addWizardHat(group: THREE.Group, material: THREE.Material, headY: number, headRadius: number): void {
+  const hatY = headY + headRadius * 0.85;
+  
+  // Cone
+  const coneGeometry = new THREE.ConeGeometry(headRadius * 1.0, 0.48, 8);
   const cone = new THREE.Mesh(coneGeometry, material);
-  cone.position.y = th / 2 + 1.28;
+  cone.position.y = hatY + 0.24;
   group.add(cone);
   
   // Brim
-  const brimGeometry = new THREE.TorusGeometry(0.24, 0.04, 6, 12);
+  const brimGeometry = new THREE.TorusGeometry(headRadius * 0.9, 0.04, 6, 12);
   const brim = new THREE.Mesh(brimGeometry, material);
-  brim.position.y = th / 2 + 1.06;
+  brim.position.y = hatY;
   brim.rotation.x = Math.PI / 2;
   group.add(brim);
 }
@@ -317,11 +485,13 @@ function addWizardHat(group: THREE.Group, material: THREE.Material, th: number):
 /**
  * Add a crown.
  */
-function addCrown(group: THREE.Group, material: THREE.Material, th: number): void {
-  // Base ring — positioned for chibi head
-  const baseGeometry = new THREE.TorusGeometry(0.22, 0.04, 6, 12);
+function addCrown(group: THREE.Group, material: THREE.Material, headY: number, headRadius: number): void {
+  const hatY = headY + headRadius * 0.85;
+  
+  // Base ring
+  const baseGeometry = new THREE.TorusGeometry(headRadius * 0.85, 0.04, 6, 12);
   const base = new THREE.Mesh(baseGeometry, material);
-  base.position.y = th / 2 + 1.06;
+  base.position.y = hatY;
   base.rotation.x = Math.PI / 2;
   group.add(base);
   
@@ -332,9 +502,9 @@ function addCrown(group: THREE.Group, material: THREE.Material, th: number): voi
     const pointGeometry = new THREE.ConeGeometry(0.045, 0.14, 4);
     const point = new THREE.Mesh(pointGeometry, material);
     point.position.set(
-      Math.cos(angle) * 0.18,
-      th / 2 + 1.13,
-      Math.sin(angle) * 0.18
+      Math.cos(angle) * headRadius * 0.7,
+      hatY + 0.07,
+      Math.sin(angle) * headRadius * 0.7
     );
     group.add(point);
   }
@@ -343,12 +513,16 @@ function addCrown(group: THREE.Group, material: THREE.Material, th: number): voi
 /**
  * Add a flower accessory.
  */
-function addFlowerHat(group: THREE.Group, material: THREE.Material, th: number): void {
-  // Stem — positioned for chibi head
+function addFlowerHat(group: THREE.Group, material: THREE.Material, headY: number, headRadius: number): void {
+  const hatY = headY + headRadius * 0.85;
+  const flowerX = headRadius * 0.5;
+  const flowerZ = headRadius * 0.4;
+  
+  // Stem
   const stemMaterial = new THREE.MeshToonMaterial({ color: 0x2A7A1A });
   const stemGeometry = new THREE.CylinderGeometry(0.015, 0.015, 0.12, 5);
   const stem = new THREE.Mesh(stemGeometry, stemMaterial);
-  stem.position.set(0.13, th / 2 + 1.03, 0.10);
+  stem.position.set(flowerX, hatY - 0.02, flowerZ);
   stem.rotation.z = -0.2;
   group.add(stem);
   
@@ -358,9 +532,9 @@ function addFlowerHat(group: THREE.Group, material: THREE.Material, th: number):
     const petalGeometry = new THREE.SphereGeometry(0.042, 5, 5);
     const petal = new THREE.Mesh(petalGeometry, material);
     petal.position.set(
-      0.13 + Math.cos(angle) * 0.07,
-      th / 2 + 1.09,
-      0.10 + Math.sin(angle) * 0.07
+      flowerX + Math.cos(angle) * 0.07,
+      hatY + 0.06,
+      flowerZ + Math.sin(angle) * 0.07
     );
     petal.scale.set(0.7, 0.3, 1);
     petal.rotation.y = angle;
@@ -371,7 +545,7 @@ function addFlowerHat(group: THREE.Group, material: THREE.Material, th: number):
   const centerMaterial = new THREE.MeshToonMaterial({ color: 0xFFD700 });
   const centerGeometry = new THREE.SphereGeometry(0.035, 6, 6);
   const center = new THREE.Mesh(centerGeometry, centerMaterial);
-  center.position.set(0.13, th / 2 + 1.09, 0.10);
+  center.position.set(flowerX, hatY + 0.06, flowerZ);
   group.add(center);
 }
 

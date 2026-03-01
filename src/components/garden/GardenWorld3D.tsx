@@ -25,6 +25,9 @@ import {
   calculateGrowthStage,
 } from '../../renderer';
 import { TreeStatus } from '../../types/game';
+import { useSounds } from '../../hooks/useSounds';
+import { npcVisitorManager, NPCVisitor } from '../../services/npcVisitorManager';
+import NPCQuizModal from './NPCQuizModal';
 
 // ============================================================================
 // TYPES
@@ -75,6 +78,8 @@ export interface GardenWorldProps {
    * same flowers/plants layout so it feels like their personal garden.
    */
   seedUserId?: string;
+  /** User ID for NPC visitor system (required for NPC quizzes) */
+  userId?: string;
 }
 
 /**
@@ -137,6 +142,7 @@ export const GardenWorld3D = React.forwardRef<GardenWorldHandle, GardenWorldProp
       onPlacementEnd,
       avatarPosition,
       seedUserId,
+      userId,
     },
     ref
   ) => {
@@ -144,15 +150,75 @@ export const GardenWorld3D = React.forwardRef<GardenWorldHandle, GardenWorldProp
     const rendererRef = useRef<GardenRenderer | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
     
+    // NPC visitor state
+    const [activeVisitor, setActiveVisitor] = useState<NPCVisitor | null>(null);
+    const [showQuizModal, setShowQuizModal] = useState(false);
+    const [currentStreak, setCurrentStreak] = useState(0);
+    
+    // Sound effects for garden interactions
+    const { playTap, startFootsteps, stopFootsteps } = useSounds();
+    
     // Ref to track placement mode item - avoids stale closure in onTileClick callback.
     // The callback is created once in useEffect(() => {}, []) but we need access
     // to the current placementModeItem value on every click.
     const placementModeItemRef = useRef<ShopItem | null>(null);
     
-    // Keep the ref in sync with the prop
-    useEffect(() => {
-      placementModeItemRef.current = placementModeItem ?? null;
+   // Keep the ref in sync with the prop
+   useEffect(() => {
+     placementModeItemRef.current = placementModeItem ?? null;
     }, [placementModeItem]);
+    
+    // ==========================================================================
+    // NPC VISITOR MANAGEMENT
+    // ==========================================================================
+
+    useEffect(() => {
+      if (!userId) return;
+
+      // Initialize NPC visitor manager with user ID
+      npcVisitorManager.initialize(userId);
+
+      // Subscribe to visitor updates
+      const unsubscribe = npcVisitorManager.subscribe((visitors) => {
+        if (visitors.length > 0) {
+          // Show the first active visitor
+          setActiveVisitor(visitors[0]);
+          setShowQuizModal(true);
+          setCurrentStreak(npcVisitorManager.getStreak());
+        } else {
+          setActiveVisitor(null);
+          setShowQuizModal(false);
+        }
+      });
+
+      return () => {
+        unsubscribe();
+        npcVisitorManager.destroy();
+      };
+    }, [userId]);
+
+    /**
+     * Handle NPC quiz answer.
+     */
+    const handleQuizAnswer = useCallback(async (visitorId: string, answer: string) => {
+      try {
+        const result = await npcVisitorManager.answerQuiz(visitorId, answer);
+        if (result.correct) {
+          setCurrentStreak(result.visitor.wasCorrect ? npcVisitorManager.getStreak() : 0);
+        }
+      } catch (error) {
+        console.error('[GardenWorld3D] Error answering quiz:', error);
+      }
+      setShowQuizModal(false);
+    }, []);
+
+    /**
+     * Handle NPC dismiss.
+     */
+    const handleQuizDismiss = useCallback((visitorId: string) => {
+      npcVisitorManager.dismissVisitor(visitorId);
+      setShowQuizModal(false);
+    }, []);
 
     // ==========================================================================
     // RENDERER INITIALIZATION
@@ -180,6 +246,9 @@ export const GardenWorld3D = React.forwardRef<GardenWorldHandle, GardenWorldProp
           }
         },
         onTileClick: (gx, gz, isOccupied) => {
+          // Play tap sound on any tile click for tactile feedback
+          playTap();
+          
           // Handle shop placement mode - use ref to avoid stale closure
           const currentItem = placementModeItemRef.current;
           if (currentItem && !isOccupied) {
@@ -188,6 +257,14 @@ export const GardenWorld3D = React.forwardRef<GardenWorldHandle, GardenWorldProp
               onPlacementEnd?.(true);
             }
           }
+        },
+        onWalkStart: () => {
+          // Avatar started walking - play footstep loop
+          startFootsteps();
+        },
+        onWalkEnd: () => {
+          // Avatar stopped walking - stop footstep loop
+          stopFootsteps();
         },
       });
 
@@ -213,6 +290,44 @@ export const GardenWorld3D = React.forwardRef<GardenWorldHandle, GardenWorldProp
         setIsInitialized(false);
       };
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // ==========================================================================
+    // NPC VISITOR SYNC TO RENDERER
+    // ==========================================================================
+
+    useEffect(() => {
+      if (!rendererRef.current || !userId) return;
+
+      const renderer = rendererRef.current;
+
+      // Sync NPC visitor to 3D renderer
+      if (activeVisitor) {
+        renderer.setNPCVisitor(
+          activeVisitor.id,
+          null, // Use random avatar options
+          activeVisitor.position,
+          'idle'
+        );
+      } else {
+        // Remove all NPCs when no active visitor
+        renderer.clearAllNPCs();
+      }
+    }, [activeVisitor, userId]);
+
+    // Wire NPC click callback
+    useEffect(() => {
+      if (!rendererRef.current) return;
+
+      rendererRef.current.onNPCClick = (npcId: string) => {
+        // Find the visitor and show the quiz modal
+        const visitors = npcVisitorManager.getActiveVisitors();
+        const visitor = visitors.find(v => v.id === npcId);
+        if (visitor) {
+          setActiveVisitor(visitor);
+          setShowQuizModal(true);
+        }
+      };
+    }, []);
 
     // ==========================================================================
     // LEARNING TREES SYNC
@@ -346,6 +461,15 @@ export const GardenWorld3D = React.forwardRef<GardenWorldHandle, GardenWorldProp
             Loading garden...
           </div>
         )}
+        
+        {/* NPC Quiz Modal */}
+        <NPCQuizModal
+          visible={showQuizModal}
+          visitor={activeVisitor}
+          onAnswer={handleQuizAnswer}
+          onDismiss={handleQuizDismiss}
+          streak={currentStreak}
+        />
       </div>
     );
   }

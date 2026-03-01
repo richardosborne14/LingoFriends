@@ -34,11 +34,14 @@ const CAMERA_Y = 1.1;
 /** Camera Z position (distance from subjects) */
 const CAMERA_Z = 3.5;
 
-/** User avatar position (left side) */
-const USER_POSITION = new THREE.Vector3(-0.6, 0, 0.3);
+/** User avatar position (left side) - closer together for larger avatars */
+const USER_POSITION = new THREE.Vector3(-0.5, 0, 0.25);
 
-/** NPC avatar position (right side) */
-const NPC_POSITION = new THREE.Vector3(0.6, 0, -0.3);
+/** NPC avatar position (right side) - closer together for larger avatars */
+const NPC_POSITION = new THREE.Vector3(0.5, 0, -0.25);
+
+/** Avatar scale factor - 35% larger for better visibility */
+const AVATAR_SCALE = 1.35;
 
 /** User rotation (facing camera-right, toward NPC) */
 const USER_ROTATION_Y = Math.PI * 0.25;    // 45° (facing diagonally toward camera and right)
@@ -136,10 +139,11 @@ export class EncounterScene {
   private npcGroup: THREE.Group;
 
   // ── Animated Parts ─────────────────────────────────────────────
-  private userEyeLeft: THREE.Mesh | null = null;
-  private userEyeRight: THREE.Mesh | null = null;
-  private npcEyeLeft: THREE.Mesh | null = null;
-  private npcEyeRight: THREE.Mesh | null = null;
+  // Eyes are now Groups (containing sclera, iris, pupil), not Meshes
+  private userEyeLeft: THREE.Group | null = null;
+  private userEyeRight: THREE.Group | null = null;
+  private npcEyeLeft: THREE.Group | null = null;
+  private npcEyeRight: THREE.Group | null = null;
   private npcMouth: THREE.Mesh | null = null;
 
   // ── Boss Glow Effect ───────────────────────────────────────────
@@ -207,6 +211,10 @@ export class EncounterScene {
     this.userGroup = buildAvatar(userAvatar);
     this.npcGroup = buildAvatar(npc.avatar);
 
+    // Apply base scale (35% larger for better visibility)
+    this.userGroup.scale.setScalar(AVATAR_SCALE);
+    this.npcGroup.scale.setScalar(AVATAR_SCALE);
+
     // Position and rotate
     this.userGroup.position.copy(USER_POSITION);
     this.userGroup.rotation.y = USER_ROTATION_Y;
@@ -214,9 +222,9 @@ export class EncounterScene {
     this.npcGroup.position.copy(NPC_POSITION);
     this.npcGroup.rotation.y = NPC_ROTATION_Y;
 
-    // Scale boss NPCs
+    // Apply additional boss scaling on top of base scale
     if (npc.scale !== 1.0) {
-      this.npcGroup.scale.setScalar(npc.scale);
+      this.npcGroup.scale.setScalar(AVATAR_SCALE * npc.scale);
     }
 
     // ── Find animated parts ──
@@ -267,22 +275,24 @@ export class EncounterScene {
   /**
    * Find eye and mouth meshes in an avatar group.
    * The AvatarBuilder creates these with specific names.
+   * Eyes are now Groups (containing sclera, iris, pupil).
    */
   private findAnimatableParts(group: THREE.Group, owner: 'user' | 'npc'): void {
     group.traverse((child) => {
-      if (!(child instanceof THREE.Mesh)) return;
-
+      // Eyes are Groups now - check for Object3D with name
       const name = child.name.toLowerCase();
-
+      
       if (name === 'eye_left' || name === 'eyeleft') {
-        if (owner === 'user') this.userEyeLeft = child;
-        else this.npcEyeLeft = child;
+        if (owner === 'user') this.userEyeLeft = child as THREE.Group;
+        else this.npcEyeLeft = child as THREE.Group;
       }
       if (name === 'eye_right' || name === 'eyeright') {
-        if (owner === 'user') this.userEyeRight = child;
-        else this.npcEyeRight = child;
+        if (owner === 'user') this.userEyeRight = child as THREE.Group;
+        else this.npcEyeRight = child as THREE.Group;
       }
-      if (name === 'mouth') {
+      
+      // Mouth is still a Mesh
+      if (child instanceof THREE.Mesh && name === 'mouth') {
         if (owner === 'npc') {
           this.npcMouth = child;
           this.originalMouthScaleY = child.scale.y;
@@ -490,11 +500,12 @@ export class EncounterScene {
   }
 
   /**
-   * Blink by scaling eyes to zero height.
+   * Blink by scaling eye groups to zero height.
+   * Works with THREE.Group (eye assembly) or THREE.Object3D.
    */
   private setEyesClosed(
-    eyeLeft: THREE.Mesh | null,
-    eyeRight: THREE.Mesh | null,
+    eyeLeft: THREE.Object3D | null,
+    eyeRight: THREE.Object3D | null,
     closed: boolean,
   ): void {
     const scaleY = closed ? 0.1 : 1;

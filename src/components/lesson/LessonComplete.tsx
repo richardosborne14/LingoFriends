@@ -20,7 +20,7 @@
  * @see docs/phase-1.1/task-1-1-11-gift-system.md
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { SunDropIcon } from '../shared/SunDropIcon';
 import { calculateStars } from '../../services/sunDropService';
@@ -30,6 +30,7 @@ import {
   formatGems,
   type GemAchievement 
 } from '../../services/gemService';
+import { useSounds } from '../../hooks/useSounds';
 
 // ============================================
 // TYPES
@@ -164,6 +165,21 @@ export const LessonComplete: React.FC<LessonCompleteProps> = ({
   const accuracyPercent = sunDropsMax > 0 
     ? Math.round((sunDropsEarned / sunDropsMax) * 100) 
     : 0;
+
+  // ============================================
+  // SOUND EFFECTS
+  // ============================================
+  
+  /**
+   * Play celebration sound when component mounts.
+   * Celebration for lesson completion is a joyful moment!
+   */
+  const { playCelebrate } = useSounds();
+  
+  useEffect(() => {
+    // Play celebration sound when the completion screen appears
+    playCelebrate();
+  }, [playCelebrate]);
 
   return (
     <motion.div

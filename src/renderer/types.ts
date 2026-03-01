@@ -17,14 +17,20 @@ import * as THREE from 'three';
 // GRID CONSTANTS
 // ============================================================================
 
-/** Grid size (G×G tiles) */
-export const GRID_SIZE = 12;
+/** Grid size (G×G tiles) - the garden area */
+export const GRID_SIZE = 10;
+
+/** World size - extends beyond the garden for outdoor areas */
+export const WORLD_SIZE = 30;
 
 /** Tile width in world units */
 export const TILE_WIDTH = 1;
 
 /** Tile height (thickness) in world units */
 export const TILE_HEIGHT = 0.1;
+
+/** Fence offset from garden edge */
+export const FENCE_OFFSET = 0.5;
 
 // ============================================================================
 // AVATAR TYPES
@@ -364,6 +370,10 @@ export interface GardenRendererOptions {
   onObjectPlace?: (objectId: string, gx: number, gz: number) => void;
   /** Callback when a tile is clicked (for shop placement) */
   onTileClick?: (gx: number, gz: number, isOccupied: boolean) => void;
+  /** Callback when avatar starts walking (for footstep sounds) */
+  onWalkStart?: () => void;
+  /** Callback when avatar stops walking (for footstep sounds) */
+  onWalkEnd?: () => void;
   /**
    * User ID used to seed the ambient decoration RNG.
    * When provided, the same user always sees the same flowers/plants layout.

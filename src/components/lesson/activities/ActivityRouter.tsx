@@ -33,6 +33,12 @@ export interface ActivityProps {
   onComplete: (correct: boolean, sunDropsEarned: number) => void;
   /** Callback when wrong answer is given (for penalty tracking) */
   onWrong: () => void;
+  /** Callback when user skips the question (optional - advances without reward/penalty) */
+  onSkip?: () => void;
+  /** Callback when user reports a broken question (optional - triggers regeneration) */
+  onReport?: () => void;
+  /** Whether a report is currently being processed */
+  isReporting?: boolean;
 }
 
 // ============================================
@@ -64,6 +70,9 @@ export const ActivityRouter: React.FC<ActivityProps> = ({
   helpText,
   onComplete,
   onWrong,
+  onSkip,
+  onReport,
+  isReporting,
 }) => {
   // Route to the correct component based on activity type
   switch (data.type) {
@@ -74,6 +83,9 @@ export const ActivityRouter: React.FC<ActivityProps> = ({
           helpText={helpText}
           onComplete={onComplete}
           onWrong={onWrong}
+          onSkip={onSkip}
+          onReport={onReport}
+          isReporting={isReporting}
         />
       );
 
@@ -84,6 +96,9 @@ export const ActivityRouter: React.FC<ActivityProps> = ({
           helpText={helpText}
           onComplete={onComplete}
           onWrong={onWrong}
+          onSkip={onSkip}
+          onReport={onReport}
+          isReporting={isReporting}
         />
       );
 
@@ -94,6 +109,9 @@ export const ActivityRouter: React.FC<ActivityProps> = ({
           helpText={helpText}
           onComplete={onComplete}
           onWrong={onWrong}
+          onSkip={onSkip}
+          onReport={onReport}
+          isReporting={isReporting}
         />
       );
 
@@ -104,6 +122,9 @@ export const ActivityRouter: React.FC<ActivityProps> = ({
           helpText={helpText}
           onComplete={onComplete}
           onWrong={onWrong}
+          onSkip={onSkip}
+          onReport={onReport}
+          isReporting={isReporting}
         />
       );
 
@@ -114,6 +135,9 @@ export const ActivityRouter: React.FC<ActivityProps> = ({
           helpText={helpText}
           onComplete={onComplete}
           onWrong={onWrong}
+          onSkip={onSkip}
+          onReport={onReport}
+          isReporting={isReporting}
         />
       );
 
@@ -124,11 +148,15 @@ export const ActivityRouter: React.FC<ActivityProps> = ({
           helpText={helpText}
           onComplete={onComplete}
           onWrong={onWrong}
+          onSkip={onSkip}
+          onReport={onReport}
+          isReporting={isReporting}
         />
       );
 
     case GameActivityType.INFO:
       // INFO is a teaching step - always completes with 0 sunDrops (no quiz)
+      // onSkip is not used for INFO since there's no skip button
       return (
         <InfoDisplay
           data={data}

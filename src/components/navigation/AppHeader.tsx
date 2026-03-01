@@ -14,10 +14,11 @@
  * @module AppHeader
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { SunDropCounter } from '../lesson/SunDropCounter';
 import { Logo } from '../../../components/ui';
+import { SoundManager } from '../../services/soundManager';
 
 // ============================================
 // TYPES
@@ -37,6 +38,8 @@ export interface AppHeaderProps {
   gems?: number;
   /** Callback when settings is clicked */
   onSettingsClick?: () => void;
+  /** Callback when world map is clicked */
+  onWorldMapClick?: () => void;
   /** Whether to show the streak (optional, defaults true) */
   showStreak?: boolean;
 }
@@ -145,8 +148,26 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   sunDrops,
   gems,
   onSettingsClick,
+  onWorldMapClick,
   showStreak = true,
 }) => {
+  // Sound toggle state - persists across the app via SoundManager singleton
+  const [isMuted, setIsMuted] = useState(() => SoundManager.isMuted());
+  
+  /**
+   * Toggle sound on/off.
+   * Kids often play in quiet environments where sound isn't appropriate.
+   */
+  const toggleMute = () => {
+    if (isMuted) {
+      SoundManager.setMuted(false);
+      setIsMuted(false);
+    } else {
+      SoundManager.setMuted(true);
+      setIsMuted(true);
+    }
+  };
+
   return (
     <header style={headerStyles}>
       {/* Left: Avatar and App Name */}
@@ -200,6 +221,36 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         >
           <SunDropCounter count={sunDrops} />
         </motion.div>
+
+        {/* World map button */}
+        {onWorldMapClick && (
+          <motion.button
+            style={settingsButtonStyles}
+            onClick={onWorldMapClick}
+            onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+            onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            aria-label="World map"
+            title="World map"
+          >
+            🌍
+          </motion.button>
+        )}
+
+        {/* Sound toggle button */}
+        <motion.button
+          style={settingsButtonStyles}
+          onClick={toggleMute}
+          onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+          onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          aria-label={isMuted ? 'Unmute sounds' : 'Mute sounds'}
+          title={isMuted ? 'Unmute sounds' : 'Mute sounds'}
+        >
+          {isMuted ? '🔇' : '🔊'}
+        </motion.button>
 
         {/* Settings button */}
         {onSettingsClick && (

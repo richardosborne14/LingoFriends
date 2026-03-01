@@ -161,6 +161,66 @@ function extractStepPhrase(step: LessonStep): string | null {
   }
 }
 
+/**
+ * Extract coaching text for TTS playback.
+ *
+ * coachingText is AI-generated introductory text spoken by the NPC teacher
+ * at the start of each step. It's in the user's native language and provides
+ * context, motivation, and personalization.
+ *
+ * Task 2.0.07: This replaces the separate TTS playback approach with
+ * a unified coachingText that plays first on step change.
+ *
+ * @param step - The lesson step
+ * @returns The coaching text to speak, or null if not available
+ */
+function extractCoachingText(step: LessonStep): string | null {
+  // coachingText is optional field on LessonStep (Task 2.0.07)
+  if ((step as any).coachingText && typeof (step as any).coachingText === 'string') {
+    return (step as any).coachingText;
+  }
+  return null;
+}
+
+/**
+ * Extract all audio phrases from a lesson plan including coaching text.
+ * Used for pre-generation.
+ */
+function extractAllAudioPhrases(
+  lesson: LessonPlan,
+  language: TargetLanguage,
+): ChunkAudioRequest[] {
+  const phrases: ChunkAudioRequest[] = [];
+  const seen = new Set<string>();
+
+  for (const step of lesson.steps) {
+    // Add coaching text (in native language - will use native language TTS)
+    const coachingText = extractCoachingText(step);
+    if (coachingText && !seen.has(coachingText)) {
+      seen.add(coachingText);
+      // Coaching text uses native language voice
+      phrases.push({
+        text: coachingText,
+        language: 'English', // Will be overridden by actual native language
+        chunkId: `coaching-${lesson.steps.indexOf(step)}`,
+      });
+    }
+
+    // Add target language phrase
+    const text = extractStepPhrase(step);
+    if (text && !seen.has(text)) {
+      seen.add(text);
+      phrases.push({
+        text,
+        language,
+        chunkId: (step.activity as any)?.focusChunkId,
+      });
+    }
+  }
+
+  return phrases;
+}
+
 // ============================================
 // MAIN HOOK
 // ============================================
@@ -292,7 +352,7 @@ export function useLessonAudio({
   }, [targetLanguage]);
 
   // ──────────────────────────────────────────────────────────────
-  // Auto-play on INFO step change
+  // Auto-play on step change (Task 2.0.07: coachingText for ALL steps)
   // ──────────────────────────────────────────────────────────────
   useEffect(() => {
     // Clear any pending auto-play timer
@@ -308,7 +368,6 @@ export function useLessonAudio({
     // Only auto-play if:
     // 1. autoPlay is enabled
     // 2. Step actually changed (not initial mount re-render)
-    // 3. Current step is an INFO step
     if (!autoPlay || currentStepIndex === prevStepRef.current) {
       prevStepRef.current = currentStepIndex;
       return;
@@ -316,16 +375,30 @@ export function useLessonAudio({
 
     prevStepRef.current = currentStepIndex;
     const currentStep = lesson.steps[currentStepIndex];
+    if (!currentStep) return;
 
-    if (currentStep?.activity?.type === GameActivityType.INFO) {
-      const phraseText = extractStepPhrase(currentStep);
-      if (phraseText) {
-        // Auto-play after delay (gives the child time to read the tutor bubble)
-        autoPlayTimerRef.current = setTimeout(() => {
-          if (isMountedRef.current) {
-            playPhraseAudio(phraseText);
-          }
-        }, autoPlayDelay);
+    // Task 2.0.07: Play coaching text on ALL steps
+    // coachingText is AI-generated intro text spoken by the NPC teacher
+    const coachingText = extractCoachingText(currentStep);
+    
+    if (coachingText) {
+      // Auto-play coaching text after delay (gives UI time to settle)
+      autoPlayTimerRef.current = setTimeout(() => {
+        if (isMountedRef.current) {
+          playPhraseAudio(coachingText);
+        }
+      }, autoPlayDelay);
+    } else {
+      // Fallback: For INFO steps without coachingText, play the chunk phrase
+      if (currentStep?.activity?.type === GameActivityType.INFO) {
+        const phraseText = extractStepPhrase(currentStep);
+        if (phraseText) {
+          autoPlayTimerRef.current = setTimeout(() => {
+            if (isMountedRef.current) {
+              playPhraseAudio(phraseText);
+            }
+          }, autoPlayDelay);
+        }
       }
     }
 

@@ -22,6 +22,12 @@ export interface TranslateProps {
   helpText: string;
   onComplete: (correct: boolean, sunDropsEarned: number) => void;
   onWrong: () => void;
+  /** Callback when user skips the question (optional - advances without reward/penalty) */
+  onSkip?: () => void;
+  /** Callback when user reports a broken question (optional - triggers regeneration) */
+  onReport?: () => void;
+  /** Whether a report is currently being processed */
+  isReporting?: boolean;
 }
 
 interface TranslateState {
@@ -67,6 +73,9 @@ export const Translate: React.FC<TranslateProps> = ({
   helpText,
   onComplete,
   onWrong,
+  onSkip,
+  onReport,
+  isReporting,
 }) => {
   if (!data.sourcePhrase || !data.correctAnswer) {
     console.error('Translate: Missing required fields', data);
@@ -181,10 +190,15 @@ export const Translate: React.FC<TranslateProps> = ({
 
   /**
    * Skip this question entirely.
+   * Uses onSkip callback if provided, otherwise falls back to onComplete(false, 0).
    */
   const handleSkip = useCallback(() => {
-    onComplete(false, 0);
-  }, [onComplete]);
+    if (onSkip) {
+      onSkip();
+    } else {
+      onComplete(false, 0);
+    }
+  }, [onSkip, onComplete]);
 
   const reduced = state.usedHelp || state.attempts > 0;
   const canGiveUp = state.attempts >= MAX_ATTEMPTS && !state.isComplete;
@@ -327,6 +341,22 @@ export const Translate: React.FC<TranslateProps> = ({
       <div className="flex gap-2 mt-4">
         {state.isCorrect === null && !state.isComplete && (
           <>
+            {/* Report button */}
+            {onReport && (
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={onReport}
+                disabled={isReporting}
+                className={`border-2 rounded-lg px-3 py-1.5 font-bold text-xs transition-colors ${
+                  isReporting
+                    ? 'bg-amber-50 border-amber-200 text-amber-400 cursor-wait'
+                    : 'bg-red-50 border-red-200 text-red-500 hover:bg-red-100 hover:border-red-300'
+                }`}
+                title="Report a problem with this question"
+              >
+                {isReporting ? '⏳ Fixing...' : '🚩 Report'}
+              </motion.button>
+            )}
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={handleCheck}

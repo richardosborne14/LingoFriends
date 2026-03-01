@@ -24,18 +24,11 @@ import type {
   CEFRSubLevel,
 } from '../types/pedagogy';
 import type { GeneratedChunkContent } from './lessonAssembler';
+import { aiProviderService } from './ai';
 
 // ============================================================================
 // CONFIGURATION
 // ============================================================================
-
-const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_MODEL = 'llama-3.3-70b-versatile';
-
-/** Rate limiting */
-let lastRequestTime = 0;
-const MIN_REQUEST_INTERVAL = 500; // ms between requests
 
 /** Maximum retries for failed API calls */
 const MAX_RETRIES = 3;
@@ -328,7 +321,8 @@ Return a JSON object with this exact structure:
       "explanation": "simple explanation for kids — in ${params.nativeLanguageName}",
       "distractors": ["wrong1 in ${params.nativeLanguageName}", "wrong2 in ${params.nativeLanguageName}", "wrong3 in ${params.nativeLanguageName}"],
       "correctUsageContext": "correct situation to use this phrase — in ${params.nativeLanguageName}",
-      "wrongUsageContexts": ["wrong situation 1 in ${params.nativeLanguageName}", "wrong situation 2", "wrong situation 3"]
+      "wrongUsageContexts": ["wrong situation 1 in ${params.nativeLanguageName}", "wrong situation 2", "wrong situation 3"],
+      "coachingText": "A friendly 1-2 sentence introduction in ${params.nativeLanguageName} that will be spoken by the NPC teacher. Include the target phrase naturally. Example: 'Let's learn how to greet someone in the morning! In ${params.targetLanguageName}, you would say the phrase we just learned.'"
     }
   ]
 }
@@ -483,6 +477,8 @@ Return exactly ${params.chunkCount} chunks in the array. Nothing else.`;
         String(wrongUsageContexts[1]).trim(),
         String(wrongUsageContexts[2]).trim(),
       ],
+      // coachingText is optional - AI-generated intro for TTS playback (Task 2.0.07)
+      coachingText: obj['coachingText'] ? String(obj['coachingText']).trim() : undefined,
     };
   }
 
@@ -716,56 +712,26 @@ Generate a single activity as JSON:
   }
   
   /**
-   * Call Groq API with retry logic.
+   * Call AI provider with retry logic.
+   * Uses the AIProviderService which handles provider selection and fallback.
    */
   private async callGroq(
     systemPrompt: string,
     userPrompt: string,
     maxTokens: number = 4000
   ): Promise<string> {
-    // Rate limiting
-    const now = Date.now();
-    const timeSinceLastRequest = now - lastRequestTime;
-    if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
-      await sleep(MIN_REQUEST_INTERVAL - timeSinceLastRequest);
-    }
-    lastRequestTime = Date.now();
-    
     return retryWithBackoff(async () => {
-      const response = await fetch(GROQ_API_URL, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${GROQ_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: GROQ_MODEL,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-          temperature: 0.7,
-          max_tokens: maxTokens,
-          response_format: { type: 'json_object' },
-        }),
+      const result = await aiProviderService.complete({
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        temperature: 0.7,
+        maxTokens,
+        jsonMode: true,
       });
       
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        const apiError = new Error(`Groq API error: ${response.status}`);
-        (apiError as any).status = response.status;
-        (apiError as any).details = error;
-        throw apiError;
-      }
-      
-      const data = await response.json() as GroqResponse;
-      const content = data.choices?.[0]?.message?.content;
-      
-      if (!content) {
-        throw new Error('No response content from Groq');
-      }
-      
-      return content;
+      return result.text;
     });
   }
   

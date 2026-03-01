@@ -22,6 +22,12 @@ export interface WordArrangeProps {
   helpText: string;
   onComplete: (correct: boolean, sunDropsEarned: number) => void;
   onWrong: () => void;
+  /** Callback when user skips the question (optional - advances without reward/penalty) */
+  onSkip?: () => void;
+  /** Callback when user reports a broken question (optional - triggers regeneration) */
+  onReport?: () => void;
+  /** Whether a report is currently being processed */
+  isReporting?: boolean;
 }
 
 interface WordArrangeState {
@@ -86,6 +92,9 @@ export const WordArrange: React.FC<WordArrangeProps> = ({
   helpText,
   onComplete,
   onWrong,
+  onSkip,
+  onReport,
+  isReporting,
 }) => {
   // Validate required fields
   if (!data.targetSentence || !data.scrambledWords) {
@@ -308,7 +317,24 @@ export const WordArrange: React.FC<WordArrangeProps> = ({
       )}
 
       {/* Action buttons */}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2 items-center">
+        {/* Report button - always visible when not complete */}
+        {!state.isComplete && state.isCorrect === null && onReport && (
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={onReport}
+            disabled={isReporting}
+            className={`border-2 rounded-lg px-3 py-1.5 font-bold text-xs transition-colors ${
+              isReporting
+                ? 'bg-amber-50 border-amber-200 text-amber-400 cursor-wait'
+                : 'bg-red-50 border-red-200 text-red-500 hover:bg-red-100 hover:border-red-300'
+            }`}
+            title="Report a problem with this question"
+          >
+            {isReporting ? '⏳ Fixing...' : '🚩 Report'}
+          </motion.button>
+        )}
+        
         {!state.isComplete && state.placedWords.length > 0 && state.isCorrect === null && (
           <motion.button
             whileTap={{ scale: 0.95 }}
@@ -328,6 +354,17 @@ export const WordArrange: React.FC<WordArrangeProps> = ({
             style={{ boxShadow: '0 4px 0 0 rgba(251, 146, 60, 0.3)' }}
           >
             Retry 🔄
+          </motion.button>
+        )}
+        
+        {/* Skip button */}
+        {!state.isComplete && onSkip && (
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={onSkip}
+            className="bg-slate-100 text-slate-500 px-4 py-2 rounded-full font-bold text-sm hover:bg-slate-200 transition ml-auto"
+          >
+            Skip
           </motion.button>
         )}
       </div>

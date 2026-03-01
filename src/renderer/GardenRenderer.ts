@@ -14,8 +14,10 @@
 import * as THREE from 'three';
 import {
   GRID_SIZE,
+  WORLD_SIZE,
   TILE_WIDTH,
   TILE_HEIGHT,
+  FENCE_OFFSET,
   AvatarOptions,
   PlacedObject,
   RendererState,
@@ -115,6 +117,24 @@ export class GardenRenderer {
   /** ResizeObserver for canvas size changes (orientation, browser chrome). */
   private resizeObserver: ResizeObserver | null = null;
 
+  /** NPC meshes currently in the scene, keyed by visitor ID */
+  private npcMeshes: Map<string, THREE.Group> = new Map();
+
+  /** NPC "!" bubble indicators, keyed by visitor ID */
+  private npcBubbles: Map<string, THREE.Group> = new Map();
+
+  /** NPC animation state, keyed by visitor ID */
+  private npcAnimState: Map<string, {
+    state: 'walking_in' | 'idle' | 'walking_out' | 'gone';
+    startPos: THREE.Vector3;
+    targetPos: THREE.Vector3;
+    startTime: number;
+    walkDuration: number;
+  }> = new Map();
+
+  /** Callback when NPC is clicked */
+  public onNPCClick?: (npcId: string) => void;
+
   /**
    * Ambient decoration meshes — flowers/plants placed at startup from the
    * seeded layout. Tracked separately so they are disposed correctly and
@@ -129,6 +149,9 @@ export class GardenRenderer {
   /** When the current blink started */
   private blinkStartTime: number = 0;
   
+  /** Whether avatar is currently walking (for footstep sounds) */
+  private isWalking: boolean = false;
+  
   /**
    * Pending tree interaction — avatar walks to the tree first,
    * then this callback fires when the avatar arrives adjacent to it.
@@ -140,6 +163,12 @@ export class GardenRenderer {
     health: number;
     skillPathId?: string;
   } | null = null;
+  
+  /**
+   * Currently highlighted tree group (during pending walk interaction).
+   * Used to clear the highlight when the walk completes or is cancelled.
+   */
+  private highlightedTreeKey: string | null = null;
   
   /**
    * Callback for when a learning tree is clicked.
@@ -425,7 +454,33 @@ export class GardenRenderer {
     
     this.state.raycaster.setFromCamera(this.state.mouse, this.state.camera);
     
-    // Check for clicks on learning trees first (they're above the ground)
+    // Check for clicks on NPCs first (they have "!" bubbles and are clickable)
+    if (this.npcMeshes.size > 0) {
+      const npcMeshArray: THREE.Object3D[] = [];
+      for (const npcGroup of this.npcMeshes.values()) {
+        npcGroup.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            npcMeshArray.push(child);
+          }
+        });
+      }
+      
+      const npcIntersects = this.state.raycaster.intersectObjects(npcMeshArray);
+      if (npcIntersects.length > 0) {
+        // Walk up to find the parent NPC group
+        let obj = npcIntersects[0].object as THREE.Object3D;
+        while (obj && obj !== this.state.scene) {
+          if (obj.userData?.type === 'npc') {
+            const npcId = obj.userData.npcId as string;
+            this.onNPCClick?.(npcId);
+            return;
+          }
+          obj = obj.parent!;
+        }
+      }
+    }
+    
+    // Check for clicks on learning trees (they're above the ground)
     // We need to recursively check all children of learning tree groups
     const allTreeChildren: THREE.Object3D[] = [];
     for (const treeGroup of this.learningTrees.values()) {
@@ -463,7 +518,14 @@ export class GardenRenderer {
           // Otherwise, walk to an adjacent tile first, then open
           const adj = this.findAdjacentTile(treeGx, treeGz);
           if (adj) {
+            // Clear any previous highlight
+            this.clearTreeHighlight();
+            
+            // Set pending interaction and highlight target tree
             this.pendingTreeInteraction = treeData;
+            this.highlightedTreeKey = cellKey(treeGx, treeGz);
+            this.setTreeHighlight(this.highlightedTreeKey, true);
+            
             this.state.movementTarget = adj;
           }
           return; // Don't process tile clicks if we clicked a tree
@@ -487,6 +549,8 @@ export class GardenRenderer {
       
       // Otherwise, move avatar (and cancel any pending tree interaction)
       if (!isOccupied && isValidCell(gx, gz)) {
+        // Clear highlight and pending interaction when clicking elsewhere
+        this.clearTreeHighlight();
         this.pendingTreeInteraction = null;
         this.state.movementTarget = { gx, gz };
       }
@@ -811,6 +875,76 @@ export class GardenRenderer {
   }
 
   // ==========================================================================
+  // TREE HIGHLIGHT (PENDING INTERACTION FEEDBACK)
+  // ==========================================================================
+
+  /**
+   * Set or clear the highlight on a learning tree.
+   * Called when a tree click starts a walk-to-tree interaction.
+   * 
+   * @param treeKey - Cell key for the tree (null to clear)
+   * @param highlighted - Whether to show the highlight
+   */
+  private setTreeHighlight(treeKey: string | null, highlighted: boolean): void {
+    if (!treeKey) return;
+    
+    const treeGroup = this.learningTrees.get(treeKey);
+    if (!treeGroup) return;
+    
+    // Find the highlight ring mesh (it's named 'highlightRing')
+    const highlightRing = treeGroup.getObjectByName('highlightRing') as THREE.Mesh | undefined;
+    if (!highlightRing) return;
+    
+    // Get the material and toggle visibility
+    const material = highlightRing.material as THREE.MeshBasicMaterial;
+    material.visible = highlighted;
+    
+    // When highlighting, also start the pulsing animation by storing a flag
+    if (highlighted) {
+      highlightRing.userData.isHighlighted = true;
+    } else {
+      highlightRing.userData.isHighlighted = false;
+    }
+  }
+
+  /**
+   * Clear any active tree highlight.
+   */
+  private clearTreeHighlight(): void {
+    if (this.highlightedTreeKey) {
+      this.setTreeHighlight(this.highlightedTreeKey, false);
+      this.highlightedTreeKey = null;
+    }
+  }
+
+  /**
+   * Animate the highlighted tree's ring (pulse effect during walk).
+   * Called from the animation loop.
+   * 
+   * @param elapsed - Elapsed time from clock
+   */
+  private updateTreeHighlightAnimation(elapsed: number): void {
+    if (!this.highlightedTreeKey) return;
+    
+    const treeGroup = this.learningTrees.get(this.highlightedTreeKey);
+    if (!treeGroup) return;
+    
+    const highlightRing = treeGroup.getObjectByName('highlightRing') as THREE.Mesh | undefined;
+    if (!highlightRing) return;
+    
+    // Only animate if highlighted
+    if (!highlightRing.userData.isHighlighted) return;
+    
+    // Pulse the scale: 1.0 → 1.15 → 1.0 over 1.5 seconds
+    const pulseScale = 1 + Math.sin(elapsed * 4) * 0.15; // 4 rad/s = ~0.7s cycle
+    highlightRing.scale.set(pulseScale, pulseScale, 1);
+    
+    // Also pulse opacity for extra visibility
+    const material = highlightRing.material as THREE.MeshBasicMaterial;
+    material.opacity = 0.6 + Math.sin(elapsed * 6) * 0.3; // 0.3 to 0.9
+  }
+
+  // ==========================================================================
   // GHOST PREVIEW (FOR SHOP)
   // ==========================================================================
 
@@ -872,9 +1006,16 @@ export class GardenRenderer {
 
   /**
    * Move avatar toward target position.
+   * Fires onWalkStart when movement begins, onWalkEnd when it ends.
    */
   private updateAvatarMovement(delta: number): void {
     if (!this.state.movementTarget) return;
+    
+    // Fire onWalkStart when movement begins
+    if (!this.isWalking) {
+      this.isWalking = true;
+      this.options.onWalkStart?.();
+    }
     
     const targetWorld = gridToWorld(this.state.movementTarget.gx, this.state.movementTarget.gz);
     const targetPos = new THREE.Vector3(targetWorld.x, 0, targetWorld.z);
@@ -889,6 +1030,12 @@ export class GardenRenderer {
       this.avatarGridPos = { gx: this.state.movementTarget.gx, gz: this.state.movementTarget.gz };
       this.state.movementTarget = null;
       
+      // Fire onWalkEnd when movement ends
+      if (this.isWalking) {
+        this.isWalking = false;
+        this.options.onWalkEnd?.();
+      }
+      
       // Notify callback
       this.options.onAvatarMove?.(this.avatarGridPos.gx, this.avatarGridPos.gz);
       
@@ -896,6 +1043,8 @@ export class GardenRenderer {
       if (this.pendingTreeInteraction) {
         const pending = this.pendingTreeInteraction;
         this.pendingTreeInteraction = null;
+        // Clear the highlight before firing the callback
+        this.clearTreeHighlight();
         this.onLearningTreeClick?.(pending);
       }
     } else {
@@ -991,6 +1140,12 @@ export class GardenRenderer {
       
       // Update lantern flicker effect (candle-like intensity modulation)
       AtmosphereBuilder.updateLanternFlicker(this.state.objectLayer, elapsed);
+      
+      // Animate the highlighted tree ring (pulsing during walk-to-tree)
+      this.updateTreeHighlightAnimation(elapsed);
+      
+      // Update NPC animations (walking, idle, bubbles)
+      this.updateNPCAnimations(elapsed);
       
       // Update ghost preview position
       if (this.state.ghostPreview && this.state.hoverTile.visible) {
@@ -1150,6 +1305,261 @@ export class GardenRenderer {
       this.state.scene.add(mesh);
       this.ambientDecorations.push(mesh);
       // Note: we intentionally do NOT add to occupiedCells — avatar walks through
+    }
+  }
+
+  // ==========================================================================
+  // NPC VISITOR SYSTEM
+  // ==========================================================================
+
+  /**
+   * Add or update an NPC visitor in the garden.
+   * Creates a 3D avatar with the specified appearance at the given position.
+   * 
+   * @param npcId - Unique NPC visitor ID
+   * @param avatar - Avatar options for NPC appearance (optional, random if not provided)
+   * @param position - Grid position {x, y} (gx, gz)
+   * @param state - Current animation state
+   */
+  setNPCVisitor(
+    npcId: string,
+    avatar: AvatarOptions | null,
+    position: { x: number; y: number },
+    state: 'walking_in' | 'idle' | 'walking_out' | 'gone' = 'idle'
+  ): void {
+    // Remove existing NPC if any
+    this.removeNPCVisitor(npcId);
+
+    // Generate random avatar options if not provided
+    const npcAvatar: AvatarOptions = avatar || {
+      gender: Math.random() > 0.5 ? 'boy' : 'girl',
+      shirtColor: [0x4A90D9, 0xE85D75, 0x50C878, 0xFFB347, 0x9B59B6][Math.floor(Math.random() * 5)],
+      pantsColor: 0x3355AA,
+      hairColor: [0x4A3728, 0x8B4513, 0xD4A574, 0x2C1810, 0xC0C0C0][Math.floor(Math.random() * 5)],
+      skinTone: [0xF5C27A, 0xE8B87A, 0xD4A574, 0xC68642, 0x8D5524][Math.floor(Math.random() * 5)],
+      hat: Math.random() > 0.7 ? (['cap', 'flower'] as const)[Math.floor(Math.random() * 2)] : 'none',
+      hatColor: 0xFF69B4,
+    };
+
+    // Build the NPC mesh
+    const npcGroup = buildAvatar(npcAvatar);
+    npcGroup.userData = { npcId, type: 'npc' };
+
+    // Position in world coordinates
+    const worldPos = gridToWorld(position.x, position.y);
+    npcGroup.position.set(worldPos.x, 0, worldPos.z);
+
+    // Add to scene
+    this.state.scene.add(npcGroup);
+    this.npcMeshes.set(npcId, npcGroup);
+
+    // Create "!" bubble indicator above NPC
+    const bubbleGroup = this.createInteractionBubble();
+    bubbleGroup.position.set(worldPos.x, 1.5, worldPos.z);
+    this.state.scene.add(bubbleGroup);
+    this.npcBubbles.set(npcId, bubbleGroup);
+
+    // Initialize animation state
+    this.npcAnimState.set(npcId, {
+      state,
+      startPos: new THREE.Vector3(worldPos.x, 0, worldPos.z),
+      targetPos: new THREE.Vector3(worldPos.x, 0, worldPos.z),
+      startTime: performance.now(),
+      walkDuration: 2000, // 2 seconds for walk animation
+    });
+  }
+
+  /**
+   * Remove an NPC visitor from the garden.
+   * Cleans up mesh and bubble.
+   * 
+   * @param npcId - NPC visitor ID to remove
+   */
+  removeNPCVisitor(npcId: string): void {
+    // Remove mesh
+    const mesh = this.npcMeshes.get(npcId);
+    if (mesh) {
+      this.state.scene.remove(mesh);
+      mesh.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          child.geometry.dispose();
+          if (child.material instanceof THREE.Material) {
+            child.material.dispose();
+          }
+        }
+      });
+      this.npcMeshes.delete(npcId);
+    }
+
+    // Remove bubble
+    const bubble = this.npcBubbles.get(npcId);
+    if (bubble) {
+      this.state.scene.remove(bubble);
+      bubble.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          child.geometry.dispose();
+          if (child.material instanceof THREE.Material) {
+            child.material.dispose();
+          }
+        }
+      });
+      this.npcBubbles.delete(npcId);
+    }
+
+    // Remove animation state
+    this.npcAnimState.delete(npcId);
+  }
+
+  /**
+   * Update NPC animation state and begin walk animation.
+   * 
+   * @param npcId - NPC visitor ID
+   * @param targetPos - Target grid position to walk to
+   * @param state - New state (walking_in, walking_out)
+   */
+  setNPCWalking(
+    npcId: string,
+    targetPos: { x: number; y: number },
+    state: 'walking_in' | 'walking_out'
+  ): void {
+    const animState = this.npcAnimState.get(npcId);
+    const mesh = this.npcMeshes.get(npcId);
+    if (!animState || !mesh) return;
+
+    const worldTarget = gridToWorld(targetPos.x, targetPos.y);
+    animState.state = state;
+    animState.startPos = mesh.position.clone();
+    animState.targetPos.set(worldTarget.x, 0, worldTarget.z);
+    animState.startTime = performance.now();
+  }
+
+  /**
+   * Set NPC to idle state (standing still, waiting for interaction).
+   * 
+   * @param npcId - NPC visitor ID
+   */
+  setNPCIdle(npcId: string): void {
+    const animState = this.npcAnimState.get(npcId);
+    if (animState) {
+      animState.state = 'idle';
+    }
+  }
+
+  /**
+   * Create the "!" interaction bubble above NPC head.
+   */
+  private createInteractionBubble(): THREE.Group {
+    const group = new THREE.Group();
+    group.name = 'npc_bubble';
+
+    // White circle background
+    const circleGeom = new THREE.CircleGeometry(0.15, 16);
+    const circleMat = new THREE.MeshBasicMaterial({
+      color: 0xFFFFFF,
+      side: THREE.DoubleSide,
+    });
+    const circle = new THREE.Mesh(circleGeom, circleMat);
+    group.add(circle);
+
+    // Red exclamation mark (vertical bar)
+    const barGeom = new THREE.PlaneGeometry(0.04, 0.1);
+    const redMat = new THREE.MeshBasicMaterial({
+      color: 0xFF4444,
+      side: THREE.DoubleSide,
+    });
+    const bar = new THREE.Mesh(barGeom, redMat);
+    bar.position.y = 0.02;
+    group.add(bar);
+
+    // Dot under exclamation
+    const dotGeom = new THREE.CircleGeometry(0.025, 8);
+    const dot = new THREE.Mesh(dotGeom, redMat);
+    dot.position.y = -0.06;
+    group.add(dot);
+
+    return group;
+  }
+
+  /**
+   * Update NPC animations (walking, idle bobbing, bubble floating).
+   * Called from the main animation loop.
+   */
+  private updateNPCAnimations(elapsed: number): void {
+    for (const [npcId, animState] of this.npcAnimState) {
+      const mesh = this.npcMeshes.get(npcId);
+      const bubble = this.npcBubbles.get(npcId);
+      if (!mesh) continue;
+
+      switch (animState.state) {
+        case 'walking_in':
+        case 'walking_out':
+          // Walking animation - interpolate position
+          const now = performance.now();
+          const elapsedMs = now - animState.startTime;
+          const progress = Math.min(1, elapsedMs / animState.walkDuration);
+          
+          // Smooth easing (ease-out cubic)
+          const eased = 1 - Math.pow(1 - progress, 3);
+          
+          // Interpolate position
+          mesh.position.lerpVectors(animState.startPos, animState.targetPos, eased);
+          
+          // Walking bob
+          mesh.position.y = Math.abs(Math.sin(elapsed * 10)) * 0.03;
+          
+          // Face direction of movement
+          const direction = animState.targetPos.clone().sub(animState.startPos);
+          if (direction.length() > 0.01) {
+            const angle = Math.atan2(direction.x, direction.z);
+            mesh.rotation.y = angle;
+          }
+          
+          // Check if walk complete
+          if (progress >= 1) {
+            animState.state = 'idle';
+            mesh.position.set(animState.targetPos.x, 0, animState.targetPos.z);
+          }
+          break;
+
+        case 'idle':
+          // Idle breathing animation
+          const breathY = Math.sin(elapsed * 1.5) * 0.02;
+          mesh.position.y = breathY;
+          
+          // Bob the "!" bubble
+          if (bubble) {
+            bubble.position.y = 1.5 + Math.sin(elapsed * 3) * 0.1;
+            // Make bubble face camera (billboard effect)
+            bubble.rotation.y = this.state.camera.rotation.y;
+          }
+          break;
+
+        case 'gone':
+          // No animation
+          break;
+      }
+
+      // Update bubble position to follow mesh
+      if (bubble && mesh) {
+        bubble.position.x = mesh.position.x;
+        bubble.position.z = mesh.position.z;
+      }
+    }
+  }
+
+  /**
+   * Get all NPC meshes for raycasting.
+   */
+  getNPCMeshes(): THREE.Group[] {
+    return Array.from(this.npcMeshes.values());
+  }
+
+  /**
+   * Clear all NPCs from the garden.
+   */
+  clearAllNPCs(): void {
+    for (const npcId of this.npcMeshes.keys()) {
+      this.removeNPCVisitor(npcId);
     }
   }
 

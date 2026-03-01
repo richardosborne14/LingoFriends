@@ -6,17 +6,21 @@
  * 
  * States:
  * - Completed: Green background, stars below, mini tree with health %
- * - Current: Gold/amber background, pulsing ring, bouncing avatar
+ * - Current: Gold/amber background, pulsing ring, 3D avatar with idle animation
  * - Locked: Grey background, padlock icon
  * - Needs Refresh: Completed but health <50%, water drop badge
  * 
  * @module LessonNode
+ * @see docs/phase-2-world-expansion/task-2.0-9-3d-avatar-lesson-path.md
  */
 
 import React from 'react';
 import { motion } from 'framer-motion';
 import { MiniTree } from '../shared/MiniTree';
+import { PathAvatar } from './PathAvatar';
 import type { SkillPathLesson, PlayerAvatar } from '../../types/game';
+import type { AvatarOptions } from '../../renderer/types';
+import { DEFAULT_AVATAR } from '../../renderer/types';
 
 /**
  * Props for the LessonNode component
@@ -36,8 +40,31 @@ export interface LessonNodeProps {
   position: { x: number; y: number };
   /** Player avatar to show on current lesson */
   avatar?: PlayerAvatar;
+  /** Full 3D avatar options (from user profile) */
+  avatarOptions?: AvatarOptions;
   /** Callback when the lesson node is clicked */
   onClick: () => void;
+}
+
+/**
+ * Convert PlayerAvatar (emoji-based) to AvatarOptions for 3D rendering.
+ * If avatarOptions are provided directly, use those instead.
+ * Falls back to DEFAULT_AVATAR for missing fields.
+ */
+function getAvatarOptions(avatar?: PlayerAvatar, avatarOptions?: AvatarOptions): Partial<AvatarOptions> {
+  // If full 3D options are provided, use them
+  if (avatarOptions) {
+    return avatarOptions;
+  }
+  
+  // Fallback: Convert PlayerAvatar to AvatarOptions
+  // PlayerAvatar is emoji-only, so use defaults with just gender matching
+  // The profile will provide the full AvatarOptions when available
+  return {
+    ...DEFAULT_AVATAR,
+    // PlayerAvatar doesn't have customization yet, use defaults
+    // When profile stores avatarGender, shirtColor etc., they'll be passed via avatarOptions
+  };
 }
 
 /**
@@ -63,6 +90,7 @@ export const LessonNode: React.FC<LessonNodeProps> = ({
   isGoal,
   position,
   avatar,
+  avatarOptions,
   onClick,
 }) => {
   // Determine if this completed lesson needs refresh (health < 50%)
@@ -112,8 +140,8 @@ export const LessonNode: React.FC<LessonNodeProps> = ({
         gap: '6px',
       }}
     >
-      {/* Avatar bouncing on current node */}
-      {isCurrent && avatar && (
+      {/* 3D Avatar bouncing on current node */}
+      {isCurrent && (
         <motion.div
           animate={{ y: [0, -6, 0] }}
           transition={{
@@ -121,23 +149,18 @@ export const LessonNode: React.FC<LessonNodeProps> = ({
             duration: 1.5,
             ease: 'easeInOut',
           }}
-          style={{ marginBottom: '-4px' }}
+          style={{ 
+            marginBottom: '-4px',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #34D399, #10B981)',
+            padding: '3px',
+            boxShadow: '0 0 0 3px #fff, 0 0 0 6px #10B981, 0 3px 12px rgba(16, 185, 129, 0.3)',
+          }}
         >
-          <div
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #34D399, #10B981)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 20,
-              boxShadow: '0 0 0 3px #fff, 0 0 0 6px #10B981, 0 3px 12px rgba(16, 185, 129, 0.3)',
-            }}
-          >
-            {avatar.emoji}
-          </div>
+          <PathAvatar 
+            options={getAvatarOptions(avatar, avatarOptions)}
+            size={56}
+          />
         </motion.div>
       )}
 

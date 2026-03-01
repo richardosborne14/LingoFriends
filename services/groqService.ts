@@ -1,15 +1,16 @@
 /**
  * LingoFriends - Groq AI Service
  * 
- * Handles AI chat using Groq's Llama 3.3 70B model with streaming.
- * Replaces geminiService for main chat functionality.
+ * Handles AI chat using provider abstraction with Groq as fallback.
+ * Speech-to-text (Whisper) and language detection still use Groq directly.
  * 
  * @module groqService
  */
 
-import type { UserProfile, ChatSession, Message, AIProfileField, CompletedLessonSummary, TargetSubject } from '../types';
+import type { UserProfile, ChatSession, Message, AIProfileField, CompletedLessonSummary } from '../types';
 import { buildSystemPrompt } from './systemPrompts';
 import { filterResponse, sanitizeUserInput } from './contentFilter';
+import { aiProviderService } from '../src/services/ai';
 
 // ============================================
 // CONFIGURATION
@@ -17,11 +18,6 @@ import { filterResponse, sanitizeUserInput } from './contentFilter';
 
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const MODEL = 'llama-3.3-70b-versatile';
-
-// Rate limiting state
-let lastRequestTime = 0;
-const MIN_REQUEST_INTERVAL = 500; // ms between requests
 
 // ============================================
 // TYPES
@@ -119,45 +115,14 @@ function extractActions(text: string): { text: string; actions: any[] } {
   return { text: textContent, actions };
 }
 
-/**
- * Sleep helper for rate limiting
- */
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-/**
- * Retry with exponential backoff
- */
-async function retryWithBackoff<T>(
-  fn: () => Promise<T>,
-  maxRetries = 3,
-  baseDelay = 1000
-): Promise<T> {
-  let lastError: Error = new Error('Unknown error');
-  
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      return await fn();
-    } catch (error) {
-      lastError = error as Error;
-      const isRateLimit = (error as { status?: number })?.status === 429;
-      
-      if (i < maxRetries - 1) {
-        const delay = isRateLimit ? baseDelay * Math.pow(2, i + 1) : baseDelay * Math.pow(2, i);
-        console.log(`[Groq] Retry ${i + 1}/${maxRetries} after ${delay}ms`);
-        await sleep(delay);
-      }
-    }
-  }
-  
-  throw lastError;
-}
-
 // ============================================
 // MAIN API FUNCTIONS
 // ============================================
 
 /**
- * Generate AI response (non-streaming)
+ * Generate AI response using the provider abstraction.
+ * Falls back through DeepInfra -> Groq -> Anthropic automatically.
+ * 
  * Drop-in replacement for geminiService.generateResponse
  * 
  * @param session - Current chat session
@@ -173,14 +138,6 @@ export async function generateResponse(
 ): Promise<{ text: string; actions: any[] }> {
   // Sanitize input
   const sanitizedMessage = sanitizeUserInput(userMessage);
-  
-  // Rate limiting
-  const now = Date.now();
-  const timeSinceLastRequest = now - lastRequestTime;
-  if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
-    await sleep(MIN_REQUEST_INTERVAL - timeSinceLastRequest);
-  }
-  lastRequestTime = Date.now();
 
   // Build system prompt with theme, AI profile, and completed lessons context
   const systemPrompt = buildSystemPrompt({
@@ -198,37 +155,20 @@ export async function generateResponse(
   });
 
   // Convert message history
-  const messages: GroqMessage[] = [
-    { role: 'system', content: systemPrompt },
+  const messages = [
+    { role: 'system' as const, content: systemPrompt },
     ...convertMessages(session.messages),
-    { role: 'user', content: `Profile: ${JSON.stringify(profile)}\n\nUser: ${sanitizedMessage}` },
+    { role: 'user' as const, content: `Profile: ${JSON.stringify(profile)}\n\nUser: ${sanitizedMessage}` },
   ];
 
-  // Make API call with retry
-  const response = await retryWithBackoff(async () => {
-    const res = await fetch(GROQ_API_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        messages,
-        temperature: 0.7,
-        max_tokens: 1024,
-      }),
-    });
-
-    if (!res.ok) {
-      const error = await res.json().catch(() => ({}));
-      throw Object.assign(new Error(error.message || 'Groq API error'), { status: res.status });
-    }
-
-    return res.json() as Promise<GroqResponse>;
+  // Use AI provider service (handles fallback automatically)
+  const result = await aiProviderService.complete({
+    messages,
+    temperature: 0.7,
+    maxTokens: 1024,
   });
 
-  const fullText = response.choices[0]?.message?.content || '';
+  const fullText = result.text;
   
   // Extract actions and filter content
   const { text, actions } = extractActions(fullText);
@@ -248,14 +188,6 @@ export async function generateResponseStream(
   callbacks: StreamCallbacks
 ): Promise<void> {
   const sanitizedMessage = sanitizeUserInput(userMessage);
-  
-  // Rate limiting
-  const now = Date.now();
-  const timeSinceLastRequest = now - lastRequestTime;
-  if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
-    await sleep(MIN_REQUEST_INTERVAL - timeSinceLastRequest);
-  }
-  lastRequestTime = Date.now();
 
   const systemPrompt = buildSystemPrompt({
     targetLanguage: profile.targetLanguage,
@@ -267,80 +199,42 @@ export async function generateResponseStream(
     currentDraft: session.draft,
   });
 
-  const messages: GroqMessage[] = [
-    { role: 'system', content: systemPrompt },
+  const messages = [
+    { role: 'system' as const, content: systemPrompt },
     ...convertMessages(session.messages),
-    { role: 'user', content: `Profile: ${JSON.stringify(profile)}\n\nUser: ${sanitizedMessage}` },
+    { role: 'user' as const, content: `Profile: ${JSON.stringify(profile)}\n\nUser: ${sanitizedMessage}` },
   ];
 
   try {
-    const res = await fetch(GROQ_API_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: MODEL,
+    await aiProviderService.stream(
+      {
         messages,
         temperature: 0.7,
-        max_tokens: 1024,
-        stream: true,
-      }),
-    });
-
-    if (!res.ok) {
-      throw new Error(`Groq API error: ${res.status}`);
-    }
-
-    const reader = res.body?.getReader();
-    if (!reader) throw new Error('No response body');
-
-    const decoder = new TextDecoder();
-    let fullText = '';
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      const chunk = decoder.decode(value);
-      const lines = chunk.split('\n').filter(line => line.trim());
-
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6);
-          if (data === '[DONE]') continue;
-
-          try {
-            const parsed = JSON.parse(data);
-            const token = parsed.choices?.[0]?.delta?.content || '';
-            if (token) {
-              fullText += token;
-              callbacks.onToken(token);
-            }
-          } catch {
-            // Ignore parse errors for incomplete chunks
-          }
-        }
+        maxTokens: 1024,
+      },
+      {
+        onToken: callbacks.onToken,
+        onComplete: (fullText) => {
+          const filtered = filterResponse(fullText);
+          callbacks.onComplete(filtered.text);
+        },
+        onError: callbacks.onError,
       }
-    }
-
-    // Filter final content
-    const filtered = filterResponse(fullText);
-    callbacks.onComplete(filtered.text);
-    
+    );
   } catch (error) {
     callbacks.onError(error as Error);
   }
 }
 
 // ============================================
-// LANGUAGE DETECTION
+// LANGUAGE DETECTION (Still uses Groq directly)
 // ============================================
 
 /**
  * Detect the language of text using Groq AI.
  * Uses a fast, small model for quick detection.
+ * 
+ * Note: This keeps using Groq directly as it needs a specific fast model.
  * 
  * @param text - Text to analyze (will use first 200 chars)
  * @returns ISO language code or 'en' as fallback
@@ -352,6 +246,12 @@ export async function detectLanguageWithAI(text: string): Promise<string> {
   
   // Use only first 200 chars for speed and cost
   const sample = text.slice(0, 200);
+  
+  // Check if Groq key is available
+  if (!GROQ_API_KEY) {
+    console.warn('[Groq] No API key for language detection, using fallback');
+    return 'en';
+  }
   
   try {
     const res = await fetch(GROQ_API_URL, {
@@ -399,8 +299,25 @@ export async function detectLanguageWithAI(text: string): Promise<string> {
   }
 }
 
+/**
+ * Check if the AI provider service is ready.
+ * Returns true if at least one provider is available.
+ */
+export function isProviderReady(): boolean {
+  return aiProviderService.isReady();
+}
+
+/**
+ * Get information about available AI providers.
+ */
+export function getProviderInfo(): Array<{ id: string; name: string; available: boolean; description: string }> {
+  return aiProviderService.getProviderInfo();
+}
+
 export default {
   generateResponse,
   generateResponseStream,
   detectLanguageWithAI,
+  isProviderReady,
+  getProviderInfo,
 };

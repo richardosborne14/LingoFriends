@@ -22,6 +22,12 @@ export interface MatchingPairsProps {
   helpText: string;
   onComplete: (correct: boolean, sunDropsEarned: number) => void;
   onWrong: () => void;
+  /** Callback when user skips the question (optional - advances without reward/penalty) */
+  onSkip?: () => void;
+  /** Callback when user reports a broken question (optional - triggers regeneration) */
+  onReport?: () => void;
+  /** Whether a report is currently being processed */
+  isReporting?: boolean;
 }
 
 /** A single match item with its match status */
@@ -94,6 +100,9 @@ export const MatchingPairs: React.FC<MatchingPairsProps> = ({
   helpText,
   onComplete,
   onWrong,
+  onSkip,
+  onReport,
+  isReporting,
 }) => {
   // Handle missing pairs gracefully - allow skip
   if (!data.pairs || data.pairs.length === 0) {
@@ -332,6 +341,37 @@ export const MatchingPairs: React.FC<MatchingPairsProps> = ({
         >
           Now tap the matching item on the right →
         </motion.p>
+      )}
+
+      {/* Skip and Report buttons */}
+      {!state.isComplete && (
+        <div className="flex justify-between items-center mt-3">
+          {/* Report button */}
+          {onReport && (
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={onReport}
+              disabled={isReporting}
+              className={`border-2 rounded-lg px-3 py-1.5 font-bold text-xs transition-colors ${
+                isReporting
+                  ? 'bg-amber-50 border-amber-200 text-amber-400 cursor-wait'
+                  : 'bg-red-50 border-red-200 text-red-500 hover:bg-red-100 hover:border-red-300'
+              }`}
+              title="Report a problem with this question"
+            >
+              {isReporting ? '⏳ Fixing...' : '🚩 Report'}
+            </motion.button>
+          )}
+          {onSkip && (
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={onSkip}
+              className="bg-slate-100 text-slate-500 px-4 py-2 rounded-full font-bold text-sm hover:bg-slate-200 transition ml-auto"
+            >
+              Skip
+            </motion.button>
+          )}
+        </div>
       )}
     </div>
   );

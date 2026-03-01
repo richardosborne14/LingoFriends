@@ -81,6 +81,15 @@ export interface GeneratedChunkContent {
    * Must be plausible but incorrect.
    */
   wrongUsageContexts: [string, string, string];
+
+  /**
+   * AI-generated coaching introduction for this chunk (Task 2.0.07).
+   * Spoken by the NPC via TTS when the step begins.
+   * Written in the user's native language with target language examples.
+   * Provides context, motivation, and personalization.
+   * Example: "Let's learn how to greet someone in the morning! In German, you'd say 'Guten Morgen'."
+   */
+  coachingText?: string;
 }
 
 /**
@@ -270,11 +279,14 @@ function assembleTeachFirstSteps(
 /**
  * Show the phrase + translation. No quiz. No pressure.
  * The learner MUST see this before any quiz step.
+ * 
+ * coachingText is included for TTS playback (Task 2.0.07).
  */
 function buildIntroduceStep(chunk: GeneratedChunkContent): LessonStep {
   return {
     tutorText: `📚 New phrase: "${chunk.targetPhrase}"`,
     helpText: chunk.explanation,
+    coachingText: chunk.coachingText, // AI-generated intro for TTS
     activity: {
       type: GameActivityType.INFO,
       title: chunk.targetPhrase,

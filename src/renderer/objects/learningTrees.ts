@@ -307,6 +307,35 @@ export function makeLearningTree(options: LearningTreeOptions): THREE.Group {
   const { x, z } = gridToWorld(gx, gz);
   group.position.set(x, 0, z);
   
+  // Add invisible hitbox for easier clicking/tapping (especially on mobile).
+  // This is a cylinder that encloses the entire tree with generous padding.
+  // It's invisible but still participates in raycasting.
+  const hitboxHeight = Math.max(1.5, trunkHeight + canopyRadius * 2);
+  const hitboxRadius = Math.max(0.8, canopyRadius * 1.5);
+  const hitboxGeometry = new THREE.CylinderGeometry(hitboxRadius, hitboxRadius * 1.1, hitboxHeight, 8);
+  const hitboxMaterial = new THREE.MeshBasicMaterial({
+    visible: false, // Invisible but still hittable by raycaster
+  });
+  const hitbox = new THREE.Mesh(hitboxGeometry, hitboxMaterial);
+  hitbox.position.y = TH / 2 + hitboxHeight / 2;
+  hitbox.userData = { isHitbox: true }; // Mark as hitbox for debugging
+  group.add(hitbox);
+  
+  // Add highlight ring (hidden by default, shown when tree is target of pending interaction)
+  // This is stored separately so GardenRenderer can toggle it during walk-to-tree
+  const highlightRingGeometry = new THREE.TorusGeometry(hitboxRadius * 1.2, 0.05, 6, 24);
+  const highlightRingMaterial = new THREE.MeshBasicMaterial({
+    color: 0xFFFFFF,
+    transparent: true,
+    opacity: 0.8,
+    visible: false, // Hidden by default
+  });
+  const highlightRing = new THREE.Mesh(highlightRingGeometry, highlightRingMaterial);
+  highlightRing.rotation.x = Math.PI / 2; // Lay flat
+  highlightRing.position.y = TH / 2 + 0.05;
+  highlightRing.name = 'highlightRing';
+  group.add(highlightRing);
+  
   // Store metadata for interactions
   group.userData = {
     type: 'learningTree',

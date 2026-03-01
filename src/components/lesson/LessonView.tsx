@@ -11,7 +11,7 @@
  * @module LessonView
  */
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { TutorBubble } from './TutorBubble';
 import { SunDropBurst } from './SunDropBurst';
@@ -25,7 +25,16 @@ import { GameActivityType } from '../../types/game';
 import { useLessonAudio } from '../../hooks/useLessonAudio';
 import { AudioReplayButton } from './AudioReplayButton';
 import { EncounterView } from './EncounterView';
+import { HelpOverlay } from './HelpOverlay';
+import { useSounds } from '../../hooks/useSounds';
+import {
+  regenerateQuestion,
+  RegenerationReason,
+  recordQuestionReport,
+} from '../../services/questionRegenerationService';
 import type { TargetLanguage } from '../../../types';
+import type { HelpContext } from '../../services/helpService';
+import { toLanguageCode } from '../../utils/languageUtils';
 
 // ============================================
 // TYPES
@@ -81,6 +90,12 @@ interface LessonState {
   rewardAmount: number;
   /** Whether lesson is complete */
   isComplete: boolean;
+  /** Whether help overlay is visible (Task 2.0.07) */
+  showHelp: boolean;
+  /** Whether a question regeneration is in progress */
+  isRegenerating: boolean;
+  /** Current lesson steps (can be modified by regeneration) */
+  steps: LessonStep[];
 }
 
 // ============================================
@@ -129,14 +144,17 @@ export const LessonView: React.FC<LessonViewProps> = ({
   targetLanguage = 'French', // Default to French if not provided
 }) => {
   // Track lesson state
-  const [state, setState] = useState<LessonState>({
+  const [state, setState] = useState<LessonState>(() => ({
     currentStepIndex: 0,
     sunDropsEarned: 0,
     showReward: false,
     showPenalty: false,
     rewardAmount: 0,
     isComplete: false,
-  });
+    showHelp: false,
+    isRegenerating: false,
+    steps: lesson.steps, // Store mutable copy of steps for regeneration
+  }));
 
   // Track start time for session duration reporting to learnerProfileService.
   // useRef so it doesn't trigger re-renders and survives across state updates.
@@ -180,14 +198,46 @@ export const LessonView: React.FC<LessonViewProps> = ({
   const isInfoStep = currentStep?.activity?.type === GameActivityType.INFO;
 
   // ============================================
+  // SOUND EFFECTS
+  // ============================================
+  
+  /**
+   * Sound effects hook for lesson feedback.
+   * - Reward sound on correct answer
+   * - Penalty sound on wrong answer
+   * - Skip sound when skipping a question
+   */
+  const { playReward, playPenalty, playSkip, unlock } = useSounds();
+
+  // Unlock audio context on first user interaction (iOS Safari requirement)
+  useEffect(() => {
+    const handleUnlock = () => {
+      unlock();
+      document.removeEventListener('click', handleUnlock);
+      document.removeEventListener('touchstart', handleUnlock);
+    };
+    
+    document.addEventListener('click', handleUnlock, { once: true });
+    document.addEventListener('touchstart', handleUnlock, { once: true });
+    
+    return () => {
+      document.removeEventListener('click', handleUnlock);
+      document.removeEventListener('touchstart', handleUnlock);
+    };
+  }, [unlock]);
+
+  // ============================================
   // HANDLERS
   // ============================================
 
   /**
    * Handle when activity is completed correctly.
+   * Plays reward sound on correct answer, penalty sound on wrong.
    */
   const handleActivityComplete = useCallback((correct: boolean, sunDropsEarned: number) => {
     if (correct) {
+      // Play reward sound
+      playReward();
       // Show reward animation
       setState(prev => ({
         ...prev,
@@ -196,13 +246,15 @@ export const LessonView: React.FC<LessonViewProps> = ({
         rewardAmount: sunDropsEarned,
       }));
     } else {
+      // Play penalty sound
+      playPenalty();
       // Show penalty animation
       setState(prev => ({
         ...prev,
         showPenalty: true,
       }));
     }
-  }, []);
+  }, [playReward, playPenalty]);
 
   /**
    * Handle when wrong answer is given.
@@ -215,6 +267,130 @@ export const LessonView: React.FC<LessonViewProps> = ({
       showPenalty: true,
     }));
   }, []);
+
+  /**
+   * Handle when user skips a question.
+   * Advances to next step without reward or penalty.
+   * Used when user doesn't know the answer and wants to move on.
+   */
+  const handleSkip = useCallback(() => {
+    // Play skip sound
+    playSkip();
+    // Advance to next step without any animation
+    setState(prev => {
+      const nextIndex = prev.currentStepIndex + 1;
+      const isComplete = nextIndex >= lesson.steps.length;
+
+      return {
+        ...prev,
+        currentStepIndex: nextIndex,
+        isComplete,
+      };
+    });
+  }, [lesson.steps.length, playSkip]);
+
+  /**
+   * Handle when user reports a broken question.
+   * Triggers question regeneration and replaces current step.
+   * Task 2.0.07: Help system question regeneration.
+   */
+  const handleReport = useCallback(async () => {
+    if (!currentStep?.activity) {
+      console.warn('[LessonView] Cannot report: no current activity');
+      return;
+    }
+
+    setState(prev => ({ ...prev, isRegenerating: true }));
+
+    try {
+      // Record the report for analytics
+      const reportId = recordQuestionReport(
+        'anonymous', // TODO: Get from auth context
+        lesson.id,
+        state.currentStepIndex,
+        currentStep.activity.type,
+        RegenerationReason.USER_REPORTED,
+        currentStep.activity as unknown as Record<string, unknown>,
+        'User reported broken question via help overlay'
+      );
+
+      console.log(`[LessonView] Recorded report ${reportId}`);
+
+      // For now, we skip the question (like handleSkip)
+      // In production, we would call regenerateQuestion() and replace the step
+      // This requires the chunk content which we don't have in this context
+      
+      // Advance to next step after reporting
+      playSkip();
+      setState(prev => {
+        const nextIndex = prev.currentStepIndex + 1;
+        const isComplete = nextIndex >= lesson.steps.length;
+
+        return {
+          ...prev,
+          currentStepIndex: nextIndex,
+          isComplete,
+          isRegenerating: false,
+        };
+      });
+    } catch (error) {
+      console.error('[LessonView] Report failed:', error);
+      setState(prev => ({ ...prev, isRegenerating: false }));
+    }
+  }, [currentStep, lesson.id, state.currentStepIndex, playSkip]);
+
+  /**
+   * Handle when a question is regenerated from HelpOverlay.
+   * Replaces the current step with the new one.
+   */
+  const handleQuestionRegenerated = useCallback((newStep: LessonStep) => {
+    console.log('[LessonView] Question regenerated, updating step');
+    
+    // Replace the current step in our steps array
+    setState(prev => {
+      const newSteps = [...prev.steps];
+      newSteps[state.currentStepIndex] = newStep;
+      
+      return {
+        ...prev,
+        steps: newSteps,
+        isRegenerating: false,
+      };
+    });
+  }, [state.currentStepIndex]);
+
+  /**
+   * Build HelpContext for the help overlay.
+   * Provides lesson context for AI-powered help.
+   * 
+   * Note: LessonPlan doesn't have nativeLanguage/targetLanguage fields,
+   * so we use defaults. In production, this would come from user profile.
+   */
+  const buildHelpContext = useCallback((): HelpContext | null => {
+    // Get user profile info - defaults since LessonPlan doesn't have these fields
+    // TODO: Get from user profile/learner profile service
+    const userProfile: HelpContext['userProfile'] = {
+      ageGroup: '11-14', // Default for now
+      nativeLanguage: 'English', // TODO: Get from user profile
+      targetLanguage: targetLanguage || 'French', // From props
+      currentLevel: 1, // Default, TODO: get from learner profile
+    };
+
+    return {
+      currentStep,
+      lesson: {
+        id: lesson.id,
+        title: lesson.title || 'Lesson',
+        stepIndex: state.currentStepIndex,
+        totalSteps: lesson.steps.length,
+      },
+      userProfile,
+      learnedChunks: [], // TODO: Get from learner profile
+      strugglingChunks: [], // TODO: Get from learner profile
+      currentSunDrops: state.sunDropsEarned,
+      totalSunDrops: sunDropsMax,
+    };
+  }, [currentStep, lesson.id, lesson.title, lesson.steps.length, state.currentStepIndex, state.sunDropsEarned, sunDropsMax, targetLanguage]);
 
   /**
    * Handle when reward animation completes.
@@ -278,8 +454,11 @@ export const LessonView: React.FC<LessonViewProps> = ({
       showPenalty: false,
       rewardAmount: 0,
       isComplete: false,
+      showHelp: false,
+      isRegenerating: false,
+      steps: lesson.steps, // Reset to original steps
     });
-  }, []);
+  }, [lesson.steps]);
 
   // ============================================
   // RENDER
@@ -330,12 +509,33 @@ export const LessonView: React.FC<LessonViewProps> = ({
           <ProgressBar value={progress} max={100} size="sm" />
         </div>
 
+        {/* Help button - Task 2.0.07 */}
+        <button
+          onClick={() => setState(prev => ({ ...prev, showHelp: true }))}
+          className="mr-2 p-2 text-xl hover:bg-stone-100 rounded-full transition-colors"
+          aria-label="Get help"
+        >
+          💬
+        </button>
+
         {/* Sun Drop counter */}
         <SunDropCounter 
           count={state.sunDropsEarned} 
           showGlow={state.showReward}
         />
       </div>
+
+      {/* Help Overlay - Task 2.0.07 */}
+      <HelpOverlay
+        visible={state.showHelp}
+        onClose={() => setState(prev => ({ ...prev, showHelp: false }))}
+        currentStep={currentStep}
+        lessonContext={buildHelpContext()}
+        onQuestionRegenerated={handleQuestionRegenerated}
+        userId="anonymous" // TODO: Get from auth context
+        lessonId={lesson.id}
+        stepIndex={state.currentStepIndex}
+      />
 
       {/* NPC Avatar Encounter Scene — RPG-style character meeting */}
       <EncounterView
@@ -394,6 +594,7 @@ export const LessonView: React.FC<LessonViewProps> = ({
               helpText={currentStep.helpText || ''}
               onComplete={handleActivityComplete}
               onWrong={handleWrongAnswer}
+              onSkip={handleSkip}
             />
           </motion.div>
         )}

@@ -25,6 +25,7 @@ import { useNavigation } from './src/hooks/useNavigation';
 import { useGameStats } from './src/hooks/useGameStats';
 import { AppHeader, TabBar } from './src/components/navigation';
 import { GardenWorld3D, ShopPanel, shopPanelStyles, GardenDPad } from './src/components/garden';
+import { WorldMapView } from './src/components/world';
 import { DEFAULT_AVATAR, ShopItem } from './src/renderer';
 import { PathView } from './src/components/path';
 import { LessonView } from './src/components/lesson';
@@ -185,6 +186,7 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile, i
   // UI state
   const [showProfileSettings, setShowProfileSettings] = useState(false);
   const [showFriendsPlaceholder, setShowFriendsPlaceholder] = useState(false);
+  const [showWorldMap, setShowWorldMap] = useState(false);
   
   // Shop state
   const [isShopOpen, setIsShopOpen] = useState(false);
@@ -586,6 +588,7 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile, i
           sunDrops={stats.sunDrops}
           gems={stats.gems}
           onSettingsClick={() => setShowProfileSettings(true)}
+          onWorldMapClick={() => setShowWorldMap(true)}
         />
       )}
 
@@ -931,6 +934,19 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile, i
           onApplyTreeCare={handleApplyTreeCare}
         />
       )}
+
+      {/* World Map Modal */}
+      <WorldMapView
+        visible={showWorldMap}
+        userGarden={{
+          name: profile.name || 'Learner',
+          avatar: avatar.emoji,
+          treesPlanted: trees.length,
+          level: 1, // TODO: Add level to profile
+        }}
+        onClose={() => setShowWorldMap(false)}
+        onReturnToGarden={() => setShowWorldMap(false)}
+      />
     </div>
   );
 };
