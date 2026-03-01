@@ -308,8 +308,15 @@ export function useLessonAudio({
     isMountedRef.current = true;
 
     async function pregenerate() {
-      // Extract all target language phrases from the lesson
-      const chunks = extractChunkPhrases(lesson, targetLanguage);
+      // Extract ALL audio phrases — includes coaching text (for COACHING_CHAT steps)
+      // AND target language phrases (for INFO, TRANSLATE, etc.).
+      //
+      // Phase 3 fix: previously called extractChunkPhrases() which skipped coachingText,
+      // causing COACHING_CHAT steps to hit the TTS API on-demand (1-2s delay/spinner
+      // on the first coaching step). extractAllAudioPhrases() includes both, so every
+      // coaching intro plays instantly from cache. All audio uses the target language
+      // voice — Rule 9 (TTS language lock) is enforced inside extractAllAudioPhrases.
+      const chunks = extractAllAudioPhrases(lesson, targetLanguage);
 
       if (chunks.length === 0) {
         console.log('[useLessonAudio] No chunks found for pre-generation');
@@ -319,14 +326,14 @@ export function useLessonAudio({
         return;
       }
 
-      console.log(`[useLessonAudio] Pre-generating audio for ${chunks.length} chunks...`);
+      console.log(`[useLessonAudio] Pre-generating audio for ${chunks.length} phrases (including coaching text)...`);
 
       const audioMap = await preGenerateLessonAudio(chunks);
 
       if (isMountedRef.current) {
         audioMapRef.current = audioMap;
         setIsPregenComplete(true);
-        console.log(`[useLessonAudio] Pre-generation complete: ${audioMap.size} chunks ready`);
+        console.log(`[useLessonAudio] Pre-generation complete: ${audioMap.size} phrases ready`);
       }
     }
 

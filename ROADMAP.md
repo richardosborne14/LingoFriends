@@ -4,7 +4,7 @@
 
 LingoFriends is a kid-friendly language learning app built on a solid pedagogical foundation. The project is organized into phases, each building on the previous.
 
-**Current Phase:** Phase 1.1 (Gamification) → Transitioning to Phase 1.2 (Pedagogy Engine)
+**Current Phase:** Phase 3 COMPLETE → Planning Phase 4
 
 ---
 
@@ -25,131 +25,47 @@ LingoFriends is a kid-friendly language learning app built on a solid pedagogica
 
 ---
 
-## Phase 1.1: Gamification (IN PROGRESS)
+## Phase 1.1: Gamification ✅ COMPLETE
 
 **Goal:** Add the "Garden" game layer with trees, SunDrops, awards, and visual progress.
 
-**Timeline:** See `docs/phase-1.1/phase-1.1-overview.md`
-
-### Status
-
-| Task | Description | Status |
-|------|-------------|--------|
-| 1.1.1 | Types & SunDrop Currency | ✅ Complete |
-| 1.1.2 | Activity Components | ✅ Complete |
-| 1.1.3 | Lesson View | ✅ Complete |
-| 1.1.4 | Path View | ✅ Complete |
-| 1.1.5 | Garden World (Basic) | ✅ Complete |
-| 1.1.6 | App Navigation | ✅ Complete |
-| 1.1.7 | Pocketbase Schema | ✅ Complete |
-| 1.1.8 | Garden State Persistence | ✅ Complete |
-| 1.1.9 | AI Lesson Generator | ⚠️ Needs overhaul for Phase 1.2 |
-| 1.1.10 | Tree Health & Decay | ✅ Complete |
-| 1.1.11 | Gift System | 🔲 Not started |
-| 1.1.12 | Decoration System | 🔲 Not started |
-| 1.1.13 | Seed Earning | 🔲 Not started |
-| 1.1.14 | Mobile Polish | 🔲 Not started |
-| 1.1.15 | Pixi Migration | 🔲 Deferred |
-| 1.1.16 | Tutorial & Testing | 🔲 Not started |
-| 1.1.17 | OSS Assets | 🔲 Not started |
-
-### Important Note
-
-**Phase 1.1 uses static skill paths and vocabulary-based lessons.** These are being replaced in Phase 1.2 with:
-- Dynamic, personalized paths
-- Lexical chunk-based content
-- i+1 difficulty calibration
-- Affective filter monitoring
-
-See `PEDAGOGY.md` for the full pedagogical foundation.
+**Status:** ✅ Complete — 3D garden, skill paths, SunDrops, tree health, shop, tutorial, decorations, avatar.
 
 ---
 
-## Phase 1.2: Pedagogy Engine (PLANNING COMPLETE)
+## Phase 1.2: Pedagogy Engine ✅ COMPLETE
 
 **Goal:** Replace static paths and vocabulary with a dynamic, research-based learning system.
 
-**Timeline:** 6-8 weeks after Phase 1.1 core is complete
-
-**Documentation:** `docs/phase-1.2/phase-1.2-overview.md`
-
-### Overview
-
-Phase 1.2 implements four key pedagogical frameworks:
-1. **Lexical Approach** (Michael Lewis) — Teaching language in chunks
-2. **Input Hypothesis** (Stephen Krashen) — i+1 difficulty calibration
-3. **Affective Filter** (Stephen Krashen) — Emotional monitoring and adaptation
-4. **Language Coaching** — Learner-centered, goal-oriented teaching
-
-### Tasks
-
-| Task | Description | Dependencies | Est. Time |
-|------|-------------|--------------|-----------|
-| 1.2.1 | Learner Model Schema | None | 3-4 hours |
-| 1.2.2 | Chunk Content Design | 1.2.1 | 4-6 hours |
-| 1.2.3 | Chunk Seeding Service | 1.2.1, 1.2.2 | 3-4 hours |
-| 1.2.4 | Learner Profile Service | 1.2.1 | 3-4 hours |
-| 1.2.5 | Pedagogy Engine Core | 1.2.1, 1.2.4 | 6-8 hours |
-| 1.2.6 | i+1 Difficulty Calibration | 1.2.5 | 4-5 hours |
-| 1.2.7 | Affective Filter Monitoring | 1.2.5 | 4-5 hours |
-| 1.2.8 | AI Lesson Generator v2 | 1.2.5, 1.2.6, 1.2.7 | 6-8 hours |
-| 1.2.9 | Dynamic Path Generation | 1.2.5, 1.2.8 | 4-5 hours |
-| 1.2.10 | Chunk SRS System | 1.2.1 | 4-5 hours |
-| 1.2.11 | System Prompts Update | 1.2.8 | 3-4 hours |
-| 1.2.12 | Integration Testing | All 1.2 tasks | 6-8 hours |
-
-### What Changes from Phase 1.1
-
-| Component | Phase 1.1 | Phase 1.2 |
-|-----------|-----------|-----------|
-| Content unit | `vocabulary: string[]` | `chunks: LexicalChunk[]` |
-| Paths | Static skill_paths | Dynamic, personalized |
-| Difficulty | Fixed (beginner/intermediate/advanced) | Dynamic i+1 |
-| Adaptation | None | Affective filter monitoring |
-| SRS | Basic tree health | Full chunk SRS with 4 states |
-| Progress | XP and tree levels | Chunk acquisition + CEFR levels |
-
-### Migration Path
-
-1. **Schema Migration** — Run `migrate-pedagogy-schema.cjs` to add new collections
-2. **Content Seeding** — Populate `chunk_library` and `topics` collections
-3. **Code Update** — Replace skill_paths with dynamic path generation
-4. **UI Update** — PathView uses chunk-based lessons
-5. **Testing** — Full regression test with new pedagogy
+**Status:** ✅ Complete — Learner model, chunk SRS, pedagogy engine, i+1 calibration, lesson generator v2, live garden data.
 
 ---
 
-## Phase 2: Social Features
+## Phase 2: World Expansion + Fixes ✅ COMPLETE
 
-**Goal:** Add friends, messaging, and leaderboards.
+**Goal:** Multi-world map, bug fixes, activity improvements.
 
-**Status:** 🔲 Not started
-
-### Planned Features
-- Friend code system
-- Friend requests and management
-- Leaderboard (friends only)
-- Gift sending
-- Encouragement messages
+**Status:** ✅ Complete — World map view, activity variety improvements, lesson pipeline stabilisation.
 
 ---
 
-## Phase 3: Content Expansion
+## Phase 3: AI-Coached Learning ✅ COMPLETE
 
-**Goal:** Expand content and add multi-language support.
+**Goal:** Personalised, coached lesson experience driven by the learner's interests and goals.
 
-**Status:** 🔲 Not started
+**Status:** ✅ Complete — See `docs/phase-3-ai-assisted-content/PHASE-3-COMPLETE.md`
 
-### Planned Features
-- Multiple target languages (Spanish, German)
-- Native language variants
-- Advanced topics
-- Dictée module (French spelling)
-- Possible maths module
+### What was built
+- **Pre-lesson personalisation chat** — 1-3 questions before lesson generation; context injected into AI chunk generator
+- **Chunk family architecture** — ONE grammatical frame + N slot-filler variations per lesson (Rule 8)
+- **COACHING_CHAT step** — 4-phase NPC interaction per chunk (intro → discover → reveal → ready); 0 SunDrops; no failure state
+- **TTS pre-generation fix** — Coaching text now included in background audio cache; plays instantly
+- **LessonIntroCard redesign** — Core frame shown as headline; chunks shown as slot-filler rows
+- **Age-appropriate interactions** — `ageGroup` read from `profile.ageGroup` (Rule 13)
 
 ---
 
-## Phase 4: Production
+## Phase 4: Production + Content Expansion
 
 **Goal:** Production-ready with parent features.
 
@@ -264,18 +180,23 @@ scripts/
 
 ## Current Status
 
-**Phase:** Transitioning from 1.1 to 1.2
+**Phase:** Phase 3 COMPLETE ✅ — Beginning Phase 4 planning
 
-**Blocking:**
-- Phase 1.1 core gamification is functional
-- Phase 1.2 documentation is complete
-- Ready to begin Phase 1.2 implementation
+**What's running in production:**
+- Full 3D garden with live Pocketbase data (trees, SunDrops, gems, streak)
+- Pedagogy engine with chunk SRS, i+1 calibration, learner profiles
+- AI-powered lessons via Groq Llama 3.3 (chunk families + coaching steps)
+- Pre-lesson personalisation chat with graceful skip
+- COACHING_CHAT NPC steps with guided discovery (0 SunDrops, no failure state)
+- TTS audio pre-generation for all lesson content including coaching text
+- Google TTS multilingual voices, Groq Whisper STT
 
-**Next Steps:**
-1. Review Phase 1.2 task documents
-2. Begin with task 1.2.1 (Learner Model Schema)
-3. Run migration scripts
-4. Update existing components
+**Next Steps (Phase 4 candidates):**
+1. Age collection in onboarding (currently defaults to 11-14)
+2. Whisper STT integration in coaching discovery (free-text answers)
+3. Smart model upgrade path (Haiku 4.5 for chunk generation)
+4. Parent dashboard + progress reports
+5. Multi-language expansion (Spanish, Italian)
 
 ---
 

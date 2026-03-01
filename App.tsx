@@ -818,6 +818,13 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile, i
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-gradient-to-b from-amber-50 to-white flex items-center justify-center z-50 px-4 py-8"
             >
+              {/*
+                Rule 13: age-appropriate chat UI (1 exchange + tap-only for 7-10,
+                2 exchanges + text input for 11-14, 2-3 + text primary for 15-18).
+                profile.ageGroup defaults to '11-14' (INITIAL_PROFILE) when the
+                user hasn't provided a specific age group.
+                Cast is safe: UserProfile.ageGroup is AgeGroup ('7-10'|'11-14'|'15-18').
+              */}
               <PreLessonChat
                 lessonTopic={pendingLessonNode.title}
                 targetLanguageName={
@@ -825,7 +832,8 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile, i
                     ? profile.targetLanguage
                     : 'your language'
                 }
-                ageGroup="11-14"
+                ageGroup={(profile as any).ageGroup ?? '11-14'}
+                knownInterests={profile.selectedInterests}
                 onComplete={handlePreLessonChatComplete}
               />
             </motion.div>
