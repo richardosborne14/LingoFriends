@@ -41,16 +41,25 @@ import { db } from '$lib/server/db';
 import {
 	profiles,
 	lessonHistory,
+	lessonPerformance,
 	userTrees,
 	chunkLibrary,
 	dailyProgress,
 	gifts,
 	skillPaths,
 } from '$lib/server/db/schema';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, sql, desc } from 'drizzle-orm';
 import { calculateStarRating, applyCap, calculateGrowthStage } from '$lib/server/lessons/sunDropService';
 import { calculateSRSUpdate, calculateNewStreak, DEFAULT_EASE_FACTOR } from '$lib/server/lessons/srsService';
 import { shouldEarnGift, selectRandomGift } from '$lib/server/social/giftService';
+import { assessLevel } from '$lib/services/levelAssessment';
+import type { LessonPerformance } from '$lib/services/levelAssessment';
+import {
+	buildPerformanceRecord,
+	isFirstLesson,
+	serializeAssessmentForClient,
+} from '$lib/server/lessons/completionUtils';
+import type { ClientLevelRecommendation } from '$lib/server/lessons/completionUtils';
 
 export const POST: RequestHandler = async ({ request, locals, params }) => {
 	if (!locals.user) {
@@ -104,9 +113,14 @@ export const POST: RequestHandler = async ({ request, locals, params }) => {
 	const sunDropsToday = today?.sunDropsEarned ?? 0;
 	const sunDropsAwarded = applyCap(requested, sunDropsToday);
 
-	// Load profile for streak
+	// Load profile for streak + level (level needed for performance record + assessment)
 	const [profile] = await db
-		.select({ currentStreak: profiles.currentStreak, lastActivityDate: profiles.lastActivityDate })
+		.select({
+			currentStreak: profiles.currentStreak,
+			lastActivityDate: profiles.lastActivityDate,
+			level: profiles.level,
+			lessonsCompleted: profiles.lessonsCompleted,
+		})
 		.from(profiles)
 		.where(eq(profiles.userId, userId))
 		.limit(1);
@@ -118,6 +132,8 @@ export const POST: RequestHandler = async ({ request, locals, params }) => {
 		profile.lastActivityDate ? new Date(profile.lastActivityDate) : null
 	);
 	const starRating = calculateStarRating(requested, maxDrops);
+	// Capture the lesson count BEFORE the increment for isFirstLesson detection
+	const lessonsCompletedBeforeThisLesson = profile.lessonsCompleted ?? 0;
 
 	// Load tree for growth stage calc — use resolvedTreeId (auto-looked up above)
 	const [tree] = await db
@@ -268,7 +284,88 @@ export const POST: RequestHandler = async ({ request, locals, params }) => {
 		}
 	}
 
-	// Award a gift to the player's inventory on a perfect 3-star completion.
+	// ── Performance persistence + adaptive level assessment ─────────────────
+	// Fire-and-forget — assessment failure must NEVER break lesson completion.
+	// Returns the serialised recommendation (or null for 'stay') to include in
+	// the response so CompletionScreen can show LevelBumpModal if needed.
+	let levelRecommendation: ClientLevelRecommendation | null = null;
+	try {
+		// Capture profile.level before any changes (preserves historical accuracy)
+		const levelAtTime = profile.level ?? 'total_beginner';
+
+		// Build and insert the performance record for this lesson
+		const perfRecord = buildPerformanceRecord({
+			userId,
+			lessonId,
+			levelAtTime,
+			accuracy,
+			// Map optional request body fields — helpUsed maps to hintsUsed
+			hintsUsed: typeof b.helpUsed === 'number' ? b.helpUsed : 0,
+			// heartsLost and streakMax are tracked client-side and sent in the body
+			heartsLost: typeof b.heartsLost === 'number' ? b.heartsLost : 0,
+			streakMax: typeof b.streakMax === 'number' ? b.streakMax : 0,
+		});
+
+		await db.insert(lessonPerformance).values(perfRecord);
+
+		// Fetch the last 3 performance records at this level to assess trend
+		// We filter by levelAtTime to avoid comparing performance across levels
+		// (a learner who just changed levels should start a fresh baseline).
+		const recentRows = await db
+			.select({
+				lessonId: lessonPerformance.lessonId,
+				levelAtTime: lessonPerformance.levelAtTime,
+				accuracy: lessonPerformance.accuracy,
+				hintsUsed: lessonPerformance.hintsUsed,
+				heartsLost: lessonPerformance.heartsLost,
+				streakMax: lessonPerformance.streakMax,
+			})
+			.from(lessonPerformance)
+			.where(
+				and(
+					eq(lessonPerformance.userId, userId),
+					eq(lessonPerformance.levelAtTime, levelAtTime)
+				)
+			)
+			.orderBy(desc(lessonPerformance.completedAt))
+			.limit(3);
+
+		// Convert DB rows to the LessonPerformance shape expected by assessLevel()
+		const recentPerformances: LessonPerformance[] = recentRows.map((row) => ({
+			lessonId: row.lessonId,
+			level: row.levelAtTime,
+			accuracy: row.accuracy,
+			hintsUsed: row.hintsUsed ?? 0,
+			heartsLost: row.heartsLost ?? 0,
+			streakMax: row.streakMax ?? 0,
+		}));
+
+		// Run the pure assessment — no side effects, fully covered by tests
+		const assessment = assessLevel(recentPerformances, levelAtTime);
+		// Serialise to client-safe shape (null if recommendation === 'stay')
+		levelRecommendation = serializeAssessmentForClient(assessment);
+	} catch (assessErr) {
+		// Non-fatal — assessment is a nice-to-have enhancement, not core to completion
+		console.error('[complete] Level assessment failed (non-fatal):', assessErr);
+	}
+
+	// ── First-lesson flag ────────────────────────────────────────────────────
+	// If this was the learner's first ever lesson, mark the flag on the profile
+	// so the FirstLessonCompleteModal is shown exactly once (TASK-V2-01).
+	// Fire-and-forget — flag write failure is not worth breaking completion over.
+	const firstLesson = isFirstLesson(lessonsCompletedBeforeThisLesson);
+	if (firstLesson) {
+		try {
+			await db
+				.update(profiles)
+				.set({ firstLessonComplete: true, updatedAt: now })
+				.where(eq(profiles.userId, userId));
+		} catch (flagErr) {
+			console.error('[complete] firstLessonComplete flag write failed (non-fatal):', flagErr);
+		}
+	}
+
+	// ── Award a gift to the player's inventory on a perfect 3-star completion ──
 	// Fire-and-forget — gift failure must NEVER break lesson completion.
 	let giftEarned: string | null = null;
 	if (shouldEarnGift(starRating)) {
@@ -293,7 +390,12 @@ export const POST: RequestHandler = async ({ request, locals, params }) => {
 		newStreak,
 		starRating,
 		growthStage,
-		giftEarned,   // null or gift type string — client shows earn modal if set
+		giftEarned,           // null or gift type string — client shows earn modal if set
+		// NEW: first lesson flag — client shows FirstLessonCompleteModal once
+		isFirstLesson: firstLesson,
+		// NEW: level recommendation — client shows LevelBumpModal if not null
+		// null means 'stay' (no modal needed — the common case)
+		levelRecommendation,
 		message:
 			starRating === 3
 				? `⭐⭐⭐ Amazing! You earned ${sunDropsAwarded} SunDrops!`
