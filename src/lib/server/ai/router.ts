@@ -22,31 +22,54 @@ import { MockProvider } from './mock';
 import { HaikuProvider } from './haiku';
 import { GroqProvider } from './groq';
 
+// Read API keys via SvelteKit's $env/static/private — the only reliable way
+// to access .env variables in server-side SvelteKit code. process.env does NOT
+// work for .env values in the Vite-managed SvelteKit server context.
+import {
+	GROQ_API_KEY,
+	ANTHROPIC_API_KEY,
+} from '$env/static/private';
+
 /**
  * Returns true when the mock provider should be used.
- * Triggered by AI_PROVIDER=mock env var.
- *
- * This file is server-side only (in src/lib/server/), so process.env is
- * always available. We check both AI_PROVIDER and VITE_AI_PROVIDER to
- * support both SvelteKit .env files and raw Node env vars in tests.
+ * Triggered by AI_PROVIDER=mock env var (checked via process.env for test compat).
  */
 function isMockMode(): boolean {
+	// process.env works for inline env vars set before the process starts (e.g. in
+	// tests), even though .env file values require $env/static/private at runtime.
 	const envProvider =
 		process.env.AI_PROVIDER ?? process.env.VITE_AI_PROVIDER ?? '';
 	return envProvider === 'mock';
 }
 
 /**
- * Returns the smart AI model (Haiku 4.5).
+ * Returns true when a valid Anthropic API key is configured.
+ * Anthropic keys start with "sk-ant-". Vertex AI tokens are not compatible
+ * with the standard SDK and fall through to the Groq fallback.
+ */
+function hasAnthropicKey(): boolean {
+	const key = ANTHROPIC_API_KEY ?? '';
+	return key.startsWith('sk-ant-') && key.length > 20;
+}
+
+/**
+ * Returns the smart AI model (Haiku 4.5, or Groq fallback).
  *
  * Use for: chunk family generation, pre-lesson chat, learner profile updates.
  * Falls back to MockProvider when AI_PROVIDER=mock.
+ * Falls back to GroqProvider when ANTHROPIC_API_KEY is absent or invalid.
  */
 export function getSmartModel(): AIProvider {
 	if (isMockMode()) {
 		return new MockProvider();
 	}
-	return new HaikuProvider();
+	if (!hasAnthropicKey()) {
+		// Graceful degradation: Groq (Llama 3.3 70B) as smart model fallback.
+		// Quality is slightly lower than Haiku 4.5 but fully functional.
+		console.warn('[router] ANTHROPIC_API_KEY not set or invalid — using Groq as smart model fallback');
+		return new GroqProvider(GROQ_API_KEY);
+	}
+	return new HaikuProvider(ANTHROPIC_API_KEY);
 }
 
 /**
@@ -59,5 +82,5 @@ export function getFastModel(): AIProvider {
 	if (isMockMode()) {
 		return new MockProvider();
 	}
-	return new GroqProvider();
+	return new GroqProvider(GROQ_API_KEY);
 }

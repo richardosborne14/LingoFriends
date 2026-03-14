@@ -57,12 +57,20 @@
 		lessonPhase.set('loading');
 
 		try {
+			// Pick a topic from interests if available, else use a friendly default
+			const topic = data.profile.interests?.length
+				? data.profile.interests[Math.floor(Math.random() * data.profile.interests.length)]
+				: 'everyday phrases';
+
 			const response = await fetch('/api/lessons/generate', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
+					topic,
 					targetLanguage: data.profile.targetLanguage,
 					nativeLanguage: data.profile.nativeLanguage,
+					ageGroup: data.profile.ageGroup,
+					interests: data.profile.interests ?? [],
 					lessonId: lessonId !== 'new' ? lessonId : undefined,
 					personalContext: data.profile.personalContext ?? null,
 				}),
@@ -72,7 +80,9 @@
 				throw new Error(`Generate failed: ${response.status}`);
 			}
 
-			const plan = (await response.json()) as LessonPlan;
+			// API wraps the plan in { lesson: ... } — unwrap it here
+			const body = (await response.json()) as { lesson: LessonPlan } | LessonPlan;
+			const plan: LessonPlan = 'lesson' in body ? body.lesson : body;
 
 			// Pre-fetch TTS audio for all target phrases (best effort — Rule 14)
 			const allPhrases = plan.steps

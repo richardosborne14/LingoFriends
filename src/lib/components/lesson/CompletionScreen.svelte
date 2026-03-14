@@ -56,17 +56,34 @@
 	const stars = getStars();
 	const message = getMessage();
 
-	/** POST results to backend to persist XP and SRS data */
+	/** POST results to backend to persist XP, streak, SRS, and tree growth data */
 	async function saveResults() {
+		// Compute accuracy (0.0–1.0) from correct vs total answered
+		const totalAnswered = results.correctCount + results.wrongCount;
+		const accuracy = totalAnswered > 0 ? results.correctCount / totalAnswered : 1.0;
+
 		try {
 			const response = await fetch(`/api/lessons/${lessonId}/complete`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					sunDropsEarned: results.sunDropsEarned,
-					correctCount: results.correctCount,
-					wrongCount: results.wrongCount,
-					timeSpentMs: results.timeSpentMs,
+					// Required fields — names must match the API contract exactly
+					earnedSunDrops: results.sunDropsEarned,
+					totalSunDrops: results.sunDropsMax,
+					accuracy,
+					chunkResults: results.chunkResults.map((c) => ({
+						targetPhrase: c.targetPhrase,
+						nativeTranslation: '', // server only needs targetPhrase for SRS lookup
+						correct: c.correct,
+						wrongAttempts: c.wrongAttempts,
+					})),
+					// Optional enrichment fields
+					topic: plan.title,
+					durationSeconds: Math.round(results.timeSpentMs / 1000),
+					activitiesCompleted: results.correctCount + results.wrongCount,
+					activitiesTotal: plan.steps.length,
+					helpUsed: results.helpUsed,
+					personalContext: results.personalContext ?? null,
 				}),
 			});
 

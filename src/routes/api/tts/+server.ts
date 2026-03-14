@@ -27,6 +27,8 @@ import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { isValidCode, getTTSCode } from '$lib/types/language';
 import type { LanguageCode } from '$lib/types/language';
+// SvelteKit private env — process.env does not reliably expose non-VITE_ vars in dev
+import { GOOGLE_TTS_API_KEY } from '$env/static/private';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // VOICE CONFIGURATION
@@ -108,12 +110,9 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	const targetLanguage = b.targetLanguage as LanguageCode;
 
-	// Resolve API key — prefer private env (no VITE_ prefix), fall back to public
-	// The .env.example uses VITE_GOOGLE_TTS_API_KEY for compatibility with v1 setup
-	const apiKey =
-		process.env.GOOGLE_TTS_API_KEY ||
-		process.env.VITE_GOOGLE_TTS_API_KEY ||
-		process.env.VITE_GOOGLE_AI_KEY;
+	// Resolve API key via SvelteKit private env (imported at module top)
+	// process.env does NOT work reliably in SvelteKit dev server for non-VITE_ vars
+	const apiKey = GOOGLE_TTS_API_KEY;
 
 	if (!apiKey) {
 		// No TTS key configured — return 503, client falls back silently (Rule 14)

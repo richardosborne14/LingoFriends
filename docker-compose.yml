@@ -1,0 +1,87 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# LingoFriends — Production docker-compose
+#
+# Services:
+#   app      — SvelteKit Node server (built by Dockerfile)
+#   postgres — PostgreSQL 16 (data persisted in named volume)
+#   nginx    — Reverse proxy + SSL termination
+#
+# Usage:
+#   docker compose up -d          (start all services)
+#   docker compose logs -f app    (tail app logs)
+#   docker compose pull && docker compose up -d  (update)
+#
+# Environment:
+#   Copy .env.example → .env and fill in values before first run.
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      # Database
+      DATABASE_URL: postgresql://lingofriends:${POSTGRES_PASSWORD}@postgres:5432/lingofriends
+      # Auth
+      AUTH_SECRET: ${AUTH_SECRET}
+      # AI providers
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      GOOGLE_TTS_API_KEY: ${GOOGLE_TTS_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      # Runtime
+      NODE_ENV: production
+      ORIGIN: ${ORIGIN}
+      PORT: 3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: lingofriends
+      POSTGRES_USER: lingofriends
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lingofriends -d lingofriends"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      # Mount certbot-managed certs (Let's Encrypt)
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot:ro
+    depends_on:
+      - app
+    networks:
+      - internal
+
+volumes:
+  postgres_data:
+
+networks:
+  internal:
+    driver: bridge

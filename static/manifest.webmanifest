@@ -1,0 +1,38 @@
+{
+  "name": "LingoFriends",
+  "short_name": "LingoFriends",
+  "description": "Learn languages with your friends! Fun, kid-friendly language lessons.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFF8F0",
+  "theme_color": "#FF8A6A",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Start a Lesson",
+      "url": "/garden",
+      "description": "Jump straight to your garden to start learning"
+    },
+    {
+      "name": "Friends",
+      "url": "/friends",
+      "description": "See your friends and leaderboard"
+    }
+  ],
+  "categories": ["education", "games", "kids"]
+}

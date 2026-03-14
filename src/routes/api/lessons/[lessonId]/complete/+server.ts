@@ -44,10 +44,13 @@ import {
 	userTrees,
 	chunkLibrary,
 	dailyProgress,
+	gifts,
+	skillPaths,
 } from '$lib/server/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
 import { calculateStarRating, applyCap, calculateGrowthStage } from '$lib/server/lessons/sunDropService';
 import { calculateSRSUpdate, calculateNewStreak, DEFAULT_EASE_FACTOR } from '$lib/server/lessons/srsService';
+import { shouldEarnGift, selectRandomGift } from '$lib/server/social/giftService';
 
 export const POST: RequestHandler = async ({ request, locals, params }) => {
 	if (!locals.user) {
@@ -65,14 +68,26 @@ export const POST: RequestHandler = async ({ request, locals, params }) => {
 	const lessonId = params.lessonId;
 	const userId = locals.user.id;
 
-	// Validate required fields
-	if (typeof b.treeId !== 'string') error(400, 'treeId is required');
-	if (typeof b.skillPathId !== 'string') error(400, 'skillPathId is required');
-	if (typeof b.topic !== 'string') error(400, 'topic is required');
+	// Validate fields sent by CompletionScreen
 	if (typeof b.earnedSunDrops !== 'number') error(400, 'earnedSunDrops is required');
 	if (typeof b.totalSunDrops !== 'number') error(400, 'totalSunDrops is required');
 	if (typeof b.accuracy !== 'number') error(400, 'accuracy is required');
 	if (!Array.isArray(b.chunkResults)) error(400, 'chunkResults is required');
+
+	// treeId — client can pass it, or we auto-look up the user's first active tree.
+	// This keeps the client simple and avoids threading treeId through the lesson UI.
+	let resolvedTreeId: string;
+	if (typeof b.treeId === 'string') {
+		resolvedTreeId = b.treeId;
+	} else {
+		const [firstTree] = await db
+			.select({ id: userTrees.id })
+			.from(userTrees)
+			.where(eq(userTrees.userId, userId))
+			.limit(1);
+		if (!firstTree) error(404, 'No tree found for user');
+		resolvedTreeId = firstTree.id;
+	}
 
 	const requested = Math.max(0, Math.round(b.earnedSunDrops as number));
 	const maxDrops = Math.max(0, Math.round(b.totalSunDrops as number));
@@ -104,11 +119,11 @@ export const POST: RequestHandler = async ({ request, locals, params }) => {
 	);
 	const starRating = calculateStarRating(requested, maxDrops);
 
-	// Load tree for growth stage calc
+	// Load tree for growth stage calc — use resolvedTreeId (auto-looked up above)
 	const [tree] = await db
 		.select({ sunDropsEarned: userTrees.sunDropsEarned, growthStage: userTrees.growthStage })
 		.from(userTrees)
-		.where(and(eq(userTrees.id, b.treeId as string), eq(userTrees.userId, userId)))
+		.where(and(eq(userTrees.id, resolvedTreeId), eq(userTrees.userId, userId)))
 		.limit(1);
 
 	if (!tree) error(404, 'Tree not found');
@@ -117,7 +132,10 @@ export const POST: RequestHandler = async ({ request, locals, params }) => {
 	const growthStage = calculateGrowthStage(newTreeSunDrops);
 	const now = new Date();
 
-	// Parallel writes: profile, tree, lesson_history, daily_progress
+	// Critical writes — these MUST succeed for the completion to be valid.
+	// Profile XP/streak, tree growth, and daily progress are separated from
+	// lessonHistory because the history insert has a FK constraint on skillPathId
+	// that may not always be satisfiable (lessons generated ad-hoc have no skill path).
 	await Promise.all([
 		db
 			.update(profiles)
@@ -140,25 +158,7 @@ export const POST: RequestHandler = async ({ request, locals, params }) => {
 				lastRefreshDate: now,
 				updatedAt: now,
 			})
-			.where(eq(userTrees.id, b.treeId as string)),
-
-		db.insert(lessonHistory).values({
-			userId,
-			treeId: b.treeId as string,
-			skillPathId: b.skillPathId as string,
-			lessonIndex: typeof b.lessonIndex === 'number' ? b.lessonIndex : 0,
-			topic: b.topic as string,
-			sunDropsEarned: sunDropsAwarded,
-			sunDropsMax: maxDrops,
-			accuracy,
-			starsEarned: starRating,
-			timeSpentSeconds: typeof b.durationSeconds === 'number' ? Math.round(b.durationSeconds) : 0,
-			activitiesCompleted: typeof b.activitiesCompleted === 'number' ? b.activitiesCompleted : 0,
-			activitiesTotal: typeof b.activitiesTotal === 'number' ? b.activitiesTotal : 0,
-			helpUsed: typeof b.helpUsed === 'number' ? b.helpUsed : 0,
-			personalContext: typeof b.personalContext === 'string' ? b.personalContext : null,
-			completedAt: now,
-		}),
+			.where(eq(userTrees.id, resolvedTreeId)),
 
 		// Upsert daily progress row
 		db
@@ -181,6 +181,41 @@ export const POST: RequestHandler = async ({ request, locals, params }) => {
 				},
 			}),
 	]);
+
+	// Non-critical write — lesson_history has a FK on skillPathId (references skill_paths.id).
+	// Ad-hoc generated lessons don't have a skill path, so this may fail.
+	// Fire-and-forget: log the error but never break lesson completion over it.
+	// TODO: either make skillPathId nullable in schema or add a default 'general' skill path.
+	try {
+		// Look up an existing skill path for this tree, or fall back to any skill path
+		const [anySkillPath] = await db
+			.select({ id: skillPaths.id })
+			.from(skillPaths)
+			.limit(1);
+
+		if (anySkillPath) {
+			await db.insert(lessonHistory).values({
+				userId,
+				treeId: resolvedTreeId,
+				skillPathId: anySkillPath.id,
+				lessonIndex: typeof b.lessonIndex === 'number' ? b.lessonIndex : 0,
+				topic: typeof b.topic === 'string' ? b.topic : lessonId,
+				sunDropsEarned: sunDropsAwarded,
+				sunDropsMax: maxDrops,
+				accuracy,
+				starsEarned: starRating,
+				timeSpentSeconds: typeof b.durationSeconds === 'number' ? Math.round(b.durationSeconds) : 0,
+				activitiesCompleted: typeof b.activitiesCompleted === 'number' ? b.activitiesCompleted : 0,
+				activitiesTotal: typeof b.activitiesTotal === 'number' ? b.activitiesTotal : 0,
+				helpUsed: typeof b.helpUsed === 'number' ? b.helpUsed : 0,
+				personalContext: typeof b.personalContext === 'string' ? b.personalContext : null,
+				completedAt: now,
+			});
+		}
+	} catch (historyErr) {
+		// Non-fatal — lesson history is nice-to-have, not required for XP/streak
+		console.error('[complete] lesson_history insert failed (non-fatal):', historyErr);
+	}
 
 	// Update SRS for each chunk (sequential — depends on existing row state)
 	const chunkResults = b.chunkResults as Array<{
@@ -233,11 +268,32 @@ export const POST: RequestHandler = async ({ request, locals, params }) => {
 		}
 	}
 
+	// Award a gift to the player's inventory on a perfect 3-star completion.
+	// Fire-and-forget — gift failure must NEVER break lesson completion.
+	let giftEarned: string | null = null;
+	if (shouldEarnGift(starRating)) {
+		try {
+			const giftType = selectRandomGift();
+			await db.insert(gifts).values({
+				fromUserId: userId,
+				toUserId: userId,     // starts in OWN inventory
+				giftType,
+				status: 'inventory',
+				targetTreeId: null,
+			});
+			giftEarned = giftType;
+		} catch (giftErr) {
+			// Log but don't fail the request — lesson completion is more important
+			console.error('[complete] Gift award failed (non-fatal):', giftErr);
+		}
+	}
+
 	return json({
 		sunDropsAwarded,
 		newStreak,
 		starRating,
 		growthStage,
+		giftEarned,   // null or gift type string — client shows earn modal if set
 		message:
 			starRating === 3
 				? `⭐⭐⭐ Amazing! You earned ${sunDropsAwarded} SunDrops!`

@@ -1,398 +1,367 @@
-# Claude Rules for LingoFriends
+# .clinerules — LingoFriends V2
 
-## Project Context
+## MANDATORY: Read Before Every Task
 
-LingoFriends is a kid-friendly language learning app. We're replacing a Google AI Studio prototype with a proper architecture using Pocketbase, Groq (Llama 3.3), Google TTS, and Groq Whisper.
-
-**Current Phase:** Phase 3 (AI-Coached Learning)
-**Target Users:** Children ages 7-18
-**Core Principle:** Privacy-first, healthy engagement, no pay-to-play
+Before starting ANY work, read these in order:
+1. **This file** (always)
+2. **The phase task document** for the current task (in `docs/phases/`)
+3. **BUGS.md** — check for known issues that affect your task
+4. **LEARNINGS.md** — check for gotchas relevant to your task
+5. **Reference docs** as needed: `01-DESIGN-SYSTEM.md`, `02-DATABASE-SCHEMA.md`, `03-AI-STRATEGY.md`, `04-PEDAGOGY-SUMMARY.md`
 
 ---
 
-## Code Standards
+## Rule 1: The Vibe Coding Workflow
 
-### Comments
-- **Target:** 40-50% comment coverage
-- **Focus:** Explain "why" not "what"
-- **Required:** Every function gets a JSDoc comment
-- **Kid-safety notes:** Flag any content that needs age-appropriate filtering
+Every task follows this cycle. No exceptions.
 
-```typescript
-/**
- * Generates a friend code for sharing.
- * Codes are 6 characters, alphanumeric, uppercase only.
- * Excludes ambiguous characters (0, O, I, L, 1) for kids.
- */
-function generateFriendCode(): string {
-  // Using crypto for randomness, not Math.random
-  // because friend codes are security-adjacent
-  ...
-}
 ```
-
-### TypeScript
-- **Strict mode:** Enabled
-- **No `any`:** Use `unknown` and narrow types
-- **Interfaces over types:** For objects that will be extended
-- **Enums:** Use string enums for readability in debugging
-
-### React
-- **Functional components only:** No class components
-- **Custom hooks:** Extract reusable logic
-- **Error boundaries:** Wrap major sections
-- **Loading states:** Always show feedback, kids get impatient
-
-### Error Handling
-- **Never silent failures:** Log everything, show user-friendly messages
-- **Kid-friendly errors:** "Oops! Something went wrong. Let's try again!" not stack traces
-- **Retry logic:** Automatic for transient failures
-- **Offline handling:** Queue actions, sync when back online
-
-### Testing
-- **Unit tests:** Required for services (aiService, pocketbaseService, etc.)
-- **Integration tests:** Auth flow, lesson save/resume
-- **Manual testing:** Actually test with kids or kid-like scenarios
-
----
-
-## AI Model Assignments
-
-| Task | Model | Endpoint | Notes |
-|------|-------|----------|-------|
-| Main conversation | Llama 3.3 70B | Groq | Fast, good for chat |
-| Lesson generation | Llama 3.3 70B | Groq | Same |
-| Activity generation | Llama 3.3 70B | Groq | Quiz, fill-blank, matching |
-| Complex reasoning | Claude Haiku | Anthropic | Edge cases, pedagogy decisions |
-| Text-to-Speech | TTS Pro | Google Cloud | Multilingual, natural voices |
-| Speech-to-Text | Whisper Large v3 | Groq | Fast, accurate |
-
-### Model Selection Logic
-
-```typescript
-// In modelRouter.ts
-function selectModel(task: AITask): ModelConfig {
-  switch (task.type) {
-    case 'conversation':
-    case 'lesson':
-    case 'activity':
-      return GROQ_LLAMA_CONFIG;
-    
-    case 'complex_pedagogy':
-    case 'content_safety':
-    case 'trait_analysis':
-      return ANTHROPIC_HAIKU_CONFIG;
-    
-    default:
-      return GROQ_LLAMA_CONFIG;
-  }
-}
+1. Open NEW Cline chat (never continue old conversations)
+2. "Can we please plan task X.X?" → Plan Mode
+3. Cline reads this file + phase doc + LEARNINGS.md
+4. Review plan, answer Cline's questions, adjust
+5. "Proceed" → Act Mode
+6. Code with 50% comments (see Rule 7)
+7. Write unit tests (see Rule 4)
+8. Run ALL tests — must pass before continuing
+9. Test with dummy user in Cline browser (see Rule 5)
+10. Score confidence (see Rule 6)
+11. Update task doc with results (see Rule 8)
+12. Add any discoveries to LEARNINGS.md
+13. Add any bugs found to BUGS.md
+14. Close chat. Next task gets a new chat.
 ```
 
 ---
 
-## Content Safety Rules
+## Rule 2: Questions Before Assumptions
 
-### Age-Appropriate Content
-- No violence, even cartoon violence
-- No romantic content
-- No scary themes (horror, death)
-- No controversial topics (politics, religion)
-- Positive, encouraging tone always
+**Cline MUST ask the user before making decisions on:**
 
-### Content Filtering
-- AI responses MUST be filtered before display
-- Flag and log any concerning content
-- Fallback to safe generic response if filter triggers
+- Any architectural choice not specified in the phase doc
+- Any UI/UX decision not covered by `01-DESIGN-SYSTEM.md`
+- Any pedagogy decision not covered by `04-PEDAGOGY-SUMMARY.md`
+- Whether to use the "smart" model (Haiku 4.5) or "fast" model (Groq Llama) for a new AI call
+- Any dependency not listed in the phase doc
+- Whether a feature should be implemented now or deferred
+- How to handle an edge case that isn't documented
 
-### Personal Information
-- Never ask for or store: full names, addresses, phone numbers, school names
-- Username only for display
-- Parent email for account recovery only
+**Format for questions:**
+```markdown
+## 🤔 Decision Needed
 
----
+Before I proceed, I need clarity on:
 
-## Pocketbase Rules
+1. [Specific question with context]
+2. [Another question]
 
-### Collection Permissions
-- **profiles:** Owner read/write only
-- **sessions:** Owner read/write only
-- **friendships:** Both parties can read, only sender can create
-- **friend_codes:** Owner read/write, anyone can lookup by code
-- **daily_progress:** Owner read/write only
+My recommendation: [What I'd do and why]
+Waiting for your input before continuing.
+```
 
-### Data Validation
-- Validate on client AND server (Pocketbase rules)
-- Never trust client data
-- Sanitize all text inputs
+**Never** silently make a choice and move on. The wrong guess burns tokens fixing it later.
 
 ---
 
-## File Organization
+## Rule 3: File Organisation
 
-### Naming Conventions
-- **Components:** PascalCase (`ChatInterface.tsx`)
-- **Services:** camelCase (`aiService.ts`)
-- **Types:** PascalCase for types/interfaces (`UserProfile`)
-- **Constants:** SCREAMING_SNAKE_CASE (`MAX_DAILY_XP`)
-- **Files:** kebab-case for non-component files (`setup-pocketbase.js`)
-
-### Import Order
-1. React/external libraries
-2. Internal services
-3. Internal components
-4. Types
-5. Constants/utils
-6. Styles
-
-```typescript
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-
-import { aiService } from '@/services/aiService';
-import { useAuth } from '@/hooks/useAuth';
-
-import { ChatBubble } from '@/components/ChatBubble';
-import { VoiceButton } from '@/components/VoiceButton';
-
-import type { Message, UserProfile } from '@/types';
-
-import { MAX_MESSAGE_LENGTH } from '@/constants';
+```
+lingofriends-v2/
+├── package.json
+├── svelte.config.js
+├── vite.config.ts
+├── tailwind.config.js
+├── drizzle.config.ts
+├── .env.example
+├── .clinerules                    ← This file
+├── docs/
+│   ├── 00-REWRITE-MASTER-PLAN.md
+│   ├── 01-DESIGN-SYSTEM.md
+│   ├── 02-DATABASE-SCHEMA.md
+│   ├── 03-AI-STRATEGY.md
+│   ├── 04-PEDAGOGY-SUMMARY.md
+│   ├── BUGS.md                    ← Running bug tracker
+│   ├── LEARNINGS.md               ← Running learnings log
+│   └── phases/                    ← Phase task files (updated after each task)
+│       ├── phase-0-scaffolding.md
+│       ├── phase-1-auth-profiles.md
+│       ├── phase-2-lesson-engine.md
+│       ├── phase-3-lesson-ui.md
+│       ├── phase-4-garden-avatars.md
+│       └── phase-5-social-deploy.md
+├── src/
+│   ├── routes/
+│   │   ├── (auth)/login, register, onboarding
+│   │   ├── (app)/garden, lesson/[id], friends, profile
+│   │   └── api/
+│   ├── lib/
+│   │   ├── components/ui, activities, garden, social
+│   │   ├── three/garden, avatars
+│   │   ├── stores/
+│   │   ├── services/
+│   │   ├── server/ai, db, auth, lessons
+│   │   ├── types/
+│   │   └── utils/
+│   └── tests/                     ← Test files mirror src/ structure
+├── static/models, audio
+└── drizzle/                       ← Migration files
 ```
 
 ---
 
-## Confidence Scoring
+## Rule 4: Unit Testing — Non-Negotiable
 
-After each task, provide:
+**Every task must include tests.** No exceptions. No "I'll add tests later."
 
+### What to test:
+- Every exported function gets at least one test
+- Every API endpoint gets a happy-path and error-path test
+- Every Svelte component gets a render test (does it mount without errors?)
+- Every AI prompt gets a response-parsing test with mock data
+- Every database operation gets a test with the seed data
+
+### Test file location:
+Mirror the source structure under `src/tests/`:
+```
+src/lib/server/lessons/chunkGenerator.ts
+→ src/tests/server/lessons/chunkGenerator.test.ts
+```
+
+### Test commands:
+```bash
+# Run all tests
+npx vitest run
+
+# Run tests for a specific file
+npx vitest run src/tests/server/lessons/chunkGenerator.test.ts
+
+# Run tests in watch mode (during development)
+npx vitest
+```
+
+### Minimum test count per task type:
+| Task Type | Minimum Tests |
+|-----------|---------------|
+| Utility module | 5+ |
+| API endpoint | 3+ (auth, happy, error) |
+| AI pipeline step | 4+ (valid input, edge cases, malformed AI response, timeout) |
+| UI component | 2+ (renders, handles interaction) |
+| Database operation | 3+ (create, read, error) |
+
+**Tests must pass before the task is considered done.** A failing test = confidence cannot be 8/10.
+
+---
+
+## Rule 5: Dummy User Testing with Cline Browser
+
+After completing any task that touches UI or user-facing flows, **Cline must verify using the browser tool.**
+
+### The Dummy User
+
+Create this user during Phase 0 and use throughout:
+
+```
+Display Name: Test Kid
+Email: testkid@lingofriends.test
+Password: Test1234!
+Age Group: 11-14
+Native Language: French (fr)
+Target Language: German (de)
+Interests: ["football", "gaming", "animals"]
+Friend Code: LF-TEST01
+```
+
+### Browser Verification Checklist
+
+For every UI task, Cline must:
+
+1. **Navigate** — Open the relevant page in the Cline browser
+2. **Describe** — Tell the user what should be visible on screen
+3. **Interact** — Click buttons, fill forms, complete the flow
+4. **Report** — Document what worked and what didn't
+
+**Format:**
+```markdown
+## 🖥️ Browser Verification
+
+**Page:** /garden
+**Steps taken:**
+1. Navigated to localhost:5173/garden
+2. Saw: [description of what's visible]
+3. Clicked: [what I interacted with]
+4. Result: [what happened]
+
+**Pass/Fail:** ✅ Pass / ❌ Fail
+**Issues found:** [List any, add to BUGS.md]
+```
+
+### When to use browser verification:
+- Every auth flow task (register, login, logout)
+- Every onboarding step
+- Every lesson UI component
+- Every garden interaction
+- Every social feature
+- Any task where "it compiles" isn't enough
+
+---
+
+## Rule 6: Confidence Scoring
+
+Every completed task gets a confidence score. **Below 8/10 = fix before proceeding.**
+
+### Format:
 ```markdown
 ## Confidence: X/10
 
-**Met:**
-- [x] Criterion 1
-- [x] Criterion 2
+**Must-haves (met):**
+- [x] Core functionality works
+- [x] Tests pass (N/N)
+- [x] Browser verification passed
+- [x] Comments at 50%+ ratio
+- [x] No TypeScript errors
 
 **Concerns:**
-- [ ] Potential issue (explain)
+- [ ] [Specific thing that's not ideal]
 
-**Deferred:**
-- [ ] Feature X (to Phase Y)
+**Deferred (with rationale):**
+- [ ] [Feature] → Phase X per roadmap
 ```
 
-### Scoring Guide
-- **9-10:** Production ready, fully tested
-- **8:** Works well, minor polish needed
-- **7:** Functional but needs review
-- **6 or below:** Do not proceed, needs fixes
-
-**Minimum to proceed: 8/10**
+### Score meanings:
+| Score | Meaning | Action |
+|-------|---------|--------|
+| 9-10 | Excellent | Continue |
+| 8 | Solid | Continue |
+| 7 | Gaps exist | **Fix before continuing** |
+| 6 | Significant issues | **Stop and fix** |
+| ≤5 | Broken | **Reconsider approach** |
 
 ---
 
-## Ask Human When
+## Rule 7: Commenting — 50% Comments, 50% Code
 
-1. **Security decisions** — Auth flow changes, permission changes
-2. **Pedagogy choices** — How to teach something, age-appropriateness
-3. **UX for kids** — What works for children, what doesn't
-4. **API costs** — Before implementing something that might be expensive
-5. **Content policy** — Anything potentially sensitive
-6. **Architecture changes** — Major refactors, new dependencies
-7. **Confidence below 8** — Something feels off
+This is not optional. Every file Cline creates must have heavy commenting.
+
+### What to comment:
+- **Every function:** Docstring with what, why, params, returns
+- **Every decision:** Why this approach, not another
+- **Every trade-off:** What we considered and rejected
+- **Every non-obvious line:** If you'd need to think about it, comment it
+- **Every TODO:** Reference when it should be done (Phase X, Task Y)
+- **Every magic number:** Why 3? Why 1000? Why 0.15?
+
+### Example:
+```typescript
+/**
+ * Calculate SunDrop reward for a completed activity.
+ *
+ * Rewards decrease with wrong attempts to make mistakes feel
+ * consequential but not punishing. Floor at 0 (never negative)
+ * because negative rewards demotivate children (see PEDAGOGY.md
+ * — Krashen's Affective Filter).
+ *
+ * @param baseValue - SunDrops assigned to this activity (1-4)
+ * @param wrongAttempts - Number of wrong answers before correct
+ * @param usedHelp - Whether the learner tapped the Help button
+ * @returns SunDrops earned (0 to baseValue)
+ */
+export function calculateReward(
+  baseValue: number,
+  wrongAttempts: number,
+  usedHelp: boolean
+): number {
+  // Help halves the reward — the learner still progresses
+  // but gets less currency to encourage independent attempts
+  const afterHelp = usedHelp ? Math.ceil(baseValue / 2) : baseValue;
+
+  // Each wrong attempt costs 1 SunDrop, floored at 0
+  // Math.max prevents negative values (see PEDAGOGY.md — no punishment)
+  return Math.max(0, afterHelp - wrongAttempts);
+}
+```
 
 ---
 
-## Git Commit Messages
+## Rule 8: Task Doc Updates — Living Documents
 
+Phase task documents are **living**. After completing each task, Cline MUST update the phase doc:
+
+### Before starting a task:
+Status is `🔲 Not started`
+
+### While working:
+Status changes to `🟡 In progress`
+
+### After completing:
+```markdown
+**Status:** ✅ Complete
+**Completed:** [date]
+**Confidence:** X/10
+**Actual Time:** Xh (estimated: Xh)
+
+### What Was Built
+[2-3 sentences]
+
+### Decisions Made
+| Decision | Choice | Why |
+|----------|--------|-----|
+| [What] | [Choice] | [Rationale] |
+
+### Tests
+- X tests written, X passing
+- Browser verification: ✅ Pass
+
+### Notes for Future Tasks
+[Anything the next task needs to know]
 ```
-[Component] Action: Description
-
-Examples:
-[Auth] Add: Pocketbase login flow
-[AI] Fix: Handle empty responses from Groq
-[Voice] Update: Switch STT to Groq Whisper
-[UI] Polish: Loading states for kids
-[Docs] Add: Task 2.1 completion notes
-```
-
-**Components:** Auth, AI, Voice, UI, DB, Docs, Config, Test
-**Actions:** Add, Fix, Update, Remove, Refactor, Polish
 
 ---
 
-## Environment Variables
+## Rule 9: Lesson Pipeline Architecture
 
+These rules are NON-NEGOTIABLE for any task touching lessons.
+
+### The AI generates CONTENT, not STRUCTURE
+The AI (Haiku 4.5 / Groq Llama) produces: target phrases, translations, example sentences, usage notes, distractors, coaching text.
+
+The AI NEVER produces: ActivityConfig objects, JSON field names, LessonStep objects, SunDrop values.
+
+### Teach before test — ALWAYS
+Every chunk follows the 5-step progression: INTRODUCE → RECOGNIZE → PRACTICE → RECALL → APPLY.
+A learner must NEVER be quizzed on content they haven't seen in an INTRODUCE step.
+
+### Language codes — ONE utility
+All language conversion uses `src/lib/types/language.ts`. No `.substring(0,2)`. No local lookup tables.
+
+### TTS voice — ALWAYS target language
+Even for mixed-language coaching text. A German voice reading French words is intentional (charming accent effect). See `03-AI-STRATEGY.md`.
+
+---
+
+## Rule 10: Phase Audits
+
+After completing ALL tasks in a phase:
+
+1. Push to GitHub
+2. Open a **new Claude web Project** (fresh eyes, not the Cline instance)
+3. Prompt: "You're a senior SvelteKit developer. Audit this codebase for Phase X. Be critical. Find problems. Rate 1-10."
+4. Create annex tasks for any issues found
+5. Fix critical/important issues
+6. Re-audit until 8/10+
+7. Only then proceed to next phase
+
+---
+
+## Rule 11: Git Commits
+
+After every completed task:
 ```bash
-# Required
-VITE_POCKETBASE_URL=https://your-instance.pocketbase.io
-VITE_GROQ_API_KEY=gsk_...
-VITE_GOOGLE_TTS_API_KEY=...
-
-# Optional (for Haiku fallback)
-VITE_ANTHROPIC_API_KEY=sk-ant-...
-
-# Development only
-VITE_DEBUG_MODE=true
+git add .
+git commit -m "[Phase X.Y] Complete: [Task name] — confidence X/10"
+git push
 ```
 
-**Never commit .env files. Use .env.example as template.**
-
----
-
-## Performance Targets
-
-| Metric | Target | Why |
-|--------|--------|-----|
-| First paint | < 2s | Kids lose patience |
-| AI response | < 3s | Feels conversational |
-| TTS start | < 1s | Voice should feel immediate |
-| STT processing | < 2s | Before they forget what they said |
-
----
-
-## Dependencies Policy
-
-- **Minimize dependencies:** Every dep is a security risk
-- **Audit before adding:** Check maintenance status, bundle size
-- **Prefer built-in:** Use Web APIs over libraries when possible
-- **Document why:** Comment non-obvious dependency choices
-
----
-
-## Quality Gates
-
-### Before PR/Merge
-- [ ] TypeScript compiles with no errors
-- [ ] ESLint passes with no warnings
-- [ ] Unit tests pass
-- [ ] Manual testing done
-- [ ] Confidence score ≥ 8/10
-- [ ] Task doc updated
-
-### Before Phase Completion
-- [ ] All tasks at 8/10+
-- [ ] Integration testing complete
-- [ ] Phase audit performed
-- [ ] LEARNINGS.md updated
-- [ ] README.md current status updated
-
----
-
-## Lesson Generation Pipeline — ARCHITECTURE RULES
-
-These rules are NON-NEGOTIABLE. Every task that touches lesson generation must follow them.
-
-### Rule 1: The AI generates CONTENT, not ACTIVITIES
-The AI (Groq/Llama) generates ONLY:
-- Target language phrases (lexical chunks)
-- Native language translations
-- Example sentences
-- Usage notes
-- Plausible distractors (in the NATIVE language)
-- Usage contexts
-
-The AI NEVER generates:
-- ActivityConfig objects
-- JSON with fields like `type`, `correctIndex`, `options`, `sunDrops`
-- LessonStep objects
-- LessonPlan objects
-
-Activity assembly is handled by `src/services/lessonAssembler.ts` — deterministic TypeScript, no AI.
-
-### Rule 2: Teach before test — ALWAYS
-Every chunk/phrase follows the 5-step teach-first progression:
-1. INTRODUCE (INFO) — Show phrase + translation, 0 SunDrops
-2. RECOGNIZE (MULTIPLE_CHOICE) — "What does X mean?", 1 SunDrop
-3. PRACTICE (FILL_BLANK) — Complete the phrase, 2 SunDrops
-4. RECALL (TRANSLATE) — Translate from native to target, 3 SunDrops
-5. APPLY (MULTIPLE_CHOICE) — "When would you say X?", 2 SunDrops
-
-A learner must NEVER be quizzed on content they haven't seen in an INTRODUCE step first.
-
-### Rule 3: Language codes — ONE utility, no shortcuts
-All language name ↔ code conversion MUST use `src/utils/languageUtils.ts`.
-- `toLanguageCode("German")` → `"de"` ✅
-- `"German".substring(0, 2)` → `"Ge"` ❌ NEVER DO THIS
-- Local lookup tables in individual files ❌ NEVER DO THIS
-
-### Rule 4: Validation before rendering
-Every LessonPlan MUST pass `validateLessonPlan()` from `src/services/lessonValidator.ts` before reaching LessonView. If validation fails, throw an error — do NOT render a broken lesson.
-
-### Rule 5: Distractors match the question language
-If the question is "What does [German phrase] mean?", the options (including distractors) are in the NATIVE language (e.g. English/French). Distractors are NEVER in the target language.
-
-### Rule 6: ActivityConfig field contracts
-Each activity type requires specific fields. If ANY required field is missing, the activity MUST NOT render.
-
-| Type | Required Fields |
-|------|----------------|
-| `info` | `title` OR `content` |
-| `multiple_choice` | `question`, `options` (4 items), `correctIndex` (0-3) |
-| `fill_blank` | `sentence` (with `___`), `correctAnswer` |
-| `translate` | `sourcePhrase`, `correctAnswer`, `acceptedAnswers` (≥1 item) |
-| `true_false` | `statement` OR `question`, `isTrue` (boolean) |
-| `matching` | `pairs` (≥2 items, each with `left` + `right`) |
-| `word_arrange` | `targetSentence`, `scrambledWords` (≥2 items) |
-
-All types also require `sunDrops` (number, 0-4).
-
-### Rule 7: File responsibilities — no mixing
-
-| File | Responsibility | NEVER does |
-|------|---------------|------------|
-| `aiPedagogyClient.ts` | Calls Groq, returns chunk content | Builds ActivityConfig |
-| `lessonAssembler.ts` | Builds LessonPlan from chunks | Calls AI, makes network requests |
-| `lessonValidator.ts` | Validates LessonPlan fields | Calls AI, modifies the plan |
-| `lessonGeneratorV2.ts` | Orchestrates: AI → Assembler → Validator | Builds activities directly |
-| `lessonPlanService.ts` | Entry point, gets profile, calls generator | Builds activities directly |
-
----
-
-## Phase 3: AI-Coached Learning — ARCHITECTURE RULES
-
-These rules EXTEND the existing lesson pipeline rules. They do NOT replace them.
-
-### Rule 8: Chunk families, not random phrases
-The AI generates ONE core sentence frame with 3 variations. All chunks in a lesson
-share the same grammatical frame with different slot fillers. The prompt MUST request
-a `coreFrame` and `coreFrameTranslation` alongside the chunks.
-
-GOOD: Frame "Ich habe ___" → "Ich habe eine Katze" / "Ich habe einen Bruder" / "Ich habe Hunger"
-BAD: "Hallo Freunde" / "Wie geht's?" / "Schön dich kennenzulernen" (unrelated phrases)
-
-### Rule 9: Personal context is OPTIONAL, never blocking
-The pre-lesson chat provides personal context for chunk generation. If the user skips,
-if the chat fails, or if the context is empty — lesson generation MUST still work.
-Personal context is always `string | null` and code must handle both paths.
-
-### Rule 10: Coaching steps are NON-GRADED
-The COACHING_CHAT step type awards 0 SunDrops. Every answer to a discovery question
-gets encouragement. There is NO failure state in a coaching step. Wrong answers get
-"Almost! The answer is X — great guess!" not "Wrong."
-
-### Rule 11: TTS voice = target language, ALWAYS
-ALL lesson audio (coaching text, target phrases, discovery prompts) uses the target
-language voice. Even when the coaching text is in the native language, the TTS voice
-is set to the target language. The ONLY exception is the Help chat, which uses the
-native language voice.
-
-### Rule 12: Two AI models, two roles
-- SMART model (winner of Task 3.1): Lesson content generation (chunk families, coaching text, distractors)
-- FAST model (Groq Llama 3.3): Pre-lesson chat, in-lesson help, real-time exchanges
-NEVER use the smart model for real-time conversation (too slow for kids).
-NEVER use the fast model for lesson content generation (quality matters more).
-
-### Rule 13: Age-appropriate interactions
-| Age | Pre-lesson chat | Coaching discovery | AI exchanges |
-|-----|----------------|-------------------|-------------|
-| 7-10 | Quick-reply buttons only | Tap 3 options | 1-2 max |
-| 11-14 | Quick replies + text input | Tap or type | 2-3 max |
-| 15-18 | Text input primary | Free text | 2-3 max |
-
-### Rule 14: Graceful degradation at every level
-If any Phase 3 feature fails, the lesson MUST still work:
-- Pre-lesson chat fails → skip to generation with null context
-- Chunk family generation fails → fallback lesson (existing)
-- Coaching fields missing → fallback coaching text
-- TTS fails → coaching text displayed as text
-- Discovery options missing → default to "What does X mean?" with distractor options
+After bug fixes:
+```bash
+git commit -m "[Fix] [Phase X.Y]: [What was fixed]"
+```

@@ -33,11 +33,19 @@ export class GroqProvider implements AIProvider {
 
 	private client: OpenAI;
 
-	constructor() {
+	/**
+	 * @param apiKey - Groq API key. Pass explicitly from the router so that
+	 *   SvelteKit's $env/static/private (not process.env) supplies the value.
+	 *   Falls back to process.env for unit-test contexts where $env is unavailable.
+	 */
+	constructor(apiKey?: string) {
+		const key = apiKey ?? process.env.GROQ_API_KEY ?? '';
+		if (!key) {
+			throw new Error('[groq] GROQ_API_KEY is not set — add it to your .env file');
+		}
 		// Groq uses an OpenAI-compatible API — same SDK, different base URL + key
-		// GROQ_API_KEY is server-side only, never exposed to the client bundle
 		this.client = new OpenAI({
-			apiKey: process.env.GROQ_API_KEY,
+			apiKey: key,
 			baseURL: 'https://api.groq.com/openai/v1',
 		});
 	}

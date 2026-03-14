@@ -39,10 +39,15 @@ export class HaikuProvider implements AIProvider {
 
 	private client: Anthropic;
 
-	constructor() {
-		// API key is read from ANTHROPIC_API_KEY env var by the SDK automatically
-		// Never pass the key through client-side code
-		this.client = new Anthropic();
+	/**
+	 * @param apiKey - Anthropic API key. Pass explicitly from the router so that
+	 *   SvelteKit's $env/static/private supplies the value. Falls back to
+	 *   process.env.ANTHROPIC_API_KEY for test contexts where $env is unavailable.
+	 */
+	constructor(apiKey?: string) {
+		// Pass key explicitly — Anthropic SDK auto-reads ANTHROPIC_API_KEY from
+		// process.env as a fallback, but SvelteKit .env vars need $env/static/private.
+		this.client = new Anthropic({ apiKey: apiKey ?? process.env.ANTHROPIC_API_KEY });
 	}
 
 	/**
