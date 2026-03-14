@@ -56,6 +56,18 @@ export const load: PageServerLoad = async ({ locals }) => {
 			// Self-reported proficiency level — used by help assistant (TASK-V2-05)
 			// and lesson generator to calibrate chunk difficulty
 			level: profile.level ?? 'total_beginner',
+			/**
+			 * Avatar customisation from onboarding (TASK-V2-07).
+			 * Used by EncounterScene to render the user's avatar in the lesson banner.
+			 * Safe defaults match the onboarding Step 6 defaults (StepAvatar.svelte).
+			 */
+			avatar: {
+				skinTone: (profile as Record<string, unknown>).avatarSkinTone as string ?? '#F5D0A9',
+				hairColor: (profile as Record<string, unknown>).avatarHairColor as string ?? '#4A3728',
+				shirtColor: (profile as Record<string, unknown>).avatarShirtColor as string ?? '#FF8A6A',
+				hat: (profile as Record<string, unknown>).avatarHat as string ?? 'none',
+				gender: (profile as Record<string, unknown>).avatarGender as string ?? 'neutral',
+			},
 		},
 	};
 };

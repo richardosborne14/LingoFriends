@@ -25,9 +25,17 @@
 		helpText: string;
 		targetLanguage: string;
 		onComplete: () => void;
+		/**
+		 * Optional callback fired when explanation TTS starts/stops playing.
+		 * Used by ActivityRouter to drive the EncounterScene NPC jaw animation.
+		 * Not called for phrase audio (phrase button) — only for the explanation.
+		 *
+		 * TASK-V2-07 addition.
+		 */
+		onSpeakingChange?: (speaking: boolean) => void;
 	}
 
-	let { config, targetLanguage, onComplete }: Props = $props();
+	let { config, targetLanguage, onComplete, onSpeakingChange }: Props = $props();
 
 	// Track which audio is currently playing to prevent overlap
 	let isPlayingExplanation = $state(false);
@@ -51,6 +59,9 @@
 		if (isPlayingExplanation || !config.explanation) return;
 		isPlayingExplanation = true;
 
+		// Notify EncounterScene to start NPC jaw animation (TASK-V2-07)
+		onSpeakingChange?.(true);
+
 		// Try cached audio first (from lessonPlan.audioCache via lesson store)
 		if ($audioMap[config.explanation]) {
 			await playAudioIfAvailable(config.explanation, $audioMap);
@@ -60,6 +71,8 @@
 		}
 
 		isPlayingExplanation = false;
+		// Notify EncounterScene that TTS has finished — jaw closes
+		onSpeakingChange?.(false);
 	}
 
 	/**

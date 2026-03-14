@@ -1,16 +1,25 @@
 <!--
   ActivityRouter — decides which activity component to render based on step type.
 
-  Also manages the shared help panel (💡 hint drawer) that any activity can trigger.
-  The help panel shows the step's helpText with a slide-up animation.
+  TASK-V2-07 additions:
+    - Renders EncounterScene banner above ALL activity types (Option B user decision)
+    - Tracks `npcIsSpeaking` state: set true when ChunkIntroduction starts playing
+      explanation audio, false when it stops. EncounterScene uses this to animate
+      the NPC's jaw during TTS playback.
+    - Accepts optional `npcConfig` and `userAvatar` props from the lesson page.
+      If either is null/undefined (e.g. profile not yet loaded), scene is omitted
+      gracefully — activities still work without it.
 
+  Also manages the shared help hint drawer (💡) that any activity can trigger.
   Rule 14 (graceful degradation): unknown activity types render a safe fallback.
 -->
 <script lang="ts">
 	import type { LessonStep } from '$lib/types/lesson';
+	import type { NPCConfig, AvatarOptions } from '$lib/types/garden';
 	import { ActivityType } from '$lib/types/lesson';
 	import { recordHelpUsed } from '$lib/stores/lesson';
 
+	import EncounterScene from '$lib/components/lesson/EncounterScene.svelte';
 	import ChunkIntroduction from '$lib/components/lesson/ChunkIntroduction.svelte';
 	import MultipleChoiceActivity from './MultipleChoiceActivity.svelte';
 	import FillBlankActivity from './FillBlankActivity.svelte';
@@ -24,11 +33,33 @@
 		targetLanguage: string;
 		/** Called when the activity finishes (correct or wrong accepted) */
 		onComplete: (correct: boolean, sunDropsEarned: number) => void;
+		/**
+		 * NPC config for the current step — generated deterministically by
+		 * the lesson page using generateNPC(stepIndex, totalSteps, lessonId).
+		 * Optional: if not provided, EncounterScene is not rendered.
+		 */
+		npcConfig?: NPCConfig | null;
+		/**
+		 * User's avatar options from their profile.
+		 * Optional: if not provided, EncounterScene is not rendered.
+		 */
+		userAvatar?: AvatarOptions | null;
 	}
 
-	let { step, targetLanguage, onComplete }: Props = $props();
+	let { step, targetLanguage, onComplete, npcConfig = null, userAvatar = null }: Props = $props();
 
 	let helpVisible = $state(false);
+
+	/**
+	 * Whether the NPC should be shown in speaking mode (jaw animated).
+	 * Set to true by ChunkIntroduction when explanation TTS starts playing,
+	 * false when it stops. Only relevant for INFO steps but held here in
+	 * ActivityRouter so EncounterScene can react to it.
+	 */
+	let npcIsSpeaking = $state(false);
+
+	/** Whether we have enough data to render the encounter scene */
+	const showEncounterScene = $derived(npcConfig !== null && userAvatar !== null);
 
 	function showHelp() {
 		if (!helpVisible) {
@@ -46,9 +77,32 @@
 	function handleInfoComplete() {
 		onComplete(true, 0);
 	}
+
+	/**
+	 * Called by ChunkIntroduction when TTS explanation audio starts/stops.
+	 * Drives the NPC jaw animation in EncounterScene.
+	 *
+	 * @param speaking - true when audio begins, false when it ends/pauses
+	 */
+	function handleSpeakingChange(speaking: boolean) {
+		npcIsSpeaking = speaking;
+	}
 </script>
 
 <div class="relative w-full flex flex-col gap-4">
+	<!--
+	  EncounterScene banner — user avatar (left) facing NPC (right).
+	  Rendered above ALL activity types per user decision (Option B).
+	  aria-hidden because it's decorative — the lesson content is in the activity below.
+	-->
+	{#if showEncounterScene}
+		<EncounterScene
+			userAvatar={userAvatar!}
+			npcConfig={npcConfig!}
+			isSpeaking={npcIsSpeaking}
+		/>
+	{/if}
+
 	<!-- Tutor text (coaching instruction shown above the activity) -->
 	{#if step.tutorText}
 		<p class="text-base text-bark-500 text-center font-medium leading-snug px-2">
@@ -59,12 +113,14 @@
 	<!-- Activity body — switched by type -->
 	{#if step.activity.type === ActivityType.INFO}
 		<!-- ChunkIntroduction replaces InfoActivity for TASK-V2-02:
-		     auto-plays explanation TTS, has separate phrase audio button -->
+		     auto-plays explanation TTS, has separate phrase audio button.
+		     TASK-V2-07: onSpeakingChange callback drives NPC jaw animation. -->
 		<ChunkIntroduction
 			config={step.activity}
 			helpText={step.helpText}
 			{targetLanguage}
 			onComplete={handleInfoComplete}
+			onSpeakingChange={handleSpeakingChange}
 		/>
 
 	{:else if step.activity.type === ActivityType.MULTIPLE_CHOICE}

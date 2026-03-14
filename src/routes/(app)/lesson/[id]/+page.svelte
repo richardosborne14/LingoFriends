@@ -51,8 +51,54 @@
 
 	import type { PageData } from './$types';
 	import type { LessonPlan } from '$lib/types/lesson';
+	import type { AvatarOptions } from '$lib/types/garden';
+	import { generateNPC } from '$lib/services/npcGenerator';
 
 	let { data }: { data: PageData } = $props();
+
+	/**
+	 * User's avatar options from their profile (TASK-V2-07).
+	 * Passed to ActivityRouter → EncounterScene so the user sees themselves.
+	 * Uses safe defaults from the server if profile columns are null.
+	 *
+	 * Note: `avatar` is added by the TASK-V2-07 server update but $types may be
+	 * stale in VS Code until `svelte-kit sync` regenerates them. The cast
+	 * `as Record<string, unknown>` bridges the gap safely.
+	 */
+	const profileExtended = data.profile as unknown as {
+		targetLanguage: string; nativeLanguage: string; ageGroup: string;
+		interests: string[]; personalContext: string | null; level: string;
+		avatar: AvatarOptions;
+	};
+	const userAvatar: AvatarOptions = profileExtended.avatar ?? {
+		skinTone: '#F5D0A9', hairColor: '#4A3728', shirtColor: '#FF8A6A',
+		hat: 'none', gender: 'neutral',
+	};
+
+	/**
+	 * Derived NPC config for the current activity step.
+	 * Recomputed whenever currentStep changes (step index changes each advance).
+	 *
+	 * WHY here: The lesson page owns the step index and lessonPlan. ActivityRouter
+	 * knows the step type but not its index in the sequence.
+	 * deterministic seed = lessonId (stable across replays of same lesson).
+	 */
+	const npcConfig = $derived.by(() => {
+		const plan = $lessonPlan;
+		const step = $currentStep;
+		if (!plan || !step) return null;
+
+		// findIndex is O(n) per step but lessons have ≤10 steps — negligible cost
+		const stepIndex = plan.steps.findIndex((s) => s === step);
+		const totalSteps = plan.steps.length;
+
+		return generateNPC(
+			Math.max(0, stepIndex),
+			totalSteps,
+			lessonId,
+			data.profile.targetLanguage
+		);
+	});
 
 	// params.id is always defined for this route — non-null assertion is safe
 	const lessonId: string = $page.params.id ?? 'new';
@@ -228,7 +274,8 @@
 			targetLanguage: data.profile.targetLanguage,
 			// ageGroup from profile — cast to known union since profile validates it
 			ageGroup: (data.profile.ageGroup as '7-10' | '11-14' | '15-18') ?? '11-14',
-			level: data.profile.level ?? 'total_beginner',
+			// Use profileExtended to access `level` — $types may lag behind server changes
+			level: profileExtended.level ?? 'total_beginner',
 		};
 	}
 </script>
@@ -306,12 +353,15 @@
 			</div>
 
 		{:else if $lessonPhase === 'activity' && $currentStep}
-			<!-- Activity — key= forces full re-mount on step change -->
+			<!-- Activity — key= forces full re-mount on step change.
+			     npcConfig + userAvatar added in TASK-V2-07 for EncounterScene banner. -->
 			{#key stepKey}
 				<ActivityRouter
 					step={$currentStep}
 					targetLanguage={data.profile.targetLanguage}
 					onComplete={handleActivityComplete}
+					{npcConfig}
+					{userAvatar}
 				/>
 			{/key}
 

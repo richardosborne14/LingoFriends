@@ -1,7 +1,7 @@
 /**
  * LingoFriends V2 — NPC Generator
  *
- * Generates deterministic NPC configurations for lesson coaching steps.
+ * Generates deterministic NPC configurations for lesson activity steps.
  * Same seed + step index always produces the same NPC — so if the user
  * replays a lesson they see the same characters, which feels intentional.
  *
@@ -12,6 +12,12 @@
  * Boss NPC rule: The final step of any lesson gets a boss NPC.
  * Boss = larger (1.3×), gold crown, surprised emotion. This gives kids
  * a sense of progression — the final challenge "feels different".
+ *
+ * TASK-V2-07 additions:
+ *   - NPC names: culturally appropriate first names from the target language's
+ *     name bank. Same seed → same name (deterministic). This makes the NPC
+ *     feel like a real person from the culture being learned.
+ *   - `targetLanguage` parameter added to `generateNPC()`.
  *
  * @module services/npcGenerator
  */
@@ -58,6 +64,42 @@ const HAIR_COLORS = [
 
 /** Emotions for normal (non-boss) NPCs */
 const NORMAL_EMOTIONS: NPCConfig['emotion'][] = ['happy', 'thinking', 'happy'];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NAME BANKS — culturally appropriate first names per target language
+//
+// WHY these names: They are common, recognisable first names in each culture.
+// Exposure to real names from the target culture is part of cultural learning
+// (PEDAGOGY.md — Krashen's Input Hypothesis: comprehensible, meaningful input).
+//
+// We use child/teen names that learners are likely to encounter IRL.
+// 10 names per language = enough variety across a typical 10-step lesson.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const NPC_NAMES: Record<string, string[]> = {
+	// German — common German first names (federal statistics, 2020s)
+	de: ['Lukas', 'Emma', 'Felix', 'Mia', 'Max', 'Sophie', 'Leon', 'Lina', 'Tim', 'Hannah'],
+	// French — common French first names
+	fr: ['Hugo', 'Léa', 'Louis', 'Chloé', 'Gabriel', 'Emma', 'Arthur', 'Jade', 'Lucas', 'Manon'],
+	// English (British) — common names in UK schools
+	en: ['Oliver', 'Lily', 'Jack', 'Ruby', 'Charlie', 'Isla', 'Thomas', 'Grace', 'Harry', 'Amelia'],
+	// Spanish — common names in Spain/Latin America
+	es: ['Carlos', 'Sofía', 'Alejandro', 'Valeria', 'Mateo', 'Camila', 'Diego', 'Lucía', 'Miguel', 'Isabella'],
+	// Italian
+	it: ['Matteo', 'Sofia', 'Leonardo', 'Aurora', 'Lorenzo', 'Giulia', 'Francesco', 'Alice', 'Marco', 'Martina'],
+	// Portuguese
+	pt: ['João', 'Ana', 'Pedro', 'Maria', 'Lucas', 'Beatriz', 'Gabriel', 'Sofia', 'Rafael', 'Mariana'],
+	// Japanese (romanised for readability at all levels)
+	ja: ['Haruki', 'Yuki', 'Ryo', 'Akari', 'Sota', 'Hana', 'Kenji', 'Miku', 'Takashi', 'Aoi'],
+	// Chinese (romanised Mandarin, common mainland names)
+	zh: ['Wei', 'Fang', 'Lei', 'Ying', 'Jing', 'Ming', 'Xue', 'Yang', 'Hui', 'Chen'],
+};
+
+/**
+ * Fallback name pool used when the target language has no name bank.
+ * Generic multi-cultural names that work in any context.
+ */
+const FALLBACK_NAMES = ['Alex', 'Sam', 'Jordan', 'Robin', 'Morgan', 'Riley', 'Casey', 'Quinn'];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SEEDED RNG (LCG algorithm)
@@ -110,20 +152,26 @@ function pickRandom<T>(arr: T[], rng: () => number): T {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Generates a deterministic NPC configuration for a lesson coaching step.
+ * Generates a deterministic NPC configuration for a lesson activity step.
  *
- * The same seed + stepIndex always produces the same NPC — deterministic
- * for replay consistency. The final step gets a boss NPC.
+ * The same seed + stepIndex + targetLanguage always produces the same NPC —
+ * deterministic for replay consistency. The final step gets a boss NPC.
  *
- * @param stepIndex - 0-based index of the current coaching step
+ * TASK-V2-07: Added `targetLanguage` parameter for culturally appropriate
+ * name selection. The name is part of the NPC identity and appears in the
+ * lesson UI as "Felix says:" attribution.
+ *
+ * @param stepIndex - 0-based index of the current activity step
  * @param totalSteps - Total number of steps in this lesson
  * @param seed - Stable seed string (e.g. treeId + lessonIndex)
- * @returns NPCConfig ready to pass to NPCScene.loadCharacter()
+ * @param targetLanguage - ISO 639-1 code of the language being learned (e.g. 'de', 'fr')
+ * @returns NPCConfig ready to pass to EncounterScene
  */
 export function generateNPC(
 	stepIndex: number,
 	totalSteps: number,
-	seed: string
+	seed: string,
+	targetLanguage: string = 'en'
 ): NPCConfig {
 	// Combine step index into seed so each step gets a different NPC
 	const numericSeed = hashStringSeed(`${seed}-step-${stepIndex}`);
@@ -141,7 +189,14 @@ export function generateNPC(
 		? 'surprised'
 		: pickRandom(NORMAL_EMOTIONS, rng);
 
+	// Pick a culturally appropriate name from the target language bank.
+	// Falls back to generic names if the language isn't in the bank.
+	// Boss NPCs use the same pool — name is still deterministic.
+	const namePool = NPC_NAMES[targetLanguage] ?? FALLBACK_NAMES;
+	const name = pickRandom(namePool, rng);
+
 	return {
+		name,
 		skinTone,
 		bodyColor,
 		hairColor,

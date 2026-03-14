@@ -81,8 +81,9 @@ export interface AvatarOptions {
 	skinTone: string;   // hex colour, e.g. '#F5D0A9'
 	hairColor: string;  // hex colour, e.g. '#4A3728'
 	shirtColor: string; // hex colour, e.g. '#FF8A6A'
-	hat: string;        // 'none' | 'cap' | 'beanie' | 'crown'
-	gender: string;     // 'masculine' | 'feminine' | 'neutral'
+	hat: string;        // 'none' | 'cap' | 'beanie' | 'crown' | 'headband'
+	/** 'boy' | 'girl' | 'neutral' — drives body proportions and default presets */
+	gender: string;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -90,10 +91,15 @@ export interface AvatarOptions {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Configuration for building an NPC in the lesson coaching scene.
- * Generated deterministically from lesson seed + step index.
+ * Configuration for building an NPC in the lesson encounter scene.
+ * Generated deterministically from lesson seed + step index + target language.
+ *
+ * TASK-V2-07 addition: `name` field — culturally appropriate name from the
+ * target language's name bank, generated deterministically from the same seed.
  */
 export interface NPCConfig {
+	/** Display name — picked from target-language name bank, e.g. "Felix" (German) */
+	name: string;
 	/** Body colour (shirt equivalent) */
 	bodyColor: string;
 	/** Skin tone */
