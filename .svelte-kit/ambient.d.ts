@@ -38,16 +38,11 @@
  * The above values will be the same _even if_ different values for `ENVIRONMENT` or `PUBLIC_BASE_URL` are set at runtime, as they are statically replaced in your code with their build time values.
  */
 declare module '$env/static/private' {
-	export const VITE_POCKETBASE_URL: string;
-	export const PB_ADMIN_EMAIL: string;
-	export const PB_ADMIN_PASSWORD: string;
-	export const VITE_GROQ_API_KEY: string;
-	export const VITE_DEEPINFRA_API_KEY: string;
-	export const VITE_ANTHROPIC_API_KEY: string;
-	export const VITE_GOOGLE_AI_KEY: string;
-	export const VITE_GOOGLE_TTS_KEY: string;
-	export const VITE_VERTEX_AI_KEY: string;
-	export const VITE_DEBUG_MODE: string;
+	export const DATABASE_URL: string;
+	export const ANTHROPIC_API_KEY: string;
+	export const GROQ_API_KEY: string;
+	export const GOOGLE_TTS_API_KEY: string;
+	export const VITE_APP_URL: string;
 	export const NVM_INC: string;
 	export const LDFLAGS: string;
 	export const rvm_bin_path: string;
@@ -129,13 +124,6 @@ declare module '$env/static/private' {
 	export const VSCODE_CWD: string;
 	export const npm_node_execpath: string;
 	export const npm_config_prefix: string;
-	export const TEST: string;
-	export const VITEST: string;
-	export const NODE_ENV: string;
-	export const PROD: string;
-	export const DEV: string;
-	export const BASE_URL: string;
-	export const MODE: string;
 }
 
 /**
@@ -222,16 +210,11 @@ declare module '$env/static/public' {
  */
 declare module '$env/dynamic/private' {
 	export const env: {
-		VITE_POCKETBASE_URL: string;
-		PB_ADMIN_EMAIL: string;
-		PB_ADMIN_PASSWORD: string;
-		VITE_GROQ_API_KEY: string;
-		VITE_DEEPINFRA_API_KEY: string;
-		VITE_ANTHROPIC_API_KEY: string;
-		VITE_GOOGLE_AI_KEY: string;
-		VITE_GOOGLE_TTS_KEY: string;
-		VITE_VERTEX_AI_KEY: string;
-		VITE_DEBUG_MODE: string;
+		DATABASE_URL: string;
+		ANTHROPIC_API_KEY: string;
+		GROQ_API_KEY: string;
+		GOOGLE_TTS_API_KEY: string;
+		VITE_APP_URL: string;
 		NVM_INC: string;
 		LDFLAGS: string;
 		rvm_bin_path: string;
@@ -313,13 +296,6 @@ declare module '$env/dynamic/private' {
 		VSCODE_CWD: string;
 		npm_node_execpath: string;
 		npm_config_prefix: string;
-		TEST: string;
-		VITEST: string;
-		NODE_ENV: string;
-		PROD: string;
-		DEV: string;
-		BASE_URL: string;
-		MODE: string;
 		[key: `PUBLIC_${string}`]: undefined;
 		[key: `${string}`]: string | undefined;
 	}

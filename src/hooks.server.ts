@@ -1,24 +1,53 @@
 /**
- * SvelteKit Server Hooks
+ * SvelteKit Server Hooks — Session Validation
  *
- * Runs on every request before the route handler.
- * Validates the session cookie and attaches user/session to event.locals.
+ * Runs on every request. Validates the session cookie and
+ * attaches user + session to `locals` for use in load functions and endpoints.
  *
- * Full Lucia auth wired in Task 0.4 — this stub ensures the app
- * won't crash in the meantime (locals default to null).
+ * If the session is valid: locals.user and locals.session are populated.
+ * If the session is invalid/missing: locals.user = null, locals.session = null.
+ *
+ * Auth guard (redirect to /login) is handled in (app)/+layout.server.ts,
+ * not here — keeping concerns separated.
  */
 
 import type { Handle } from '@sveltejs/kit';
-
-// TODO (Task 0.4): Replace with full Lucia session validation
-// import { lucia } from '$lib/server/auth/lucia';
+import { lucia } from '$lib/server/auth/lucia';
 
 export const handle: Handle = async ({ event, resolve }) => {
-	// Stub: set auth locals to null until Lucia is wired up in Task 0.4
-	// When Task 0.4 is complete, replace this entire block with the
-	// lucia.validateSession() pattern shown in task-0.4-auth-setup.md
-	event.locals.user = null;
-	event.locals.session = null;
+	// Read the session cookie from the request
+	const sessionId = event.cookies.get(lucia.sessionCookieName);
+
+	if (!sessionId) {
+		// No cookie — user is not logged in
+		event.locals.user = null;
+		event.locals.session = null;
+		return resolve(event);
+	}
+
+	// Validate the session with Lucia (checks expiry, rotates if needed)
+	const { session, user } = await lucia.validateSession(sessionId);
+
+	if (session && session.fresh) {
+		// Session was rotated (approaching expiry) — set a fresh cookie
+		const sessionCookie = lucia.createSessionCookie(session.id);
+		event.cookies.set(sessionCookie.name, sessionCookie.value, {
+			path: '/',
+			...sessionCookie.attributes,
+		});
+	}
+
+	if (!session) {
+		// Session expired or invalid — clear the cookie
+		const blankCookie = lucia.createBlankSessionCookie();
+		event.cookies.set(blankCookie.name, blankCookie.value, {
+			path: '/',
+			...blankCookie.attributes,
+		});
+	}
+
+	event.locals.user = user;
+	event.locals.session = session;
 
 	return resolve(event);
 };

@@ -1,26 +1,29 @@
 /**
  * SvelteKit App Type Declarations
  *
- * Typed locals injected by hooks.server.ts on every request.
- * Auth objects come from Lucia — see src/lib/server/auth/lucia.ts (Task 0.4).
+ * Defines the shape of `locals`, `pageData`, `pageState`, and `platform`.
+ * `locals` is populated in hooks.server.ts on every request.
  */
 
+import type { User, Session } from 'lucia';
+
 // See https://svelte.dev/docs/kit/types#app.d.ts
-// for information about these interfaces
 declare global {
 	namespace App {
-		// interface Error {}
-
+		// Available as `event.locals` in server load functions and endpoints
 		interface Locals {
-			/** Authenticated user — null if not logged in */
-			user: import('lucia').User | null;
-			/** Current session — null if not logged in */
-			session: import('lucia').Session | null;
+			user: User | null;
+			session: Session | null;
 		}
 
-		// interface PageData {}
-		// interface PageState {}
+		// Available as `$page.data` — populated by root +layout.server.ts
+		interface PageData {
+			user?: User | null;
+		}
+
+		// interface Error {}
 		// interface Platform {}
+		// interface PageState {}
 	}
 }
 
