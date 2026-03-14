@@ -7,12 +7,12 @@
  * Every chunk gets the teach-first 5-step progression (per PEDAGOGY-SUMMARY.md):
  *   1. INTRODUCE  (INFO)            — 0 SunDrops
  *   2. RECOGNIZE  (MULTIPLE_CHOICE) — 1 SunDrop
- *   3. PRACTICE   (FILL_BLANK)      — 2 SunDrops
+ *   3. PRACTICE   (FILL_BLANK or WORD_ARRANGE, alternating) — 2 SunDrops
  *   4. RECALL     (TRANSLATE)       — 3 SunDrops
- *   5. APPLY      (MULTIPLE_CHOICE) — 2 SunDrops
+ *   5. APPLY      (TRUE_FALSE or MULTIPLE_CHOICE, alternating) — 1–2 SunDrops
  *
  * Plus optional coaching chat per chunk and a final matching activity.
- * SunDrops per lesson: (0+1+2+3+2) × N chunks + 3 for matching.
+ * Activity variety alternates per chunk index (see activityAssembler.getActivityPattern).
  *
  * @module server/lessons/lessonAssembler
  */
@@ -29,9 +29,17 @@ import {
 	type TranslateActivity,
 	type MatchingActivity,
 	type CoachingChatActivity,
+	type WordArrangeActivity,
+	type TrueFalseActivity,
 	type LessonStep,
 	type LessonPlan,
 } from '$lib/types/lesson';
+import {
+	buildTrueFalseFromChunk,
+	buildWordArrangeFromChunk,
+	getActivityPattern,
+	pickTrueFalseVariant,
+} from '$lib/services/activityAssembler';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SHUFFLE UTILITY
@@ -316,19 +324,70 @@ export function assembleLessonPlan(content: ChunkFamilyContent, lessonId: string
 	const steps: LessonStep[] = [];
 	const coreFrame = content.coreFrame;
 
-	for (const chunk of content.chunks) {
+	// Pre-collect all target words across chunks for cross-chunk WordArrange distractors
+	// Words from OTHER chunks are better distractors than repeated words from the same phrase
+	const allTargetWords = content.chunks.flatMap((c) =>
+		c.targetPhrase.split(/\s+/).map((w) => w.trim()).filter(Boolean)
+	);
+
+	for (let chunkIndex = 0; chunkIndex < content.chunks.length; chunkIndex++) {
+		const chunk = content.chunks[chunkIndex];
+
+		// Get the activity variety pattern for this chunk index
+		// Even chunks: fill_blank practice + true_false apply
+		// Odd chunks:  word_arrange practice + multiple_choice apply
+		const pattern = getActivityPattern(chunkIndex);
+
 		// Optional: coaching chat introduces the chunk before the quiz sequence
 		// Only add if coachingText is present and meaningful
 		if (chunk.coachingText && chunk.coachingText.trim().length > 0) {
 			steps.push(buildCoachingStep(chunk));
 		}
 
-		// The 5-step teach-first sequence (NEVER skip or reorder these)
+		// Step 1 — INTRODUCE (always INFO — never skip this, pedagogy rule)
 		steps.push(buildIntroduceStep(chunk)); // 0 SunDrops
+
+		// Step 2 — RECOGNIZE (always MULTIPLE_CHOICE — easiest production check)
 		steps.push(buildRecognizeStep(chunk)); // 1 SunDrop
-		steps.push(buildPracticeStep(chunk, coreFrame)); // 2 SunDrops
+
+		// Step 3 — PRACTICE (alternates: fill_blank or word_arrange)
+		if (pattern.practiceType === 'word_arrange') {
+			// Cross-chunk words: words from all OTHER chunks, not this one
+			const otherChunkWords = allTargetWords.filter(
+				(w) => !chunk.targetPhrase.toLowerCase().includes(w.toLowerCase())
+			);
+			const wordArrangeActivity = buildWordArrangeFromChunk(chunk, otherChunkWords, 2);
+			steps.push({
+				id: nanoid(),
+				tutorText: 'Put the words in the right order!',
+				helpText: `The correct phrase is "${chunk.targetPhrase}". Tap the words to arrange them.`,
+				activity: wordArrangeActivity,
+				sunDrops: 2,
+			});
+		} else {
+			// Default: FILL_BLANK
+			steps.push(buildPracticeStep(chunk, coreFrame)); // 2 SunDrops
+		}
+
+		// Step 4 — RECALL (always TRANSLATE — full production, hardest step)
 		steps.push(buildRecallStep(chunk)); // 3 SunDrops
-		steps.push(buildApplyStep(chunk)); // 2 SunDrops
+
+		// Step 5 — APPLY (alternates: true_false or multiple_choice)
+		if (pattern.applyType === 'true_false') {
+			// Pick the right variant for this chunk index
+			const variant = pickTrueFalseVariant(chunkIndex);
+			const trueFalseActivity = buildTrueFalseFromChunk(chunk, variant, 1);
+			steps.push({
+				id: nanoid(),
+				tutorText: 'True or false?',
+				helpText: `"${chunk.targetPhrase}" means "${chunk.nativeTranslation}". ${chunk.usageNote}`,
+				activity: trueFalseActivity,
+				sunDrops: 1, // TrueFalse is quicker than MC — 1 SunDrop not 2
+			});
+		} else {
+			// Default: MULTIPLE_CHOICE usage context
+			steps.push(buildApplyStep(chunk)); // 2 SunDrops
+		}
 	}
 
 	// Final matching step covers all chunks — only add if we have 2+ chunks

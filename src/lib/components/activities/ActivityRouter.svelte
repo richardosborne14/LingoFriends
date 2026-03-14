@@ -15,6 +15,9 @@
 	import MultipleChoiceActivity from './MultipleChoiceActivity.svelte';
 	import FillBlankActivity from './FillBlankActivity.svelte';
 	import TranslateActivity from './TranslateActivity.svelte';
+	import TrueFalseActivity from './TrueFalseActivity.svelte';
+	import WordArrangeActivity from './WordArrangeActivity.svelte';
+	import MatchingPairsActivity from './MatchingPairsActivity.svelte';
 
 	interface Props {
 		step: LessonStep;
@@ -80,6 +83,30 @@
 
 	{:else if step.activity.type === ActivityType.TRANSLATE}
 		<TranslateActivity
+			config={step.activity}
+			{onComplete}
+			onShowHelp={showHelp}
+		/>
+
+	{:else if step.activity.type === ActivityType.TRUE_FALSE}
+		<!-- TrueFalse — quick apply step: is this statement true or false? -->
+		<TrueFalseActivity
+			config={step.activity}
+			{onComplete}
+			onShowHelp={showHelp}
+		/>
+
+	{:else if step.activity.type === ActivityType.WORD_ARRANGE}
+		<!-- WordArrange — tap-to-place word tiles into the correct sentence order -->
+		<WordArrangeActivity
+			config={step.activity}
+			{onComplete}
+			onShowHelp={showHelp}
+		/>
+
+	{:else if step.activity.type === ActivityType.MATCHING}
+		<!-- MatchingPairs — connect target phrases to native translations -->
+		<MatchingPairsActivity
 			config={step.activity}
 			{onComplete}
 			onShowHelp={showHelp}
