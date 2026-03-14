@@ -81,6 +81,12 @@ export function useSounds(): UseSoundsReturn {
     if (SoundManager.isReady()) {
       setIsReady(true);
     }
+    
+    // On unmount: stop any looping sounds (footsteps most importantly).
+    // Without this, navigating away mid-walk leaves footsteps looping forever.
+    return () => {
+      SoundManager.stop('footstep');
+    };
   }, []);
   
   // Play callbacks - memoized for stable references

@@ -176,20 +176,35 @@ function extractStepPhrase(step: LessonStep): string | null {
 /**
  * Extract coaching text for TTS playback.
  *
- * coachingText is AI-generated introductory text spoken by the NPC teacher
- * at the start of each step. It's in the user's native language and provides
- * context, motivation, and personalization.
+ * coachingText is AI-generated introductory text spoken by the NPC/Lingo
+ * mascot at the start of each step. It's in the user's native language and
+ * provides context, motivation, and personalisation.
  *
- * Task 2.0.07: This replaces the separate TTS playback approach with
- * a unified coachingText that plays first on step change.
+ * Bug fix: For COACHING_CHAT steps the coachingText lives on the ActivityConfig
+ * (step.activity.coachingText), NOT on the LessonStep itself. Previously only
+ * step.coachingText was checked, so the first COACHING_CHAT step (always step 0)
+ * was silently skipped, causing no TTS on the very first teaching step.
+ *
+ * Priority order:
+ *   1. step.coachingText         — set by legacy assembler or direct override
+ *   2. step.activity.coachingText — set by Phase 3 assembler on COACHING_CHAT steps
  *
  * @param step - The lesson step
  * @returns The coaching text to speak, or null if not available
  */
 function extractCoachingText(step: LessonStep): string | null {
-  // coachingText is optional field on LessonStep (Task 2.0.07)
+  // 1. Check top-level coachingText on the step (legacy path / Task 2.0.07)
   if ((step as any).coachingText && typeof (step as any).coachingText === 'string') {
     return (step as any).coachingText;
+  }
+  // 2. Check coachingText on the activity itself (Phase 3 COACHING_CHAT steps)
+  //    This is where the assembler stores it for all COACHING_CHAT activities.
+  if (
+    step.activity &&
+    (step.activity as any).coachingText &&
+    typeof (step.activity as any).coachingText === 'string'
+  ) {
+    return (step.activity as any).coachingText;
   }
   return null;
 }

@@ -15,7 +15,10 @@ import type { TargetLanguage } from '../types';
 
 // Use dedicated TTS key (GCP) separate from AI Studio key (Gemini)
 const GOOGLE_TTS_API_KEY = import.meta.env.VITE_GOOGLE_TTS_KEY || import.meta.env.VITE_GOOGLE_AI_KEY;
-const GOOGLE_TTS_URL = 'https://texttospeech.googleapis.com/v1/text:synthesize';
+// Journey voices (fr-FR-Journey-F, de-DE-Journey-F, etc.) are only available in
+// v1beta1 — they have NOT graduated to the stable v1 endpoint yet.
+// Using v1 causes a 400 "voice not found" error that silently kills all TTS.
+const GOOGLE_TTS_URL = 'https://texttospeech.googleapis.com/v1beta1/text:synthesize';
 
 /**
  * Voice configurations for each supported language.

@@ -340,7 +340,10 @@ const GameApp: React.FC<GameAppProps> = ({ profile, onLogout, onUpdateProfile, i
 
       actions.goToLesson(lesson, lessonPlan);
     } catch (error) {
-      console.error('[GameApp] Failed to generate lesson:', error);
+      // Show a kid-friendly error so the screen doesn't just go blank
+      const msg = error instanceof Error ? error.message : String(error);
+      console.error('[GameApp] Failed to generate lesson:', msg);
+      alert('Oops! Something went wrong making your lesson. Let\'s try again! 🐾');
     } finally {
       setLessonLoading(false);
     }

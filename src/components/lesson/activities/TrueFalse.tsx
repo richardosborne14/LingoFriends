@@ -28,6 +28,8 @@ export interface TrueFalseProps {
   onReport?: () => void;
   /** Whether a report is currently being processed */
   isReporting?: boolean;
+  /** Open the full AI help overlay (wired from LessonView via ActivityRouter) */
+  onOpenHelp?: () => void;
 }
 
 interface TrueFalseState {
@@ -79,6 +81,7 @@ export const TrueFalse: React.FC<TrueFalseProps> = ({
   onSkip,
   onReport,
   isReporting,
+  onOpenHelp,
 }) => {
   if (data.isTrue === undefined || !data.statement) {
     console.error('TrueFalse: Missing required fields', data);
@@ -126,8 +129,10 @@ export const TrueFalse: React.FC<TrueFalseProps> = ({
   }, [state.isComplete, state.attempts, state.usedHelp, data.isTrue, data.sunDrops, onComplete, onWrong]);
 
   const handleHelp = useCallback(() => {
-    setState(prev => ({ ...prev, showHelp: true, usedHelp: true }));
-  }, []);
+    // Open AI overlay if available, else show local hint
+    setState(prev => ({ ...prev, usedHelp: true, showHelp: !onOpenHelp }));
+    if (onOpenHelp) onOpenHelp();
+  }, [onOpenHelp]);
 
   const handleCloseHelp = useCallback(() => {
     setState(prev => ({ ...prev, showHelp: false }));

@@ -516,10 +516,13 @@ export class GardenRenderer {
             skillPathId: obj.userData.skillPathId as string | undefined,
           };
 
-          // If avatar is already adjacent (within 1 tile), open immediately
+          // Only open immediately if the avatar is cardinally adjacent (N/S/E/W only).
+          // Diagonal adjacency (dx=1, dz=1) requires a walk-first approach to avoid
+          // accidentally opening lessons when the user is just clicking near a tree.
           const dx = Math.abs(this.avatarGridPos.gx - treeGx);
           const dz = Math.abs(this.avatarGridPos.gz - treeGz);
-          if (dx <= 1 && dz <= 1) {
+          const isCardinallyAdjacent = dx + dz === 1; // Strictly N/S/E/W — not diagonal
+          if (isCardinallyAdjacent) {
             this.onLearningTreeClick?.(treeData);
             return;
           }

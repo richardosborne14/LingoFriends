@@ -265,6 +265,8 @@ export const HelpOverlay: React.FC<HelpOverlayProps> = ({
     stopTTSAudio();
     setState(prev => ({ ...prev, isSpeaking: true }));
 
+    // generateSpeech accepts TargetLanguage names (e.g. "English", "French").
+    // The ttsService handles name-to-BCP47-code conversion internally.
     generateSpeech(text, { language: nativeLang, speakingRate: 0.9 })
       .then(result => {
         if (!result) {

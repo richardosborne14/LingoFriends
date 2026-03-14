@@ -30,6 +30,12 @@ export interface ActivityWrapperProps {
   isRetry: boolean;
   /** Callback when help button is tapped */
   onHelp: () => void;
+  /**
+   * Optional callback to open the full AI help overlay.
+   * When provided, the Help button opens the AI side chat instead of
+   * (and in addition to) the local hint panel.
+   */
+  onOpenHelp?: () => void;
   /** Child content (the activity component) */
   children: React.ReactNode;
 }
@@ -129,13 +135,20 @@ const ActivityHeader: React.FC<{
   sunDrops: number;
   reduced: boolean;
   onHelp: () => void;
-}> = ({ sunDrops, reduced, onHelp }) => (
+  /** When provided, the Help button opens the AI overlay instead of local hint */
+  onOpenHelp?: () => void;
+}> = ({ sunDrops, reduced, onHelp, onOpenHelp }) => (
   <div className="flex justify-between items-center mb-3">
-    {/* Help button */}
+    {/* Help button — opens AI side chat if onOpenHelp provided, else local hint */}
     <motion.button
       whileTap={{ scale: 0.95 }}
-      onClick={onHelp}
-      className="bg-sky-50 border-2 border-sky-200 rounded-lg px-3 py-1.5 font-bold text-xs text-sky-500 hover:bg-sky-100 transition-colors"
+      onClick={() => {
+        // Always call onHelp so usedHelp state is set (reduces SunDrops correctly)
+        onHelp();
+        // If the full AI chat is wired, open it instead of the local panel
+        if (onOpenHelp) onOpenHelp();
+      }}
+      className="bg-green-50 border-2 border-green-200 rounded-lg px-3 py-1.5 font-bold text-xs text-green-600 hover:bg-green-100 transition-colors"
     >
       💬 Help
     </motion.button>
@@ -182,13 +195,21 @@ export const ActivityWrapper: React.FC<ActivityWrapperProps> = ({
   usedHelp,
   isRetry,
   onHelp,
+  onOpenHelp,
   children,
 }) => {
   const [showHelp, setShowHelp] = useState(false);
 
   const handleHelp = () => {
-    setShowHelp(true);
-    onHelp();
+    // If AI overlay is wired, open that directly (don't show local hint panel)
+    if (onOpenHelp) {
+      onOpenHelp();
+      onHelp(); // Still mark as "used help" so SunDrop reduction applies
+    } else {
+      // Fallback: show local hint panel when no AI overlay available
+      setShowHelp(true);
+      onHelp();
+    }
   };
 
   const reduced = usedHelp || isRetry;
@@ -199,6 +220,7 @@ export const ActivityWrapper: React.FC<ActivityWrapperProps> = ({
         sunDrops={sunDrops}
         reduced={reduced}
         onHelp={handleHelp}
+        onOpenHelp={onOpenHelp}
       />
       
       <AnimatePresence>

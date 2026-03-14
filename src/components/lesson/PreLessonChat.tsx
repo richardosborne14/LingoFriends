@@ -167,19 +167,20 @@ export const PreLessonChat: React.FC<PreLessonChatProps> = ({
   // ── RENDER ────────────────────────────────────────────────────────
   return (
     <div className="w-full max-w-md mx-auto">
-      {/* NPC header */}
+      {/* Lingo mascot header — LingoFriends brand, not Professor Finch */}
       <div className="flex items-center gap-3 mb-4">
         <motion.div
-          animate={{ rotate: [0, -8, 8, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 3 }}
-          className="text-5xl"
+          animate={{ scale: [1, 1.08, 1] }}
+          transition={{ duration: 2, repeat: Infinity, repeatDelay: 2 }}
+          className="w-14 h-14 rounded-full bg-green-500 flex items-center justify-center shadow-md flex-shrink-0"
         >
-          🦉
+          {/* Lingo face — matches the app logo */}
+          <span className="text-3xl" role="img" aria-label="Lingo mascot">💬</span>
         </motion.div>
         <div>
-          <p className="font-bold text-stone-800 text-base">Professor Finch</p>
-          <p className="text-stone-500 text-sm">
-            Before we start, let me make this lesson just for you!
+          <p className="font-bold text-green-800 text-base">Lingo</p>
+          <p className="text-green-600 text-sm">
+            Let me make this lesson just for you! 🌟
           </p>
         </div>
       </div>

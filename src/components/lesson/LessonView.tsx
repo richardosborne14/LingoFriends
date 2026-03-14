@@ -12,7 +12,7 @@
  */
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { TutorBubble } from './TutorBubble';
 import { SunDropBurst } from './SunDropBurst';
 import { PenaltyBurst } from './PenaltyBurst';
@@ -608,7 +608,7 @@ export const LessonView: React.FC<LessonViewProps> = ({
           }}
           animate={hasUsedHelp ? {} : { scale: [1, 1.07, 1] }}
           transition={{ duration: 1.8, repeat: Infinity, repeatDelay: 4, ease: 'easeInOut' }}
-          className="mr-2 flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 text-amber-700 rounded-full font-semibold text-sm hover:bg-amber-100 transition-colors"
+          className="mr-2 flex items-center gap-1.5 px-3 py-1.5 bg-green-50 border border-green-200 text-green-700 rounded-full font-semibold text-sm hover:bg-green-100 transition-colors"
           aria-label="Get help"
         >
           💬 <span>Help</span>
@@ -654,31 +654,36 @@ export const LessonView: React.FC<LessonViewProps> = ({
         )}
 
         {/* Audio replay button — prominent on INFO steps, compact on quiz steps.
-            key={currentStepIndex} forces a clean remount on every step change,
-            preventing the spinner from persisting from the previous step (Bug 9). */}
+            AnimatePresence mode="wait" ensures the old button fully exits before
+            the new one enters. Without AnimatePresence, the exit animation keeps
+            the old DOM node alive momentarily, causing multiple icons to appear
+            stacked below the avatars (bug: N questions = N icons). */}
         {hasAudio && (
-          <motion.div
-            key={state.currentStepIndex}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className={`flex justify-center ${
-              isInfoStep
-                ? 'my-6'  // Large gap on INFO steps — it's the main interaction
-                : 'my-2'  // Compact on quiz steps — secondary to the activity
-            }`}
-          >
-            <AudioReplayButton
-              isPlaying={isAudioPlaying}
-              isLoading={isAudioLoading}
-              onPress={playChunkAudio}
-              size={isInfoStep ? 'lg' : 'sm'}
-              label={isInfoStep
-                ? (isAudioPlaying ? 'Playing...' : 'Tap to hear again')
-                : undefined
-              }
-            />
-          </motion.div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={state.currentStepIndex}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.15, delay: 0.1 }}
+              className={`flex justify-center ${
+                isInfoStep
+                  ? 'my-6'  // Large gap on INFO steps — it's the main interaction
+                  : 'my-2'  // Compact on quiz steps — secondary to the activity
+              }`}
+            >
+              <AudioReplayButton
+                isPlaying={isAudioPlaying}
+                isLoading={isAudioLoading}
+                onPress={playChunkAudio}
+                size={isInfoStep ? 'lg' : 'sm'}
+                label={isInfoStep
+                  ? (isAudioPlaying ? 'Playing...' : 'Tap to hear again')
+                  : undefined
+                }
+              />
+            </motion.div>
+          </AnimatePresence>
         )}
 
         {/* Activity component - key forces fresh mount per step */}

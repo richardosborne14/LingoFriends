@@ -33,6 +33,8 @@ export interface FillBlankProps {
   onReport?: () => void;
   /** Whether a report is currently being processed */
   isReporting?: boolean;
+  /** Open the full AI help overlay (wired from LessonView via ActivityRouter) */
+  onOpenHelp?: () => void;
 }
 
 interface FillBlankState {
@@ -92,6 +94,7 @@ export const FillBlank: React.FC<FillBlankProps> = ({
   onSkip,
   onReport,
   isReporting,
+  onOpenHelp,
 }) => {
   // Validate required fields
   if (!data.sentence || !data.correctAnswer) {
@@ -235,14 +238,13 @@ export const FillBlank: React.FC<FillBlankProps> = ({
 
   /**
    * Handle help button click.
+   * If onOpenHelp is wired, open the AI overlay and skip the local hint panel.
+   * Otherwise fall back to showing the local static hint.
    */
   const handleHelp = useCallback(() => {
-    setState(prev => ({
-      ...prev,
-      showHelp: true,
-      usedHelp: true,
-    }));
-  }, []);
+    setState(prev => ({ ...prev, usedHelp: true, showHelp: !onOpenHelp }));
+    if (onOpenHelp) onOpenHelp();
+  }, [onOpenHelp]);
 
   /**
    * Close help panel.

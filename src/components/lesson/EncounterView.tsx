@@ -1,223 +1,171 @@
 /**
  * LingoFriends - Encounter View Component
  *
- * React wrapper for the Three.js EncounterScene.
- * Renders the RPG-style avatar encounter at the top of the lesson screen.
+ * Displays the "meeting your language buddy" scene at the top of every lesson step.
+ * Previously used a Three.js EncounterScene with blocky 3D avatars — replaced with
+ * a clean 2D CSS illustration so the lesson loads faster, looks better on all
+ * screens, and doesn't require WebGL.
  *
- * Features:
- * - Each step generates a new NPC (deterministic via seed)
- * - Final step is a "boss" encounter with special styling
- * - Mouth animation driven by audio playback state
- * - Responsive height for mobile/desktop
+ * Layout: sky-gradient strip with Lingo mascot (left) and a language buddy (right).
+ * The buddy's speech bubble pulses gently while audio is playing.
  *
  * @module components/lesson/EncounterView
- * @see docs/phase-1.3-activity-improvements/task-3-npc-avatar-encounters.md
  */
 
-import React, { useRef, useEffect, useMemo, useCallback } from 'react';
-import { EncounterScene } from '../../renderer/EncounterScene';
-import {
-  generateNPC,
-  lessonIdToSeed,
-  type NPCConfig,
-} from '../../services/npcGenerator';
-import type { AvatarOptions } from '../../renderer/types';
-import { DEFAULT_AVATAR } from '../../renderer/types';
+import React from 'react';
+import { motion } from 'framer-motion';
 
 // ============================================================================
 // TYPES
 // ============================================================================
 
-/**
- * Props for the EncounterView component.
- */
 export interface EncounterViewProps {
-  /** User's avatar options from their profile */
-  userAvatar?: AvatarOptions;
-  /** Current lesson step index (0-based) */
+  /** Current lesson step index (0-based) — used to vary NPC appearance */
   stepIndex: number;
   /** Total steps in the lesson */
   totalSteps: number;
-  /** Lesson ID for deterministic NPC generation */
+  /** Lesson ID (kept for prop compatibility; not used in 2D renderer) */
   lessonId: string;
-  /** Whether audio is currently playing (drives mouth animation) */
+  /** Whether audio is currently playing — drives speech bubble animation */
   isAudioPlaying: boolean;
-  /** Height of the encounter scene in pixels (default: responsive) */
+  /** Optional fixed height in px (default: 140) */
   height?: number;
 }
 
 // ============================================================================
-// HELPER FUNCTIONS
+// HELPER DATA
 // ============================================================================
 
 /**
- * Get responsive height based on viewport.
- * Shorter on mobile to leave room for activity UI.
+ * Language buddy characters — rotate deterministically based on step index.
+ * Each entry has an emoji face and a background colour for their avatar circle.
  */
-function getResponsiveHeight(): number {
-  if (typeof window === 'undefined') return 180;
-  return window.innerWidth < 640 ? 140 : 180;
-}
+const BUDDIES = [
+  { emoji: '😊', bg: 'bg-blue-400',   name: 'Max'   },
+  { emoji: '🌟', bg: 'bg-purple-400', name: 'Luna'  },
+  { emoji: '🦊', bg: 'bg-orange-400', name: 'Felix' },
+  { emoji: '🐻', bg: 'bg-amber-500',  name: 'Bruno' },
+  { emoji: '🐱', bg: 'bg-pink-400',   name: 'Mia'   },
+  { emoji: '🐸', bg: 'bg-green-400',  name: 'Leo'   },
+];
 
 // ============================================================================
 // COMPONENT
 // ============================================================================
 
 /**
- * EncounterView — renders the RPG-style avatar encounter at the top of the lesson.
- *
- * Each step generates a new NPC. The final step is a "boss" encounter.
- * Mouth animation is driven by the `isAudioPlaying` prop.
+ * EncounterView — clean 2D companion scene above the lesson activity.
  *
  * @example
  * <EncounterView
- *   userAvatar={userAvatarOptions}
- *   stepIndex={currentStepIndex}
- *   totalSteps={lesson.steps.length}
+ *   stepIndex={0}
+ *   totalSteps={10}
  *   lessonId={lesson.id}
  *   isAudioPlaying={isAudioPlaying}
- *   height={180}
  * />
  */
 export const EncounterView: React.FC<EncounterViewProps> = ({
-  userAvatar = DEFAULT_AVATAR,
   stepIndex,
   totalSteps,
   lessonId,
   isAudioPlaying,
-  height,
+  height = 140,
 }) => {
-  // ── Refs ──────────────────────────────────────────────────────────
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const sceneRef = useRef<EncounterScene | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const mouthAnimationRef = useRef<number>(0);
+  // Pick a consistent buddy for this step (wraps around)
+  const buddy = BUDDIES[stepIndex % BUDDIES.length];
 
-  // ── Responsive height ──────────────────────────────────────────────
-  const sceneHeight = height ?? getResponsiveHeight();
+  // Final step gets a gold star badge — "boss" moment
+  const isFinalStep = stepIndex === totalSteps - 1;
 
-  // ── Generate NPC config for current step (memoized) ────────────────
-  const npcConfig: NPCConfig = useMemo(() => {
-    const seed = lessonIdToSeed(lessonId);
-    return generateNPC(stepIndex, totalSteps, seed);
-  }, [stepIndex, totalSteps, lessonId]);
-
-  // ── Determine if this is a boss encounter ───────────────────────────
-  const isBoss = npcConfig.role === 'boss';
-
-  // ── Scene lifecycle ────────────────────────────────────────────────
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const container = containerRef.current;
-    if (!canvas || !container) return;
-
-    const width = container.clientWidth;
-
-    // Dispose previous scene
-    sceneRef.current?.dispose();
-
-    // Create new scene for this step's NPC
-    const scene = new EncounterScene({
-      userAvatar,
-      npc: npcConfig,
-      canvas,
-      width,
-      height: sceneHeight,
-    });
-
-    scene.start();
-    sceneRef.current = scene;
-
-    return () => {
-      scene.dispose();
-      sceneRef.current = null;
-    };
-  }, [npcConfig, userAvatar, sceneHeight]);
-
-  // ── Mouth animation driven by audio state ───────────────────────────
-  useEffect(() => {
-    if (!sceneRef.current) return;
-
-    if (!isAudioPlaying) {
-      sceneRef.current.setMouthOpenness(0);
-      if (mouthAnimationRef.current) {
-        cancelAnimationFrame(mouthAnimationRef.current);
-        mouthAnimationRef.current = 0;
-      }
-      return;
-    }
-
-    // Simulate mouth movement with oscillation while audio plays.
-    // A more advanced approach would use Web Audio API's AnalyserNode
-    // to get real amplitude data. This is a good v1.
-    const startTime = Date.now();
-
-    const animateMouth = () => {
-      if (!sceneRef.current) return;
-
-      const elapsed = (Date.now() - startTime) / 1000;
-      // Oscillate between 0.1 and 0.8 at ~6Hz (natural speech rate)
-      const openness = 0.1 + Math.abs(Math.sin(elapsed * Math.PI * 6)) * 0.7;
-      // Add some randomness for natural feel
-      const jitter = (Math.random() - 0.5) * 0.15;
-      sceneRef.current.setMouthOpenness(Math.max(0, Math.min(1, openness + jitter)));
-
-      mouthAnimationRef.current = requestAnimationFrame(animateMouth);
-    };
-
-    animateMouth();
-
-    return () => {
-      if (mouthAnimationRef.current) {
-        cancelAnimationFrame(mouthAnimationRef.current);
-        mouthAnimationRef.current = 0;
-      }
-      sceneRef.current?.setMouthOpenness(0);
-    };
-  }, [isAudioPlaying]);
-
-  // ── Resize handler ─────────────────────────────────────────────────
-  const handleResize = useCallback(() => {
-    const container = containerRef.current;
-    if (!container || !sceneRef.current) return;
-    sceneRef.current.resize(container.clientWidth, sceneHeight);
-  }, [sceneHeight]);
-
-  useEffect(() => {
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [handleResize]);
-
-  // ── Render ─────────────────────────────────────────────────────────
   return (
     <div
-      ref={containerRef}
-      className={`w-full relative overflow-hidden rounded-b-2xl ${
-        isBoss
-          ? 'bg-gradient-to-b from-amber-100 via-yellow-50 to-transparent'
-          : 'bg-gradient-to-b from-sky-100 via-blue-50 to-transparent'
-      }`}
-      style={{ height: sceneHeight }}
+      className="w-full relative overflow-hidden"
+      style={{ height }}
     >
-      {/* Three.js Canvas */}
-      <canvas
-        ref={canvasRef}
-        className="w-full h-full"
-        style={{ display: 'block' }}
+      {/* Sky gradient background — soft and friendly */}
+      <div
+        className={`absolute inset-0 ${
+          isFinalStep
+            ? 'bg-gradient-to-br from-amber-100 via-yellow-50 to-orange-50'
+            : 'bg-gradient-to-br from-sky-100 via-blue-50 to-green-50'
+        }`}
       />
 
-      {/* Boss encounter badge */}
-      {isBoss && (
-        <div className="absolute top-2 right-3 bg-amber-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md animate-bounce">
-          ⭐ Final Challenge!
+      {/* Subtle ground strip */}
+      <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-green-100/60 to-transparent" />
+
+      {/* Characters */}
+      <div className="relative h-full flex items-end justify-center gap-16 pb-3 px-6">
+
+        {/* === LEFT: Lingo mascot === */}
+        <div className="flex flex-col items-center gap-1">
+          <motion.div
+            animate={isAudioPlaying
+              ? { scale: [1, 1.06, 1, 1.06, 1], y: [0, -3, 0] }
+              : { scale: 1, y: 0 }
+            }
+            transition={{ duration: 0.5, repeat: isAudioPlaying ? Infinity : 0, ease: 'easeInOut' }}
+            className="w-14 h-14 rounded-full bg-green-500 flex items-center justify-center shadow-md border-2 border-white"
+          >
+            {/* Lingo face — matches the app logo mascot */}
+            <span className="text-2xl select-none" role="img" aria-label="Lingo">😄</span>
+          </motion.div>
+
+          {/* Speech wave — only visible while audio plays */}
+          {isAudioPlaying && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex gap-0.5 items-end h-3"
+            >
+              {[0.3, 0.6, 1, 0.7, 0.4].map((h, i) => (
+                <motion.span
+                  key={i}
+                  animate={{ scaleY: [h, 1, h] }}
+                  transition={{ duration: 0.4, repeat: Infinity, delay: i * 0.07 }}
+                  className="w-1 rounded-full bg-green-400"
+                  style={{ height: '100%', transformOrigin: 'bottom' }}
+                />
+              ))}
+            </motion.div>
+          )}
+
+          <p className="text-[10px] font-bold text-green-700 tracking-wide">Lingo</p>
         </div>
+
+        {/* === RIGHT: Language buddy === */}
+        <div className="flex flex-col items-center gap-1">
+          <motion.div
+            initial={{ y: 8, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.4, delay: 0.15 }}
+            className={`w-14 h-14 rounded-full ${buddy.bg} flex items-center justify-center shadow-md border-2 border-white`}
+          >
+            <span className="text-2xl select-none" role="img" aria-label={buddy.name}>
+              {buddy.emoji}
+            </span>
+          </motion.div>
+
+          {/* Idle bob animation */}
+          <p className="text-[10px] font-bold text-stone-500 tracking-wide">{buddy.name}</p>
+        </div>
+
+      </div>
+
+      {/* Final step badge */}
+      {isFinalStep && (
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: 'spring', stiffness: 300, delay: 0.2 }}
+          className="absolute top-2 right-3 bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow"
+        >
+          ⭐ Final step!
+        </motion.div>
       )}
     </div>
   );
 };
-
-// ============================================================================
-// EXPORTS
-// ============================================================================
 
 export default EncounterView;

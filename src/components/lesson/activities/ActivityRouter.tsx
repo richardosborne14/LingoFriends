@@ -101,6 +101,7 @@ export const ActivityRouter: React.FC<ActivityProps> = ({
           onSkip={onSkip}
           onReport={onReport}
           isReporting={isReporting}
+          onOpenHelp={onOpenHelp}
         />
       );
 
@@ -114,6 +115,7 @@ export const ActivityRouter: React.FC<ActivityProps> = ({
           onSkip={onSkip}
           onReport={onReport}
           isReporting={isReporting}
+          onOpenHelp={onOpenHelp}
         />
       );
 
@@ -127,6 +129,7 @@ export const ActivityRouter: React.FC<ActivityProps> = ({
           onSkip={onSkip}
           onReport={onReport}
           isReporting={isReporting}
+          onOpenHelp={onOpenHelp}
         />
       );
 
@@ -140,6 +143,7 @@ export const ActivityRouter: React.FC<ActivityProps> = ({
           onSkip={onSkip}
           onReport={onReport}
           isReporting={isReporting}
+          onOpenHelp={onOpenHelp}
         />
       );
 
@@ -153,6 +157,7 @@ export const ActivityRouter: React.FC<ActivityProps> = ({
           onSkip={onSkip}
           onReport={onReport}
           isReporting={isReporting}
+          onOpenHelp={onOpenHelp}
         />
       );
 

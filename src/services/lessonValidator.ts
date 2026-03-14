@@ -286,6 +286,15 @@ function validateActivity(
       }
       break;
 
+    case GameActivityType.COACHING_CHAT:
+      // Phase 3 coaching/discovery step — non-graded, 0 SunDrops always.
+      // Rule 10: COACHING_CHAT is never a quiz — no required question/option fields.
+      // Falls back to INFO if coaching fields are absent (Rule 14 graceful degradation).
+      if (activity.sunDrops !== 0) {
+        errors.push(`${stepLabel} (COACHING_CHAT): sunDrops must be 0 (non-graded step)`);
+      }
+      break;
+
     default:
       errors.push(`${stepLabel}: Unknown activity type "${type}"`);
   }
@@ -313,9 +322,12 @@ function validateActivityVariety(steps: LessonStep[]): { errors: string[]; warni
   const errors: string[] = [];
   const warnings: string[] = [];
 
-  // Get quiz step types (exclude INFO)
+  // Get quiz step types (exclude INFO and COACHING_CHAT — both are non-graded teaching steps)
   const quizTypes = steps
-    .filter(s => s.activity?.type !== GameActivityType.INFO)
+    .filter(s =>
+      s.activity?.type !== GameActivityType.INFO &&
+      s.activity?.type !== GameActivityType.COACHING_CHAT
+    )
     .map(s => s.activity?.type)
     .filter(Boolean) as GameActivityType[];
 

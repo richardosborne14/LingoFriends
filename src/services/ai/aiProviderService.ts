@@ -23,11 +23,14 @@ import { createGroqProvider } from './groqProvider';
 
 /**
  * Provider priority order.
- * DeepInfra is preferred for production (US data centre, zero retention).
- * Groq is fallback (existing provider, reliable).
- * Anthropic is dev-mode only (for testing Claude).
+ * Groq (Llama 3.3) is first — proven reliable with valid key.
+ * DeepInfra is second — GLM-5 when model is available.
+ * Anthropic is last — dev/fallback only.
+ *
+ * NOTE: DeepInfra was returning 404 for zai-org/GLM-5-9B-Chat as of 2026-03.
+ * Groq promoted to primary until DeepInfra model is confirmed stable.
  */
-const PROVIDER_PRIORITY: ProviderKey[] = ['deepinfra', 'groq', 'anthropic'];
+const PROVIDER_PRIORITY: ProviderKey[] = ['groq', 'deepinfra', 'anthropic'];
 
 // ============================================================================
 // SERVICE CLASS

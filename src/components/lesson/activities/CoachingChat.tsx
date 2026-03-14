@@ -63,7 +63,7 @@ function getEncouragement(wasCorrect: boolean): string {
       '🌟 Yes! You got it!',
       '✨ Exactly right!',
       '🎉 Great guess!',
-      '💫 Spot on!',
+      '💚 Brilliant!',
     ];
     return correct[Math.floor(Math.random() * correct.length)];
   }
@@ -145,13 +145,15 @@ export const CoachingChat: React.FC<CoachingChatProps> = ({ data, onComplete }) 
   // ── RENDER ────────────────────────────────────────────────────────────────
 
   return (
+    // LingoFriends brand colours: green palette throughout, mascot "Lingo" instead of Professor Finch owl.
     <div className="coaching-chat rounded-2xl overflow-hidden shadow-lg bg-white">
-      {/* NPC header bar */}
-      <div className="flex items-center gap-3 px-5 py-3 bg-amber-50 border-b border-amber-100">
-        <span className="text-3xl" role="img" aria-label="NPC teacher">🦉</span>
+      {/* Lingo (LingoFriends mascot) header bar */}
+      <div className="flex items-center gap-3 px-5 py-3 bg-green-50 border-b border-green-100">
+        {/* LingoFriends speech-bubble mascot face — matches the app logo */}
+        <span className="text-3xl" role="img" aria-label="Lingo mascot">💬</span>
         <div>
-          <p className="font-bold text-amber-900 text-sm">Professor Finch</p>
-          <p className="text-amber-600 text-xs">Your language coach</p>
+          <p className="font-bold text-green-800 text-sm">Lingo</p>
+          <p className="text-green-600 text-xs">Your LingoFriend</p>
         </div>
       </div>
 
@@ -167,8 +169,8 @@ export const CoachingChat: React.FC<CoachingChatProps> = ({ data, onComplete }) 
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.25 }}
             >
-              {/* Coaching text (NPC spoken intro — audio handled by useLessonAudio) */}
-              <div className="bg-amber-50 rounded-xl p-4 mb-5 border border-amber-100">
+              {/* Coaching text — spoken by TTS via useLessonAudio on step entry */}
+              <div className="bg-green-50 rounded-xl p-4 mb-5 border border-green-100">
                 <p className="text-stone-700 leading-relaxed text-base">
                   {data.coachingText || `Let's learn a new phrase: "${data.targetPhrase}"!`}
                 </p>
@@ -177,8 +179,8 @@ export const CoachingChat: React.FC<CoachingChatProps> = ({ data, onComplete }) 
               {/* Phrase preview */}
               {data.targetPhrase && (
                 <div className="text-center my-5">
-                  <p className="text-3xl font-bold text-amber-700 mb-1">{data.targetPhrase}</p>
-                  {/* Hide translation here — it's what the learner will "discover" */}
+                  <p className="text-3xl font-bold text-green-700 mb-1">{data.targetPhrase}</p>
+                  {/* Translation hidden here — learner will "discover" it */}
                   <p className="text-stone-400 text-sm italic">
                     {hasDiscovery ? 'Can you guess what this means?' : data.nativeTranslation}
                   </p>
@@ -187,7 +189,7 @@ export const CoachingChat: React.FC<CoachingChatProps> = ({ data, onComplete }) 
 
               <button
                 onClick={handleIntroNext}
-                className="w-full mt-4 py-3 bg-amber-400 hover:bg-amber-500 text-white font-bold rounded-xl transition-colors text-base"
+                className="w-full mt-4 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl transition-colors text-base"
               >
                 {hasDiscovery ? "Let me guess! →" : "Got it! →"}
               </button>
@@ -205,7 +207,7 @@ export const CoachingChat: React.FC<CoachingChatProps> = ({ data, onComplete }) 
             >
               {/* Discovery question */}
               <div className="text-center mb-5">
-                <p className="text-xl font-bold text-amber-700 mb-1">
+                <p className="text-xl font-bold text-green-700 mb-1">
                   {data.targetPhrase}
                 </p>
                 <p className="text-stone-700 font-medium text-base">
@@ -220,9 +222,9 @@ export const CoachingChat: React.FC<CoachingChatProps> = ({ data, onComplete }) 
                     key={index}
                     whileTap={{ scale: 0.97 }}
                     onClick={() => handleOptionTap(index)}
-                    className="w-full py-3.5 px-5 text-left bg-stone-50 hover:bg-amber-50 border-2 border-stone-200 hover:border-amber-300 rounded-xl text-stone-700 font-medium transition-all text-base"
+                    className="w-full py-3.5 px-5 text-left bg-stone-50 hover:bg-green-50 border-2 border-stone-200 hover:border-green-300 rounded-xl text-stone-700 font-medium transition-all text-base"
                   >
-                    <span className="text-amber-600 font-bold mr-2">
+                    <span className="text-green-600 font-bold mr-2">
                       {String.fromCharCode(65 + index)}.
                     </span>
                     {option}
@@ -287,7 +289,7 @@ export const CoachingChat: React.FC<CoachingChatProps> = ({ data, onComplete }) 
 
               {/* Follow-up message */}
               {data.discoveryFollowUp && (
-                <div className="bg-amber-50 rounded-xl p-4 mb-4 border border-amber-100">
+                <div className="bg-green-50 rounded-xl p-4 mb-4 border border-green-100">
                   <p className="text-stone-700 text-sm leading-relaxed">
                     {data.discoveryFollowUp}
                   </p>
@@ -306,7 +308,7 @@ export const CoachingChat: React.FC<CoachingChatProps> = ({ data, onComplete }) 
 
               <button
                 onClick={handleRevealNext}
-                className="w-full py-3 bg-amber-400 hover:bg-amber-500 text-white font-bold rounded-xl transition-colors text-base"
+                className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl transition-colors text-base"
               >
                 Got it! →
               </button>
@@ -325,7 +327,7 @@ export const CoachingChat: React.FC<CoachingChatProps> = ({ data, onComplete }) 
             >
               {/* Phrase + translation summary before quiz steps begin */}
               <div className="my-6">
-                <p className="text-4xl font-bold text-amber-700 mb-2">
+                <p className="text-4xl font-bold text-green-700 mb-2">
                   {data.targetPhrase}
                 </p>
                 <p className="text-xl text-stone-500">
@@ -341,7 +343,7 @@ export const CoachingChat: React.FC<CoachingChatProps> = ({ data, onComplete }) 
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleReady}
-                className="w-full py-4 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white font-bold rounded-xl shadow-md transition-all text-lg"
+                className="w-full py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl shadow-md transition-all text-lg"
               >
                 Let's practise! 🌟
               </motion.button>

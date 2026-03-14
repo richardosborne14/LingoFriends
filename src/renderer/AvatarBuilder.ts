@@ -139,6 +139,30 @@ export function buildAvatar(options: AvatarOptions = DEFAULT_AVATAR): THREE.Grou
   rightEyeGroup.name = 'eye_right';
   rightEyeGroup.position.set(eyeSpacing, eyeY, eyeZ);
   group.add(rightEyeGroup);
+
+  // ===== EYEBROWS =====
+  // Two separate arched brows above the eyes.
+  // Critical for friendly expression — without them the dark irises read as
+  // a unibrow from the isometric camera angle (kids notice this immediately!).
+  // Using a flat, wide ellipsoid scaled on X to create a gentle arch shape.
+  const browMaterial = new THREE.MeshToonMaterial({ color: hairColor ?? 0x4A3728 });
+  const browGeometry = new THREE.SphereGeometry(0.022, 6, 4);
+
+  // Left brow — slightly arched (rotate ~15° around Z so inner end dips down a touch)
+  const leftBrow = new THREE.Mesh(browGeometry, browMaterial);
+  leftBrow.name = 'brow_left';
+  leftBrow.scale.set(1.5, 0.35, 0.5); // Wide, flat, shallow depth
+  leftBrow.rotation.z = -0.26;        // ~15° counter-clockwise = arched arch
+  leftBrow.position.set(-eyeSpacing, eyeY + 0.058, eyeZ + 0.01);
+  group.add(leftBrow);
+
+  // Right brow — mirrored
+  const rightBrow = new THREE.Mesh(browGeometry, browMaterial);
+  rightBrow.name = 'brow_right';
+  rightBrow.scale.set(1.5, 0.35, 0.5);
+  rightBrow.rotation.z = 0.26;        // ~15° clockwise
+  rightBrow.position.set(eyeSpacing, eyeY + 0.058, eyeZ + 0.01);
+  group.add(rightBrow);
   
   // ===== MOUTH =====
   // Wide pink oval — clearly readable as a smile at garden zoom levels.

@@ -28,6 +28,8 @@ export interface MatchingPairsProps {
   onReport?: () => void;
   /** Whether a report is currently being processed */
   isReporting?: boolean;
+  /** Open the full AI help overlay (wired from LessonView via ActivityRouter) */
+  onOpenHelp?: () => void;
 }
 
 /** A single match item with its match status */
@@ -103,6 +105,7 @@ export const MatchingPairs: React.FC<MatchingPairsProps> = ({
   onSkip,
   onReport,
   isReporting,
+  onOpenHelp,
 }) => {
   // Handle missing pairs gracefully - allow skip
   if (!data.pairs || data.pairs.length === 0) {
@@ -218,8 +221,10 @@ export const MatchingPairs: React.FC<MatchingPairsProps> = ({
   }, [state.isComplete, state.selectedLeft, state.matchesCount, state.totalPairs, state.attempts, state.usedHelp, matchedIndices, data.sunDrops, onComplete, onWrong]);
 
   const handleHelp = useCallback(() => {
-    setState(prev => ({ ...prev, showHelp: true, usedHelp: true }));
-  }, []);
+    // Open AI overlay if available, else show local hint
+    setState(prev => ({ ...prev, usedHelp: true, showHelp: !onOpenHelp }));
+    if (onOpenHelp) onOpenHelp();
+  }, [onOpenHelp]);
 
   const handleCloseHelp = useCallback(() => {
     setState(prev => ({ ...prev, showHelp: false }));

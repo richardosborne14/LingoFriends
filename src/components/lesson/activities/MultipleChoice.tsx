@@ -35,6 +35,8 @@ export interface MultipleChoiceProps {
   onReport?: () => void;
   /** Whether a report is currently being processed */
   isReporting?: boolean;
+  /** Open the full AI help overlay (wired from LessonView via ActivityRouter) */
+  onOpenHelp?: () => void;
 }
 
 /**
@@ -118,6 +120,7 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({
   onSkip,
   onReport,
   isReporting,
+  onOpenHelp,
 }) => {
   // Validate required fields
   if (!data.question || !data.options || data.correctIndex === undefined) {
@@ -191,14 +194,13 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({
 
   /**
    * Handle help button click.
+   * If onOpenHelp is wired, open the AI overlay and skip the local hint panel.
+   * Otherwise fall back to showing the local static hint.
    */
   const handleHelp = useCallback(() => {
-    setState(prev => ({
-      ...prev,
-      showHelp: true,
-      usedHelp: true,
-    }));
-  }, []);
+    setState(prev => ({ ...prev, usedHelp: true, showHelp: !onOpenHelp }));
+    if (onOpenHelp) onOpenHelp();
+  }, [onOpenHelp]);
 
   /**
    * Close help panel.

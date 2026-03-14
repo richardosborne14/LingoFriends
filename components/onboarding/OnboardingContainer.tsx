@@ -13,7 +13,7 @@
  * @module onboarding/OnboardingContainer
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Logo, Button } from '../ui';
 import { StepIndicator } from './StepIndicator';
@@ -119,6 +119,41 @@ export function OnboardingContainer({
   
   // Loading state for final submission
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Ref for the scrollable main element — used to reset scroll position on step change.
+  // Without this, tall steps (e.g. Interests) leave the scroll offset in place when
+  // navigating to a new step, so the new step's content starts above the fold.
+  const mainScrollRef = useRef<HTMLElement>(null);
+
+  /**
+   * Scroll to top whenever the step changes.
+   *
+   * We target BOTH the window and the <main> inner scroll container because
+   * the Puppeteer viewport (and many mobile browsers) scroll the document
+   * rather than the overflow container. Using `instant` prevents the scroll
+   * animation from competing with the framer-motion slide-in transition.
+   *
+   * Additionally lock the body while onboarding is mounted so that the
+   * 100dvh container truly fills the screen without a body scrollbar.
+   */
+  useEffect(() => {
+    // Scroll the inner overflow container (Step N → Step N+1)
+    mainScrollRef.current?.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+    // Also scroll the document viewport in case the body itself overflows
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+  }, [state.currentStep]);
+
+  // Lock body scroll for the lifetime of the onboarding screen.
+  // Without this, browsers (and Puppeteer) can scroll the document even when
+  // the outer div has `overflow-hidden`, because `overflow-hidden` only clips
+  // the div's own overflow — it doesn't prevent the body from scrolling.
+  useEffect(() => {
+    const original = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, []); // Mount/unmount only
 
   // Get translations based on current native language
   const displayLanguage = state.nativeLanguage || 'English';
@@ -307,7 +342,11 @@ export function OnboardingContainer({
   };
 
   return (
-    <div className="h-[100dvh] bg-gradient-to-br from-[#f0fdf4] via-white to-[#e0f2fe] flex flex-col overflow-hidden">
+    // fixed inset-0: pins the container to the VIEWPORT, not the document.
+    // This is the only reliable way to prevent document-level scroll in all
+    // browsers and in headless Puppeteer. Unlike h-[100dvh], `fixed inset-0`
+    // creates its own stacking context so the body NEVER has scroll overflow.
+    <div className="fixed inset-0 bg-gradient-to-br from-[#f0fdf4] via-white to-[#e0f2fe] flex flex-col overflow-hidden">
       {/* Header - fixed height */}
       <header className="flex-shrink-0 flex items-center justify-between p-3 md:p-4 border-b border-[#e5e5e5]/50">
         {/* Logo */}
@@ -329,9 +368,13 @@ export function OnboardingContainer({
       </header>
 
       {/* Main Content - scrollable area that respects header/footer heights */}
-      <main className="flex-1 overflow-y-auto min-h-0">
-        {/* Inner wrapper: fills scroll area for centering short content, grows for tall content */}
-        <div className="min-h-full flex flex-col items-center justify-center px-4 py-4">
+      <main ref={mainScrollRef} className="flex-1 overflow-y-auto min-h-0">
+        {/* Inner wrapper: starts content at the top so tall steps (e.g. language grid,
+            interests list) never overflow ABOVE the scroll origin.
+            justify-center on an overflow container clips the top — using justify-start
+            with generous vertical padding achieves a centered look for short steps
+            while tall steps simply fill from the top with no above-fold overflow. */}
+        <div className="min-h-full flex flex-col items-center justify-start px-4 py-8">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={state.currentStep}

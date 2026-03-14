@@ -28,6 +28,8 @@ export interface WordArrangeProps {
   onReport?: () => void;
   /** Whether a report is currently being processed */
   isReporting?: boolean;
+  /** Open the full AI help overlay (wired from LessonView via ActivityRouter) */
+  onOpenHelp?: () => void;
 }
 
 interface WordArrangeState {
@@ -95,6 +97,7 @@ export const WordArrange: React.FC<WordArrangeProps> = ({
   onSkip,
   onReport,
   isReporting,
+  onOpenHelp,
 }) => {
   // Validate required fields
   if (!data.targetSentence || !data.scrambledWords) {
@@ -194,12 +197,10 @@ export const WordArrange: React.FC<WordArrangeProps> = ({
   }, [data.scrambledWords]);
 
   const handleHelp = useCallback(() => {
-    setState(prev => ({
-      ...prev,
-      showHelp: true,
-      usedHelp: true,
-    }));
-  }, []);
+    // Open AI overlay if available, else show local hint
+    setState(prev => ({ ...prev, usedHelp: true, showHelp: !onOpenHelp }));
+    if (onOpenHelp) onOpenHelp();
+  }, [onOpenHelp]);
 
   const handleCloseHelp = useCallback(() => {
     setState(prev => ({ ...prev, showHelp: false }));
