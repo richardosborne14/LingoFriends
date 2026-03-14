@@ -167,6 +167,16 @@ export interface LessonPlan {
 	totalSunDrops: number;
 	/** Number of chunks in this lesson */
 	chunkCount: number;
+	/**
+	 * Pre-generated TTS audio map: text → base64 MP3.
+	 * Populated server-side by preGenerateAudioCache() during lesson generation.
+	 * Persisted automatically in lessonHistory.lessonData (JSONB) when the lesson
+	 * completes — meaning replay always has cached audio, no TTS API re-calls.
+	 *
+	 * Keyed by the TEXT ITSELF (targetPhrase or explanation), not by step ID,
+	 * so the client can look up any string directly: audioCache[chunk.explanation]
+	 */
+	audioCache?: Record<string, string>;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

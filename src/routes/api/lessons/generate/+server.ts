@@ -30,6 +30,10 @@ import { assembleLessonPlan } from '$lib/server/lessons/lessonAssembler';
 import { validateLessonPlan } from '$lib/server/lessons/lessonValidator';
 import { isValidCode } from '$lib/types/language';
 import type { ChunkGenerationParams } from '$lib/types/lesson';
+// Pre-generates TTS audio server-side; embedded in lessonPlan.audioCache
+import { preGenerateAudioCache } from '$lib/server/tts/ttsCache';
+// SvelteKit private env — never exposed to the client
+import { GOOGLE_TTS_API_KEY } from '$env/static/private';
 
 /**
  * Validates and normalises the request body.
@@ -125,6 +129,23 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	if (validation.warnings.length > 0) {
 		console.warn('[/api/lessons/generate] Plan warnings:', validation.warnings);
+	}
+
+	// Pre-generate TTS audio for all INFO step phrases and explanations.
+	// Results are embedded in lessonPlan.audioCache (text → base64 MP3).
+	// Stored in lessonHistory.lessonData when the lesson completes — so
+	// replays always have cached audio with zero additional TTS API calls.
+	// Non-fatal: if this fails, the lesson still works (client fetches on demand).
+	const audioCache = await preGenerateAudioCache(
+		lessonPlan.steps,
+		params.targetLanguage,
+		GOOGLE_TTS_API_KEY
+	);
+
+	// Attach audioCache to the plan only if we generated something
+	// (avoids bloating the response with an empty object)
+	if (Object.keys(audioCache).length > 0) {
+		lessonPlan.audioCache = audioCache;
 	}
 
 	return json({ lesson: lessonPlan });

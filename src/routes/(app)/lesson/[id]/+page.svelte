@@ -23,10 +23,11 @@
 		currentStep, progress, sunDropsEarned,
 		initLesson, advanceStep, startActivities, resetLesson,
 	} from '$lib/stores/lesson';
-	import { prefetchAudioMap } from '$lib/services/audioService';
 	import { stopAudio } from '$lib/services/audioService';
 
-	import WhatYoullLearn from '$lib/components/lesson/WhatYoullLearn.svelte';
+	// LessonLoading handles both the 'loading' and 'preview' phases in one component.
+	// The plan.audioCache pre-generated server-side is now merged into audioMap in initLesson.
+	import LessonLoading from '$lib/components/lesson/LessonLoading.svelte';
 	import CompletionScreen from '$lib/components/lesson/CompletionScreen.svelte';
 	import ActivityRouter from '$lib/components/activities/ActivityRouter.svelte';
 
@@ -84,15 +85,11 @@
 			const body = (await response.json()) as { lesson: LessonPlan } | LessonPlan;
 			const plan: LessonPlan = 'lesson' in body ? body.lesson : body;
 
-			// Pre-fetch TTS audio for all target phrases (best effort — Rule 14)
-			const allPhrases = plan.steps
-				.map((s) => s.activity.type === 'info' ? s.activity.targetPhrase : null)
-				.filter(Boolean) as string[];
-
-			const audio = await prefetchAudioMap(allPhrases, data.profile.targetLanguage);
-
+			// Audio is now pre-generated server-side and embedded in plan.audioCache.
+			// initLesson() merges plan.audioCache into the audioMap automatically.
+			// No client-side prefetch needed — instant audio on first INFO step.
 			lessonStartTime = Date.now();
-			initLesson(plan, audio);
+			initLesson(plan);
 
 		} catch (err) {
 			console.error('[LessonPage] Generation error:', err);
@@ -155,13 +152,15 @@
 	<!-- ── Main content area ── -->
 	<main class="flex-1 flex flex-col items-center px-4 py-6 max-w-md mx-auto w-full">
 
-		<!-- LOADING -->
-		{#if $lessonPhase === 'loading'}
-			<div class="flex-1 flex flex-col items-center justify-center gap-4 text-center">
-				<div class="w-12 h-12 rounded-full border-4 border-coral-200 border-t-coral-400 animate-spin"></div>
-				<p class="text-bark-500 font-semibold">Building your lesson…</p>
-				<p class="text-sm text-bark-300">This usually takes a few seconds ✨</p>
-			</div>
+		<!-- LOADING + PREVIEW — both handled by LessonLoading in one component.
+		     LessonLoading shows stage messages while loading, then the lesson
+		     summary with an active "Let's Go!" when the plan is ready. -->
+		{#if $lessonPhase === 'loading' || $lessonPhase === 'preview'}
+			<LessonLoading
+				plan={$lessonPlan}
+				isReady={$lessonPhase === 'preview'}
+				onStart={handleStart}
+			/>
 
 		<!-- ERROR -->
 		{:else if $lessonPhase === 'error'}
@@ -181,10 +180,6 @@
 					Back to Garden
 				</button>
 			</div>
-
-		<!-- PREVIEW (WhatYoullLearn) -->
-		{:else if $lessonPhase === 'preview' && $lessonPlan}
-			<WhatYoullLearn plan={$lessonPlan} onStart={handleStart} />
 
 		<!-- ACTIVITY -->
 		{:else if $lessonPhase === 'activity' && $currentStep}

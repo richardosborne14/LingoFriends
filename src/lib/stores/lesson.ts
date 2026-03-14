@@ -127,9 +127,14 @@ export const sunDropsEarned = derived(
 export function initLesson(plan: LessonPlan, audio: Record<string, string> = {}): void {
 	lessonPlan.set(plan);
 	currentStepIndex.set(0);
-	audioMap.set(audio);
+	// NOTE: audioMap is set AFTER this block — see audioCache merge below
 	helpUsedThisStep.set(false);
 	lessonError.set(null);
+
+	// Seed the audio map with any server-pre-generated audio from the plan.
+	// This means INFO step phrases + explanations play instantly (no TTS fetch delay).
+	// The audio parameter can extend/override the plan cache (e.g., on-demand fetches).
+	audioMap.set({ ...(plan.audioCache ?? {}), ...audio });
 
 	// Initialise results with 0 earned, max from the plan
 	lessonResults.set({

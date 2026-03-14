@@ -11,7 +11,7 @@
 	import { ActivityType } from '$lib/types/lesson';
 	import { recordHelpUsed } from '$lib/stores/lesson';
 
-	import InfoActivity from './InfoActivity.svelte';
+	import ChunkIntroduction from '$lib/components/lesson/ChunkIntroduction.svelte';
 	import MultipleChoiceActivity from './MultipleChoiceActivity.svelte';
 	import FillBlankActivity from './FillBlankActivity.svelte';
 	import TranslateActivity from './TranslateActivity.svelte';
@@ -55,7 +55,9 @@
 
 	<!-- Activity body — switched by type -->
 	{#if step.activity.type === ActivityType.INFO}
-		<InfoActivity
+		<!-- ChunkIntroduction replaces InfoActivity for TASK-V2-02:
+		     auto-plays explanation TTS, has separate phrase audio button -->
+		<ChunkIntroduction
 			config={step.activity}
 			helpText={step.helpText}
 			{targetLanguage}

@@ -102,13 +102,22 @@
 		<p class="text-bark-500 mb-8">
 			{$_('onboarding.reveal_subtitle')}
 		</p>
+		<!-- TASK-V2-02: After onboarding, send learner straight to their first lesson.
+		     Navigating to /lesson/new starts generation immediately — they see the
+		     LessonLoading screen with progress stages rather than an empty garden. -->
+		<a
+			href="/lesson/new"
+			class="inline-flex items-center justify-center w-full h-14 rounded-btn
+				bg-coral-400 text-white font-bold text-lg shadow-btn-coral
+				hover:bg-coral-500 transition-all active:translate-y-[2px] active:shadow-none"
+		>
+			Start your first lesson! 🚀
+		</a>
 		<a
 			href="/garden"
-			class="inline-flex items-center justify-center w-full h-14 rounded-btn
-				bg-forest-400 text-white font-bold text-lg shadow-btn-forest
-				hover:bg-forest-500 transition-all active:translate-y-[2px] active:shadow-none"
+			class="text-sm text-bark-400 hover:text-bark-600 underline mt-1"
 		>
-			{$_('onboarding.reveal_cta')}
+			or explore your garden first →
 		</a>
 	</div>
 
