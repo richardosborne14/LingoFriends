@@ -1,12 +1,200 @@
+<!--
+  Lesson Page — /lesson/[id]
+
+  Phase orchestrator. Manages the full lifecycle:
+    loading → preview (WhatYoullLearn) → activity (ActivityRouter) → complete (CompletionScreen)
+
+  On mount:
+    1. POST /api/lessons/generate with user profile params
+    2. initLesson() in the store
+    3. Prefetch TTS audio for all phrases in parallel
+    4. Transition to 'preview' phase
+
+  The lesson ID comes from the URL param. For new lessons, 'new' is passed
+  and the server creates a DB record returning a real ID.
+-->
 <script lang="ts">
-	/**
-	 * Lesson page — activity-by-activity lesson flow.
-	 * [id] = lesson plan ID from database.
-	 * Implemented in Phase 3 (Tasks 3.1–3.6).
-	 */
+	import { onMount, onDestroy } from 'svelte';
+	import { page } from '$app/stores';
+	import { goto } from '$app/navigation';
+
+	import {
+		lessonPlan, lessonPhase, lessonResults, lessonError,
+		currentStep, progress, sunDropsEarned,
+		initLesson, advanceStep, startActivities, resetLesson,
+	} from '$lib/stores/lesson';
+	import { prefetchAudioMap } from '$lib/services/audioService';
+	import { stopAudio } from '$lib/services/audioService';
+
+	import WhatYoullLearn from '$lib/components/lesson/WhatYoullLearn.svelte';
+	import CompletionScreen from '$lib/components/lesson/CompletionScreen.svelte';
+	import ActivityRouter from '$lib/components/activities/ActivityRouter.svelte';
+
+	import type { PageData } from './$types';
+	import type { LessonPlan } from '$lib/types/lesson';
+
+	let { data }: { data: PageData } = $props();
+
+	// params.id is always defined for this route — non-null assertion is safe
+	const lessonId: string = $page.params.id ?? 'new';
+
+	// Track start time here (not in store) to compute timeSpentMs
+	let lessonStartTime = 0;
+
+	// Key for re-mounting ActivityRouter when step advances (resets local state)
+	let stepKey = $state(0);
+
+	onMount(async () => {
+		await generateLesson();
+	});
+
+	onDestroy(() => {
+		stopAudio();
+		resetLesson();
+	});
+
+	async function generateLesson() {
+		lessonPhase.set('loading');
+
+		try {
+			const response = await fetch('/api/lessons/generate', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					targetLanguage: data.profile.targetLanguage,
+					nativeLanguage: data.profile.nativeLanguage,
+					lessonId: lessonId !== 'new' ? lessonId : undefined,
+					personalContext: data.profile.personalContext ?? null,
+				}),
+			});
+
+			if (!response.ok) {
+				throw new Error(`Generate failed: ${response.status}`);
+			}
+
+			const plan = (await response.json()) as LessonPlan;
+
+			// Pre-fetch TTS audio for all target phrases (best effort — Rule 14)
+			const allPhrases = plan.steps
+				.map((s) => s.activity.type === 'info' ? s.activity.targetPhrase : null)
+				.filter(Boolean) as string[];
+
+			const audio = await prefetchAudioMap(allPhrases, data.profile.targetLanguage);
+
+			lessonStartTime = Date.now();
+			initLesson(plan, audio);
+
+		} catch (err) {
+			console.error('[LessonPage] Generation error:', err);
+			lessonError.set("Oops! We couldn't load your lesson. Let's try again!");
+			lessonPhase.set('error');
+		}
+	}
+
+	/** Called by ActivityRouter when an activity finishes */
+	function handleActivityComplete(_correct: boolean, _sunDrops: number) {
+		// Record time spent before potentially transitioning to complete
+		lessonResults.update((r) => ({ ...r, timeSpentMs: Date.now() - lessonStartTime }));
+
+		// Bump the key so ActivityRouter re-mounts fresh for the next step
+		stepKey += 1;
+		advanceStep();
+	}
+
+	function handleStart() {
+		lessonStartTime = Date.now();
+		startActivities();
+	}
 </script>
 
-<div class="text-center p-8">
-	<h1 class="font-display text-2xl font-bold text-bark-800 mb-2">📚 Lesson</h1>
-	<p class="text-bark-500">Lesson UI coming in Phase 3</p>
+<svelte:head>
+	<title>Lesson · LingoFriends</title>
+</svelte:head>
+
+<!-- Full-page layout: header + scrollable content + safe bottom area -->
+<div class="min-h-screen bg-bark-50 flex flex-col">
+
+	<!-- ── Sticky lesson header ── -->
+	<header class="sticky top-0 z-20 bg-white border-b border-bark-150 px-4 py-3 flex items-center gap-3">
+		<!-- Exit button -->
+		<button
+			onclick={() => goto('/garden')}
+			aria-label="Exit lesson"
+			class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-bark-100 text-bark-500 transition-colors flex-shrink-0"
+		>
+			<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+			</svg>
+		</button>
+
+		<!-- Progress bar -->
+		<div class="flex-1 h-3 bg-bark-100 rounded-full overflow-hidden">
+			<div
+				class="h-full bg-coral-400 rounded-full transition-all duration-500 ease-out"
+				style="width: {$progress * 100}%"
+			></div>
+		</div>
+
+		<!-- SunDrops counter -->
+		<div class="flex items-center gap-1 flex-shrink-0 font-bold text-coral-400 text-base min-w-[44px] justify-end">
+			<span>☀️</span>
+			<span>{$sunDropsEarned}</span>
+		</div>
+	</header>
+
+	<!-- ── Main content area ── -->
+	<main class="flex-1 flex flex-col items-center px-4 py-6 max-w-md mx-auto w-full">
+
+		<!-- LOADING -->
+		{#if $lessonPhase === 'loading'}
+			<div class="flex-1 flex flex-col items-center justify-center gap-4 text-center">
+				<div class="w-12 h-12 rounded-full border-4 border-coral-200 border-t-coral-400 animate-spin"></div>
+				<p class="text-bark-500 font-semibold">Building your lesson…</p>
+				<p class="text-sm text-bark-300">This usually takes a few seconds ✨</p>
+			</div>
+
+		<!-- ERROR -->
+		{:else if $lessonPhase === 'error'}
+			<div class="flex-1 flex flex-col items-center justify-center gap-6 text-center">
+				<span class="text-5xl">😅</span>
+				<div>
+					<p class="text-lg font-bold text-bark-700">{$lessonError ?? "Something went wrong"}</p>
+					<p class="text-bark-400 text-sm mt-1">Don't worry, let's try again!</p>
+				</div>
+				<button
+					onclick={generateLesson}
+					class="px-8 py-3 rounded-btn bg-coral-400 text-white font-bold shadow-btn-coral"
+				>
+					Try Again
+				</button>
+				<button onclick={() => goto('/garden')} class="text-bark-400 underline text-sm">
+					Back to Garden
+				</button>
+			</div>
+
+		<!-- PREVIEW (WhatYoullLearn) -->
+		{:else if $lessonPhase === 'preview' && $lessonPlan}
+			<WhatYoullLearn plan={$lessonPlan} onStart={handleStart} />
+
+		<!-- ACTIVITY -->
+		{:else if $lessonPhase === 'activity' && $currentStep}
+			<!-- key= forces full re-mount on step change, resetting all local state -->
+			{#key stepKey}
+				<ActivityRouter
+					step={$currentStep}
+					targetLanguage={data.profile.targetLanguage}
+					onComplete={handleActivityComplete}
+				/>
+			{/key}
+
+		<!-- COMPLETE -->
+		{:else if $lessonPhase === 'complete' && $lessonPlan}
+			<CompletionScreen
+				results={$lessonResults}
+				plan={$lessonPlan}
+				{lessonId}
+			/>
+		{/if}
+
+	</main>
 </div>
