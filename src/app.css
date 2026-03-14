@@ -1,0 +1,106 @@
+/**
+ * LingoFriends V2 — Global Styles
+ *
+ * Tailwind base import + Nunito font.
+ * Self-hosted font (static/fonts/) for GDPR compliance — no Google Fonts CDN requests.
+ * See: docs/new-docs/task-0.1-sveltekit-init.md — "Font hosting strategy"
+ */
+
+/* --- Nunito — self-hosted woff2 files in static/fonts/ --- */
+/* 
+  TODO (Task 0.1 follow-up): Download Nunito woff2 files and place in static/fonts/.
+  Until then, using Google Fonts CDN as a development fallback.
+  Switch to @font-face below before production.
+  NOTE: This @import MUST come before @import 'tailwindcss' — CSS spec requirement.
+*/
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+
+@import 'tailwindcss';
+
+/* Tell Tailwind v4 to pick up the design system token config */
+@config '../tailwind.config.js';
+
+/*
+  Self-hosted alternative (activate when font files are in place):
+
+  @font-face {
+    font-family: 'Nunito';
+    src: url('/fonts/Nunito-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Nunito';
+    src: url('/fonts/Nunito-SemiBold.woff2') format('woff2');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Nunito';
+    src: url('/fonts/Nunito-Bold.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Nunito';
+    src: url('/fonts/Nunito-ExtraBold.woff2') format('woff2');
+    font-weight: 800;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Nunito';
+    src: url('/fonts/Nunito-Black.woff2') format('woff2');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+  }
+*/
+
+/* --- Base resets --- */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* Smooth scrolling everywhere */
+  scroll-behavior: smooth;
+  /* Prevent text size adjustment on orientation change */
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  /* Default body text — bark-500 on bark-50 background */
+  background-color: #FDFCFA;
+  color: #7A7168;
+  font-family: 'Nunito', 'Segoe UI', sans-serif;
+  /* Prevent horizontal scroll from animations */
+  overflow-x: hidden;
+}
+
+/* --- Accessibility: reduced motion --- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* --- Touch: minimum 44px targets for kids --- */
+button, a, [role="button"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* --- Focus ring: coral for accessibility --- */
+:focus-visible {
+  outline: 3px solid #FF8A6A;
+  outline-offset: 2px;
+}

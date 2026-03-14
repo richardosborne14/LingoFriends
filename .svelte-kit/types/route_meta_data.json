@@ -1,0 +1,12 @@
+{
+	"/(auth)": [],
+	"/(app)": [],
+	"/": [],
+	"/(app)/friends": [],
+	"/(app)/garden": [],
+	"/(app)/lesson/[id]": [],
+	"/(auth)/login": [],
+	"/(auth)/onboarding": [],
+	"/(app)/profile": [],
+	"/(auth)/register": []
+}
