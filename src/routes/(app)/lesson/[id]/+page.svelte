@@ -29,17 +29,20 @@
 		lessonPlan, lessonPhase, lessonResults, lessonError,
 		currentStep, progress, sunDropsEarned,
 		hearts, consecutiveCorrect, pendingReward, pendingPenalty, showBreather,
+		helpPanelOpen,
 		initLesson, advanceStep, startActivities, resetLesson,
 		recordCorrect, recordWrong, deductSunDrop,
 		incrementStreak, resetStreak, loseHeart, restoreHearts,
 		setPendingReward, clearPendingReward, setPendingPenalty, clearPendingPenalty,
 	} from '$lib/stores/lesson';
+	import type { HelpContext } from '$lib/services/helpAssistant';
 	import { stopAudio } from '$lib/services/audioService';
 	import { playSound, preloadSounds } from '$lib/services/soundService';
 	import { buildRewardEvent, buildPenaltyEvent, SUNDROP_PENALTY_PER_WRONG } from '$lib/services/rewardService';
 
 	import LessonLoading from '$lib/components/lesson/LessonLoading.svelte';
 	import LessonHUD from '$lib/components/lesson/LessonHUD.svelte';
+	import HelpPanel from '$lib/components/lesson/HelpPanel.svelte';
 	import CompletionScreen from '$lib/components/lesson/CompletionScreen.svelte';
 	import ActivityRouter from '$lib/components/activities/ActivityRouter.svelte';
 	import RewardModal from '$lib/components/modals/RewardModal.svelte';
@@ -210,6 +213,24 @@
 		lessonStartTime = Date.now();
 		startActivities();
 	}
+
+	/**
+	 * Build HelpContext from the current step + user profile.
+	 * Memoised as a derived value — only changes when step changes.
+	 * Returns null if no current step (help button hidden in that case).
+	 */
+	function buildHelpContext(): HelpContext | null {
+		const step = $currentStep;
+		if (!step) return null;
+		return {
+			activity: step.activity,
+			nativeLanguage: data.profile.nativeLanguage,
+			targetLanguage: data.profile.targetLanguage,
+			// ageGroup from profile — cast to known union since profile validates it
+			ageGroup: (data.profile.ageGroup as '7-10' | '11-14' | '15-18') ?? '11-14',
+			level: data.profile.level ?? 'total_beginner',
+		};
+	}
 </script>
 
 <svelte:head>
@@ -327,4 +348,32 @@
 <!-- Breather modal — shown when hearts hit 0, requires tap to continue -->
 {#if $showBreather}
 	<BreatherModal onContinue={handleBreatherContinue} />
+{/if}
+
+<!-- ── Floating help button — visible only during activity phase ── -->
+<!-- Fixed bottom-right, stays above all other content (z-25) -->
+{#if $lessonPhase === 'activity' && $currentStep}
+	<button
+		onclick={() => helpPanelOpen.set(true)}
+		aria-label="Open help"
+		class="fixed bottom-6 right-4 z-25 w-12 h-12 rounded-full bg-white border-2
+			   border-bark-200 shadow-lg text-xl flex items-center justify-center
+			   hover:bg-bark-50 hover:border-bark-300 transition-colors max-w-md"
+	>
+		❓
+	</button>
+{/if}
+
+<!-- ── HelpPanel slide-up overlay ── -->
+<!-- Only constructed when there's a current step (we need the context) -->
+{#if $lessonPhase === 'activity' && $currentStep}
+	{@const helpCtx = buildHelpContext()}
+	{#if helpCtx}
+		<HelpPanel
+			open={$helpPanelOpen}
+			context={helpCtx}
+			{lessonId}
+			onClose={() => helpPanelOpen.set(false)}
+		/>
+	{/if}
 {/if}

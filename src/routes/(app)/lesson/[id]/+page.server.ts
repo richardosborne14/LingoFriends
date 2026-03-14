@@ -53,6 +53,9 @@ export const load: PageServerLoad = async ({ locals }) => {
 			interests: profile.interests ?? [],
 			// Personal context for AI chunk selection — null is valid (Rule 9)
 			personalContext: personalContext || null,
+			// Self-reported proficiency level — used by help assistant (TASK-V2-05)
+			// and lesson generator to calibrate chunk difficulty
+			level: profile.level ?? 'total_beginner',
 		},
 	};
 };

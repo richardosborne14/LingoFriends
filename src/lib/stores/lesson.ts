@@ -65,6 +65,12 @@ export const audioMap = writable<Record<string, string>>({});
  */
 export const helpUsedThisStep = writable<boolean>(false);
 
+/**
+ * Whether the HelpPanel slide-up is currently open (TASK-V2-05).
+ * Set true when ❓ is tapped. Set false when HelpPanel.onClose() fires.
+ */
+export const helpPanelOpen = writable<boolean>(false);
+
 /** Lesson phase — controls which screen is shown on the lesson page */
 export type LessonPhase = 'loading' | 'preview' | 'activity' | 'complete' | 'error';
 export const lessonPhase = writable<LessonPhase>('loading');

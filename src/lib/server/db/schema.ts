@@ -347,6 +347,72 @@ export const gifts = pgTable('gifts', {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// HELP & ASSESSMENT TABLES (TASK-V2-05)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Bug Reports — activities flagged as wrong/broken by learners.
+ * Reviewed by admins and optionally trigger question regeneration.
+ * status: 'new' → 'reviewed' → 'fixed' or 'dismissed'
+ */
+export const bugReports = pgTable('bug_reports', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	userId: uuid('user_id')
+		.references(() => users.id, { onDelete: 'cascade' })
+		.notNull(),
+
+	// The lesson this report was filed from
+	lessonId: varchar('lesson_id', { length: 255 }).notNull(),
+
+	// Which activity type was broken (e.g. 'multiple_choice', 'translate')
+	activityType: varchar('activity_type', { length: 50 }).notNull(),
+
+	// Full activity config snapshot at time of report (for admin review)
+	activityData: jsonb('activity_data'),
+
+	// Category: 'wrong_translation' | 'nonsensical' | 'audio_problem' | 'other'
+	reportType: varchar('report_type', { length: 30 }).notNull(),
+
+	// Optional free-text from the learner ("The translation says X but it should be Y")
+	userDescription: text('user_description'),
+
+	// Workflow status — starts 'new', admins update as they review
+	status: varchar('status', { length: 20 }).default('new'),
+
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+/**
+ * Lesson Performance — per-lesson metrics used by the level assessment engine.
+ * Separate from lesson_history (which stores full lesson content) — this stores
+ * only the numeric performance signals needed by assessLevel().
+ *
+ * The assessment engine looks at the last 3 rows at the same level to decide
+ * whether to offer the learner a level change.
+ */
+export const lessonPerformance = pgTable('lesson_performance', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	userId: uuid('user_id')
+		.references(() => users.id, { onDelete: 'cascade' })
+		.notNull(),
+
+	// The lesson plan ID (from LessonPlan.id, generated at creation time)
+	lessonId: varchar('lesson_id', { length: 255 }).notNull(),
+
+	// The profile.level value AT THE TIME of the lesson
+	// (preserves historical accuracy — level may change later)
+	levelAtTime: varchar('level_at_time', { length: 30 }).notNull(),
+
+	// Core performance metrics (see levelAssessment.ts for how these are used)
+	accuracy: real('accuracy').notNull(),         // 0.0 – 1.0 fraction correct
+	hintsUsed: integer('hints_used').default(0),  // Times help button was tapped
+	heartsLost: integer('hearts_lost').default(0),// Hearts lost during lesson
+	streakMax: integer('streak_max').default(0),  // Highest consecutive-correct streak
+
+	completedAt: timestamp('completed_at').defaultNow().notNull(),
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // TYPE EXPORTS — for use in server-side code
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -363,3 +429,7 @@ export type LessonHistoryEntry = typeof lessonHistory.$inferSelect;
 export type DailyProgress = typeof dailyProgress.$inferSelect;
 export type Friendship = typeof friendships.$inferSelect;
 export type Gift = typeof gifts.$inferSelect;
+export type BugReport = typeof bugReports.$inferSelect;
+export type NewBugReport = typeof bugReports.$inferInsert;
+export type LessonPerformanceRecord = typeof lessonPerformance.$inferSelect;
+export type NewLessonPerformanceRecord = typeof lessonPerformance.$inferInsert;
