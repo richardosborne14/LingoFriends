@@ -1,406 +1,206 @@
 <!--
-  Task 1.4 — Onboarding Flow (7 screens)
+  TASK-V2-01 — Onboarding Flow (Overhauled)
 
-  Steps 1-6 are client-side state.
-  Form submits on step 6 complete → server returns { success: true } → step 7 shows.
-  Back button available from steps 2-6.
+  7-screen onboarding flow. Steps 1-7 are client-side Svelte state.
+  The form submits once at the very end (avatar step) → server saves everything.
+
+  Step order:
+    1. Welcome
+    2. Native Language    ← switches app locale immediately on selection
+    3. Target Language    ← filtered by native language choice
+    4. Age Group
+    5. Level              ← NEW: proficiency self-report (plant-themed cards)
+    6. Interests          ← expanded: 30+ options in 4 categories
+    7. Avatar             ← NEW: includes gender selection + form submit
+    → Garden Reveal       ← shown after server returns { success: true }
+
+  Progress indicator shows steps 2–7 as positions 1–6 out of 6
+  (step 1 = welcome has no progress dots).
 -->
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { _ } from 'svelte-i18n';
 	import type { PageData, ActionData } from './$types';
+
+	import ProgressIndicator from '$lib/components/onboarding/ProgressIndicator.svelte';
+	import StepNativeLanguage from '$lib/components/onboarding/StepNativeLanguage.svelte';
+	import StepTargetLanguage from '$lib/components/onboarding/StepTargetLanguage.svelte';
+	import StepAgeGroup, { type AgeGroupCode } from '$lib/components/onboarding/StepAgeGroup.svelte';
+	import StepLevel, { type LevelCode } from '$lib/components/onboarding/StepLevel.svelte';
+	import StepInterests from '$lib/components/onboarding/StepInterests.svelte';
+	import StepAvatar, { type GenderCode } from '$lib/components/onboarding/StepAvatar.svelte';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
-	// ── Step state ──────────────────────────────────────────────
+	// ── Step state ──────────────────────────────────────────────────────────
+	// Steps 1–7 are interactive. Step 1 = welcome (no progress bar).
+	// The ProgressIndicator shows steps 2–7 as positions 1–6.
 	let step = $state(1);
-	let loading = $state(false);
+	const TOTAL_STEPS = 6; // visible dots in ProgressIndicator
 
-	// ── Collected values ────────────────────────────────────────
+	// ── Collected values ────────────────────────────────────────────────────
 	let nativeLanguage = $state('');
 	let targetLanguage = $state('');
-	let ageGroup = $state('');
+	let ageGroup = $state<AgeGroupCode | ''>('');
+	let level = $state<LevelCode | ''>('');
 	let interests = $state<string[]>([]);
+
+	// Avatar customisation
+	let gender = $state<GenderCode>('neutral');
 	let skinTone = $state('#F5CBA7');
 	let hairColor = $state('#4A3728');
 	let shirtColor = $state('#FF8A6A');
 	let hat = $state<'none' | 'cap' | 'beanie' | 'headband'>('none');
 
-	// Show garden reveal when server returns success
+	// ── Form loading state ──────────────────────────────────────────────────
+	let loading = $state(false);
+
+	// Show Garden Reveal once server returns { success: true }
 	const showReveal = $derived(!!(form && 'success' in form && form.success));
 
-	// ── Language config ─────────────────────────────────────────
-	const nativeOptions = [
-		{ code: 'en', name: 'English', flag: '🇬🇧' },
-		{ code: 'fr', name: 'Français', flag: '🇫🇷' },
-	];
-
-	// What can be learned depends on what language you speak
-	const targetOptions = $derived(
-		nativeLanguage === 'fr'
-			? [
-					{ code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-					{ code: 'en', name: 'English', flag: '🇬🇧' },
-				]
-			: [{ code: 'de', name: 'Deutsch', flag: '🇩🇪' }]
+	// Surface server error message (empty string = no error)
+	const serverError = $derived(
+		form && 'error' in form && typeof form.error === 'string' ? form.error : ''
 	);
 
-	// If native language changes, reset target selection
-	$effect(() => {
-		if (nativeLanguage) targetLanguage = '';
-	});
+	// ── Navigation ──────────────────────────────────────────────────────────
 
-	// ── Interests ───────────────────────────────────────────────
-	const INTERESTS = [
-		{ id: 'dancing', label: 'Dancing', icon: '💃' },
-		{ id: 'reading', label: 'Reading', icon: '📚' },
-		{ id: 'drawing', label: 'Drawing', icon: '🎨' },
-		{ id: 'gaming', label: 'Gaming', icon: '🎮' },
-		{ id: 'cooking', label: 'Cooking', icon: '🍳' },
-		{ id: 'football', label: 'Football', icon: '⚽' },
-		{ id: 'swimming', label: 'Swimming', icon: '🏊' },
-		{ id: 'cycling', label: 'Cycling', icon: '🚴' },
-		{ id: 'kpop', label: 'K-pop', icon: '🎤' },
-		{ id: 'music', label: 'Music', icon: '🎵' },
-		{ id: 'animals', label: 'Animals', icon: '🐾' },
-		{ id: 'science', label: 'Science', icon: '🔬' },
-		{ id: 'travel', label: 'Travel', icon: '✈️' },
-		{ id: 'movies', label: 'Movies', icon: '🎬' },
-		{ id: 'nature', label: 'Nature', icon: '🌿' },
-		{ id: 'dinosaurs', label: 'Dinosaurs', icon: '🦕' },
-		{ id: 'fashion', label: 'Fashion', icon: '👗' },
-		{ id: 'history', label: 'History', icon: '🏛️' },
-	];
-
-	function toggleInterest(id: string) {
-		interests = interests.includes(id) ? interests.filter((i) => i !== id) : [...interests, id];
+	/** Advance to the next step (1→2, 6→7, etc.) */
+	function next() {
+		step = Math.min(step + 1, 7);
 	}
 
-	// ── Avatar options ───────────────────────────────────────────
-	const SKIN_TONES = ['#FDDBB4', '#F5CBA7', '#E8A87C', '#C68642', '#8D5524', '#4B2E1A'];
-	const HAIR_COLORS = ['#4A3728', '#8B4513', '#D4A017', '#FF6B6B', '#6B48A0', '#2C2C2C'];
-	const SHIRT_COLORS = ['#FF8A6A', '#5C9E6E', '#4A90D9', '#9B59B6', '#E74C3C', '#F39C12', '#1ABC9C', '#34495E'];
-	const HATS = [
-		{ id: 'none', label: 'None', icon: '🚫' },
-		{ id: 'cap', label: 'Cap', icon: '🧢' },
-		{ id: 'beanie', label: 'Beanie', icon: '🎿' },
-		{ id: 'headband', label: 'Headband', icon: '💛' },
-	] as const;
-
-	// ── Navigation ───────────────────────────────────────────────
-	const TOTAL_STEPS = 6; // Steps before the final submit
-
-	function canAdvance(): boolean {
-		if (step === 2) return !!nativeLanguage;
-		if (step === 3) return !!targetLanguage;
-		if (step === 4) return !!ageGroup;
-		return true; // steps 1, 5, 6 always advanceable
+	/** Go back to the previous step */
+	function back() {
+		step = Math.max(step - 1, 1);
 	}
+
+	/**
+	 * Map internal step (1–7) to ProgressIndicator position (1–6).
+	 * Step 1 = welcome, no indicator. Steps 2–7 = positions 1–6.
+	 */
+	const progressCurrent = $derived(step - 1); // 0 when on step 1, 1 on step 2, etc.
 </script>
 
 <svelte:head>
-	<title>Set Up Your Garden — LingoFriends</title>
+	<title>
+		{$_('onboarding.welcome_title', { values: { name: data.displayName } })} — LingoFriends
+	</title>
 </svelte:head>
 
 {#if showReveal}
-	<!-- ── SCREEN 7: Garden Reveal ── -->
+	<!-- ── Garden Reveal ──────────────────────────────────────────────────── -->
+	<!--
+	  Celebratory final screen. Shown once after the server confirms
+	  the profile has been saved and the starter tree has been planted.
+	-->
 	<div class="bg-white rounded-card shadow-card p-8 text-center">
 		<div class="text-6xl mb-4 animate-bounce">🌱</div>
-		<h2 class="text-2xl font-extrabold text-bark-800 mb-2">Your first tree is planted!</h2>
-		<p class="text-bark-500 mb-8">Let's help it grow by learning something new.</p>
+		<h2 class="text-2xl font-extrabold text-bark-800 mb-2">
+			{$_('onboarding.reveal_title')}
+		</h2>
+		<p class="text-bark-500 mb-8">
+			{$_('onboarding.reveal_subtitle')}
+		</p>
 		<a
 			href="/garden"
 			class="inline-flex items-center justify-center w-full h-14 rounded-btn
 				bg-forest-400 text-white font-bold text-lg shadow-btn-forest
 				hover:bg-forest-500 transition-all active:translate-y-[2px] active:shadow-none"
 		>
-			Start my first lesson 🌸
+			{$_('onboarding.reveal_cta')}
 		</a>
 	</div>
+
 {:else}
-	<!-- Progress dots -->
-	<div class="flex justify-center gap-2 mb-6">
-		{#each Array(TOTAL_STEPS) as _, i}
-			<div
-				class="h-2 rounded-full transition-all duration-300
-					{i + 1 === step ? 'w-6 bg-coral-400' : i + 1 < step ? 'w-2 bg-coral-300' : 'w-2 bg-bark-200'}"
-			></div>
-		{/each}
-	</div>
+	<!-- ── Interactive onboarding steps 1–7 ──────────────────────────────── -->
 
-	<div class="bg-white rounded-card shadow-card p-6">
-		<!-- ── SCREEN 1: Welcome ── -->
-		{#if step === 1}
-			<div class="text-center py-4">
-				<div class="text-5xl mb-4">🌸</div>
-				<h2 class="text-2xl font-extrabold text-bark-800 mb-2">
-					Welcome, {data.displayName}!
-				</h2>
-				<p class="text-bark-400 mb-8">Let's set up your garden</p>
-				<button
-					onclick={() => (step = 2)}
-					class="w-full h-14 rounded-btn bg-coral-400 text-white font-bold text-lg
-						shadow-btn-coral hover:bg-coral-500 transition-all
-						active:translate-y-[2px] active:shadow-none"
-				>
-					Let's go! 🌱
-				</button>
-			</div>
+	<!-- Progress bar: only shown from step 2 onward -->
+	{#if step > 1}
+		<ProgressIndicator total={TOTAL_STEPS} current={progressCurrent} />
+	{/if}
 
-		<!-- ── SCREEN 2: Native Language ── -->
-		{:else if step === 2}
-			<h2 class="text-xl font-extrabold text-bark-800 mb-6">
-				What language do you speak at home?
+	{#if step === 1}
+		<!-- ── Step 1: Welcome ─────────────────────────────────────────────── -->
+		<div class="bg-white rounded-card shadow-card p-8 text-center">
+			<div class="text-5xl mb-4">🌸</div>
+			<h2 class="text-2xl font-extrabold text-bark-800 mb-2">
+				{$_('onboarding.welcome_title', { values: { name: data.displayName } })}
 			</h2>
-			<div class="flex flex-col gap-3 mb-8">
-				{#each nativeOptions as lang}
-					<button
-						type="button"
-						onclick={() => (nativeLanguage = lang.code)}
-						class="flex items-center gap-4 p-4 rounded-xl border-2 font-bold text-left
-							transition-all duration-150
-							{nativeLanguage === lang.code
-								? 'border-coral-400 bg-coral-50 text-coral-700 shadow-md'
-								: 'border-bark-200 text-bark-700 hover:border-bark-300'}"
-					>
-						<span class="text-3xl">{lang.flag}</span>
-						<span class="text-lg">{lang.name}</span>
-						{#if nativeLanguage === lang.code}
-							<span class="ml-auto text-coral-500">✓</span>
-						{/if}
-					</button>
-				{/each}
-			</div>
-			<div class="flex gap-3">
-				<button onclick={() => (step = 1)} class="h-11 px-5 rounded-btn border-2 border-bark-200 text-bark-500 font-bold hover:border-bark-300">
-					Back
-				</button>
-				<button
-					onclick={() => { if (canAdvance()) step = 3; }}
-					disabled={!nativeLanguage}
-					class="flex-1 h-11 rounded-btn bg-coral-400 text-white font-bold
-						shadow-btn-coral hover:bg-coral-500 transition-all
-						disabled:opacity-40 disabled:cursor-not-allowed"
-				>
-					Next
-				</button>
-			</div>
+			<p class="text-bark-400 mb-8">
+				{$_('onboarding.welcome_subtitle')}
+			</p>
+			<button
+				type="button"
+				onclick={() => (step = 2)}
+				class="w-full h-14 rounded-btn bg-coral-400 text-white font-bold text-lg
+					shadow-btn-coral hover:bg-coral-500 transition-all
+					active:translate-y-[2px] active:shadow-none"
+			>
+				{$_('onboarding.welcome_cta')}
+			</button>
+		</div>
 
-		<!-- ── SCREEN 3: Target Language ── -->
-		{:else if step === 3}
-			<h2 class="text-xl font-extrabold text-bark-800 mb-6">What do you want to learn?</h2>
-			<div class="flex flex-col gap-3 mb-4">
-				{#each targetOptions as lang}
-					<button
-						type="button"
-						onclick={() => (targetLanguage = lang.code)}
-						class="flex items-center gap-4 p-4 rounded-xl border-2 font-bold text-left
-							transition-all duration-150
-							{targetLanguage === lang.code
-								? 'border-coral-400 bg-coral-50 text-coral-700 shadow-md'
-								: 'border-bark-200 text-bark-700 hover:border-bark-300'}"
-					>
-						<span class="text-3xl">{lang.flag}</span>
-						<span class="text-lg">{lang.name}</span>
-						{#if targetLanguage === lang.code}
-							<span class="ml-auto text-coral-500">✓</span>
-						{/if}
-					</button>
-				{/each}
-				<!-- Coming soon placeholder -->
-				<div class="flex items-center gap-4 p-4 rounded-xl border-2 border-bark-100 opacity-50 cursor-not-allowed">
-					<span class="text-3xl">🐱</span>
-					<span class="text-lg text-bark-300">Scratch</span>
-					<span class="ml-auto text-xs bg-bark-100 text-bark-400 px-2 py-0.5 rounded-full font-bold">Soon</span>
-				</div>
-			</div>
-			<div class="flex gap-3 mt-6">
-				<button onclick={() => (step = 2)} class="h-11 px-5 rounded-btn border-2 border-bark-200 text-bark-500 font-bold hover:border-bark-300">
-					Back
-				</button>
-				<button
-					onclick={() => { if (canAdvance()) step = 4; }}
-					disabled={!targetLanguage}
-					class="flex-1 h-11 rounded-btn bg-coral-400 text-white font-bold
-						shadow-btn-coral hover:bg-coral-500 transition-all
-						disabled:opacity-40 disabled:cursor-not-allowed"
-				>
-					Next
-				</button>
-			</div>
+	{:else if step === 2}
+		<!-- ── Step 2: Native Language ─────────────────────────────────────── -->
+		<!-- Selecting a language immediately switches the app locale via setLocale() -->
+		<div class="bg-white rounded-card shadow-card p-6">
+			<StepNativeLanguage
+				bind:value={nativeLanguage}
+				onNext={next}
+				onBack={back}
+			/>
+		</div>
 
-		<!-- ── SCREEN 4: Age Group ── -->
-		{:else if step === 4}
-			<h2 class="text-xl font-extrabold text-bark-800 mb-6">How old are you?</h2>
-			<div class="flex flex-col gap-3 mb-8">
-				{#each [{ val: '7-10', label: '7–10 years', emoji: '🧒' }, { val: '11-14', label: '11–14 years', emoji: '🧑' }, { val: '15-18', label: '15–18 years', emoji: '🧑‍🎓' }] as ag}
-					<button
-						type="button"
-						onclick={() => (ageGroup = ag.val)}
-						class="flex items-center gap-4 p-4 rounded-xl border-2 font-bold text-left
-							transition-all duration-150
-							{ageGroup === ag.val
-								? 'border-coral-400 bg-coral-50 text-coral-700 shadow-md'
-								: 'border-bark-200 text-bark-700 hover:border-bark-300'}"
-					>
-						<span class="text-3xl">{ag.emoji}</span>
-						<span class="text-lg">{ag.label}</span>
-						{#if ageGroup === ag.val}
-							<span class="ml-auto text-coral-500">✓</span>
-						{/if}
-					</button>
-				{/each}
-			</div>
-			<div class="flex gap-3">
-				<button onclick={() => (step = 3)} class="h-11 px-5 rounded-btn border-2 border-bark-200 text-bark-500 font-bold hover:border-bark-300">
-					Back
-				</button>
-				<button
-					onclick={() => { if (canAdvance()) step = 5; }}
-					disabled={!ageGroup}
-					class="flex-1 h-11 rounded-btn bg-coral-400 text-white font-bold
-						shadow-btn-coral hover:bg-coral-500 transition-all
-						disabled:opacity-40 disabled:cursor-not-allowed"
-				>
-					Next
-				</button>
-			</div>
+	{:else if step === 3}
+		<!-- ── Step 3: Target Language ─────────────────────────────────────── -->
+		<div class="bg-white rounded-card shadow-card p-6">
+			<StepTargetLanguage
+				bind:value={targetLanguage}
+				{nativeLanguage}
+				onNext={next}
+				onBack={back}
+			/>
+		</div>
 
-		<!-- ── SCREEN 5: Interests ── -->
-		{:else if step === 5}
-			<h2 class="text-xl font-extrabold text-bark-800 mb-1">What do you love?</h2>
-			<p class="text-bark-400 text-sm mb-5">Pick as many as you like!</p>
-			<div class="flex flex-wrap gap-2 mb-6">
-				{#each INTERESTS as item}
-					<button
-						type="button"
-						onclick={() => toggleInterest(item.id)}
-						class="flex items-center gap-1.5 px-3 py-2 rounded-full border-2 text-sm font-bold
-							transition-all duration-150
-							{interests.includes(item.id)
-								? 'border-coral-400 bg-coral-50 text-coral-700'
-								: 'border-bark-200 text-bark-600 hover:border-bark-300'}"
-					>
-						<span>{item.icon}</span>
-						<span>{item.label}</span>
-					</button>
-				{/each}
-			</div>
-			<div class="flex gap-3">
-				<button onclick={() => (step = 4)} class="h-11 px-5 rounded-btn border-2 border-bark-200 text-bark-500 font-bold hover:border-bark-300">
-					Back
-				</button>
-				<button
-					onclick={() => (step = 6)}
-					class="flex-1 h-11 rounded-btn bg-coral-400 text-white font-bold
-						shadow-btn-coral hover:bg-coral-500 transition-all"
-				>
-					{interests.length === 0 ? 'Skip' : 'Next'}
-				</button>
-			</div>
+	{:else if step === 4}
+		<!-- ── Step 4: Age Group ───────────────────────────────────────────── -->
+		<div class="bg-white rounded-card shadow-card p-6">
+			<StepAgeGroup
+				bind:value={ageGroup}
+				onNext={next}
+				onBack={back}
+			/>
+		</div>
 
-		<!-- ── SCREEN 6: Avatar + Final Submit ── -->
-		{:else if step === 6}
-			<h2 class="text-xl font-extrabold text-bark-800 mb-4">Create your character!</h2>
+	{:else if step === 5}
+		<!-- ── Step 5: Level (NEW in V2) ──────────────────────────────────── -->
+		<div class="bg-white rounded-card shadow-card p-6">
+			<StepLevel
+				bind:value={level}
+				onNext={next}
+				onBack={back}
+			/>
+		</div>
 
-			<!-- Live avatar preview -->
-			<div class="flex justify-center mb-5">
-				<svg width="100" height="120" viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-					<!-- Body / shirt -->
-					<rect x="28" y="68" width="44" height="40" rx="8" fill={shirtColor} />
-					<!-- Neck -->
-					<rect x="43" y="60" width="14" height="12" fill={skinTone} />
-					<!-- Head -->
-					<circle cx="50" cy="46" r="22" fill={skinTone} />
-					<!-- Hair -->
-					<ellipse cx="50" cy="26" rx="22" ry="10" fill={hairColor} />
-					<!-- Eyes -->
-					<circle cx="42" cy="44" r="2.5" fill="#2C2C2C" />
-					<circle cx="58" cy="44" r="2.5" fill="#2C2C2C" />
-					<!-- Smile -->
-					<path d="M43 52 Q50 58 57 52" stroke="#2C2C2C" stroke-width="1.5" stroke-linecap="round" fill="none" />
-					<!-- Hat -->
-					{#if hat === 'cap'}
-						<rect x="30" y="20" width="40" height="10" rx="4" fill={hairColor} />
-						<rect x="26" y="26" width="48" height="5" rx="2" fill={hairColor} />
-					{:else if hat === 'beanie'}
-						<ellipse cx="50" cy="22" rx="22" ry="14" fill={hairColor} />
-						<rect x="28" y="28" width="44" height="6" rx="2" fill={hairColor} />
-					{:else if hat === 'headband'}
-						<rect x="29" y="30" width="42" height="7" rx="3.5" fill="#FF8A6A" />
-					{/if}
-				</svg>
-			</div>
+	{:else if step === 6}
+		<!-- ── Step 6: Interests ───────────────────────────────────────────── -->
+		<div class="bg-white rounded-card shadow-card p-6">
+			<StepInterests
+				bind:value={interests}
+				onNext={next}
+				onBack={back}
+			/>
+		</div>
 
-			<!-- Skin tone -->
-			<p class="text-xs font-bold text-bark-500 uppercase tracking-wide mb-2">Skin tone</p>
-			<div class="flex gap-2 mb-4">
-				{#each SKIN_TONES as tone}
-					<button
-						type="button"
-						onclick={() => (skinTone = tone)}
-						style="background:{tone}"
-						aria-label="Skin tone {tone}"
-						class="w-8 h-8 rounded-full border-2 transition-all
-							{skinTone === tone ? 'border-bark-700 scale-110' : 'border-transparent'}"
-					></button>
-				{/each}
-			</div>
-
-			<!-- Hair colour -->
-			<p class="text-xs font-bold text-bark-500 uppercase tracking-wide mb-2">Hair</p>
-			<div class="flex gap-2 mb-4">
-				{#each HAIR_COLORS as colour}
-					<button
-						type="button"
-						onclick={() => (hairColor = colour)}
-						style="background:{colour}"
-						aria-label="Hair colour {colour}"
-						class="w-8 h-8 rounded-full border-2 transition-all
-							{hairColor === colour ? 'border-bark-700 scale-110' : 'border-transparent'}"
-					></button>
-				{/each}
-			</div>
-
-			<!-- Shirt colour -->
-			<p class="text-xs font-bold text-bark-500 uppercase tracking-wide mb-2">Shirt</p>
-			<div class="flex gap-2 flex-wrap mb-4">
-				{#each SHIRT_COLORS as colour}
-					<button
-						type="button"
-						onclick={() => (shirtColor = colour)}
-						style="background:{colour}"
-						aria-label="Shirt colour {colour}"
-						class="w-8 h-8 rounded-full border-2 transition-all
-							{shirtColor === colour ? 'border-bark-700 scale-110' : 'border-transparent'}"
-					></button>
-				{/each}
-			</div>
-
-			<!-- Hat -->
-			<p class="text-xs font-bold text-bark-500 uppercase tracking-wide mb-2">Hat</p>
-			<div class="flex gap-2 mb-6">
-				{#each HATS as h}
-					<button
-						type="button"
-						onclick={() => (hat = h.id)}
-						class="flex-1 py-2 rounded-lg border-2 text-sm font-bold transition-all
-							{hat === h.id
-								? 'border-coral-400 bg-coral-50 text-coral-700'
-								: 'border-bark-200 text-bark-600 hover:border-bark-300'}"
-					>
-						{h.icon}
-					</button>
-				{/each}
-			</div>
-
-			<!-- Error from server -->
-			{#if form && 'error' in form && form.error}
-				<div class="bg-coral-50 border border-coral-200 rounded-lg p-3 mb-4">
-					<p class="text-sm font-semibold text-coral-600">{form.error}</p>
-				</div>
-			{/if}
-
-			<!-- Final submit form — hidden fields carry all collected values -->
+	{:else if step === 7}
+		<!-- ── Step 7: Avatar + Form Submit ───────────────────────────────── -->
+		<!--
+		  The form wraps the avatar step because StepAvatar contains the
+		  type="submit" button. All accumulated hidden fields live inside
+		  this form so everything submits together in one POST.
+		-->
+		<div class="bg-white rounded-card shadow-card p-6">
 			<form
 				method="POST"
 				use:enhance={() => {
@@ -411,40 +211,29 @@
 					};
 				}}
 			>
-				<input type="hidden" name="nativeLanguage" value={nativeLanguage} />
-				<input type="hidden" name="targetLanguage" value={targetLanguage} />
-				<input type="hidden" name="ageGroup" value={ageGroup} />
-				<input type="hidden" name="interestsJson" value={JSON.stringify(interests)} />
-				<input type="hidden" name="avatarSkinTone" value={skinTone} />
-				<input type="hidden" name="avatarHairColor" value={hairColor} />
-				<input type="hidden" name="avatarShirtColor" value={shirtColor} />
-				<input type="hidden" name="avatarHat" value={hat} />
+				<!-- Hidden fields: all accumulated onboarding data -->
+				<input type="hidden" name="nativeLanguage"    value={nativeLanguage} />
+				<input type="hidden" name="targetLanguage"    value={targetLanguage} />
+				<input type="hidden" name="ageGroup"          value={ageGroup} />
+				<input type="hidden" name="level"             value={level} />
+				<input type="hidden" name="interestsJson"     value={JSON.stringify(interests)} />
+				<input type="hidden" name="avatarGender"      value={gender} />
+				<input type="hidden" name="avatarSkinTone"    value={skinTone} />
+				<input type="hidden" name="avatarHairColor"   value={hairColor} />
+				<input type="hidden" name="avatarShirtColor"  value={shirtColor} />
+				<input type="hidden" name="avatarHat"         value={hat} />
 
-				<div class="flex gap-3">
-					<button
-						type="button"
-						onclick={() => (step = 5)}
-						class="h-11 px-5 rounded-btn border-2 border-bark-200 text-bark-500 font-bold hover:border-bark-300"
-					>
-						Back
-					</button>
-					<button
-						type="submit"
-						disabled={loading}
-						class="flex-1 h-11 rounded-btn bg-forest-400 text-white font-bold
-							shadow-btn-forest hover:bg-forest-500 transition-all
-							disabled:opacity-50 disabled:cursor-not-allowed
-							flex items-center justify-center gap-2"
-					>
-						{#if loading}
-							<span class="block h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin"></span>
-							Saving...
-						{:else}
-							Looks great! 🎉
-						{/if}
-					</button>
-				</div>
+				<StepAvatar
+					bind:gender
+					bind:skinTone
+					bind:hairColor
+					bind:shirtColor
+					bind:hat
+					{loading}
+					error={serverError}
+					onBack={() => (step = 6)}
+				/>
 			</form>
-		{/if}
-	</div>
+		</div>
+	{/if}
 {/if}

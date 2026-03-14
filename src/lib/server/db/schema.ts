@@ -77,6 +77,15 @@ export const profiles = pgTable('profiles', {
 	interests: jsonb('interests').$type<string[]>().default([]),
 	onboardingComplete: boolean('onboarding_complete').default(false),
 
+	// Proficiency level — self-reported during onboarding, adjustable in Settings
+	// Used by the AI lesson generator to calibrate chunk difficulty.
+	// 'total_beginner' | 'know_some_words' | 'simple_sentences' | 'can_have_conversations'
+	level: varchar('level', { length: 30 }).default('total_beginner'),
+
+	// Track whether the user has completed their very first lesson.
+	// Used to show the Garden Economy explanation modal exactly once.
+	firstLessonComplete: boolean('first_lesson_complete').default(false),
+
 	// Avatar customisation
 	avatarSkinTone: varchar('avatar_skin_tone', { length: 7 }).default('#F5D0A9'),
 	avatarHairColor: varchar('avatar_hair_color', { length: 7 }).default('#4A3728'),

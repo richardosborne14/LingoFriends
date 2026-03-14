@@ -1,0 +1,126 @@
+{
+  "onboarding": {
+    "welcome_title": "Welcome, {name}!",
+    "welcome_subtitle": "Let's set up your garden in just a few steps.",
+    "welcome_cta": "Let's go! 🌱",
+
+    "native_title": "What language do you speak at home?",
+    "native_subtitle": "We'll use this for everything in the app.",
+
+    "target_title": "What do you want to learn?",
+    "target_subtitle": "Pick your adventure!",
+    "target_coming_soon": "Coming soon!",
+
+    "level_title": "How much do you already know?",
+    "level_subtitle": "Don't worry — I'll adjust as you go!",
+    "level_reassurance": "Don't worry, we'll figure out the perfect level together!",
+
+    "interests_title": "What are you into?",
+    "interests_subtitle": "Pick as many as you like!",
+    "interests_skip": "Skip for now",
+
+    "age_title": "How old are you?",
+
+    "avatar_title": "Create your character!",
+    "avatar_gender_title": "Choose your character type",
+    "avatar_gender_boy": "Boy",
+    "avatar_gender_girl": "Girl",
+    "avatar_gender_neutral": "Either is fine!",
+    "avatar_skin": "Skin tone",
+    "avatar_hair": "Hair colour",
+    "avatar_shirt": "Shirt colour",
+    "avatar_hat": "Hat",
+    "avatar_save": "Looks great! 🎉",
+
+    "reveal_title": "Your first tree is planted!",
+    "reveal_subtitle": "Let's help it grow by learning something new.",
+    "reveal_cta": "Start my first lesson 🌸",
+
+    "next": "Next",
+    "back": "Back",
+    "skip": "Skip"
+  },
+
+  "levels": {
+    "total_beginner": "Total Beginner",
+    "total_beginner_desc": "I've never learned this language before",
+    "total_beginner_plant": "🌱",
+
+    "know_some_words": "I Know Some Words",
+    "know_some_words_desc": "Hello, goodbye, numbers... the basics",
+    "know_some_words_plant": "🌿",
+
+    "simple_sentences": "Simple Sentences",
+    "simple_sentences_desc": "I can ask questions and say what I want",
+    "simple_sentences_plant": "🌳",
+
+    "can_have_conversations": "Let's Chat!",
+    "can_have_conversations_desc": "I can have real conversations",
+    "can_have_conversations_plant": "🌸"
+  },
+
+  "interests": {
+    "category_hobbies": "Hobbies",
+    "category_sports": "Sports",
+    "category_music": "Music",
+    "category_other": "Other",
+
+    "dancing": "Dancing",
+    "drawing": "Drawing",
+    "gaming": "Gaming",
+    "cooking": "Cooking",
+    "reading": "Reading",
+    "photography": "Photography",
+    "crafts": "Crafts",
+    "movies": "Movies",
+    "football": "Football",
+    "basketball": "Basketball",
+    "swimming": "Swimming",
+    "skateboarding": "Skateboarding",
+    "cycling": "Cycling",
+    "martial_arts": "Martial Arts",
+    "gymnastics": "Gymnastics",
+    "tennis": "Tennis",
+    "kpop": "K-pop",
+    "rap": "Rap",
+    "rock": "Rock",
+    "pop": "Pop",
+    "classical": "Classical",
+    "electronic": "Electronic",
+    "animals": "Animals",
+    "science": "Science",
+    "space": "Space",
+    "dinosaurs": "Dinosaurs",
+    "nature": "Nature",
+    "travel": "Travel",
+    "fashion": "Fashion",
+    "superheroes": "Superheroes",
+    "magic": "Magic",
+    "history": "History"
+  },
+
+  "languages": {
+    "en": "English",
+    "fr": "Français",
+    "de": "Deutsch",
+    "coming_soon": "Coming soon"
+  },
+
+  "age_groups": {
+    "7-10": "7–10 years",
+    "11-14": "11–14 years",
+    "15-18": "15–18 years"
+  },
+
+  "common": {
+    "sundrops": "Sun Drops",
+    "gems": "Gems",
+    "garden": "Garden",
+    "settings": "Settings",
+    "profile": "Profile",
+    "friends": "Friends",
+    "saving": "Saving...",
+    "try_again": "Try again",
+    "error_generic": "Oops! Something went wrong. Please try again!"
+  }
+}
