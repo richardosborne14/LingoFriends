@@ -2,34 +2,49 @@
   Lesson Page — /lesson/[id]
 
   Phase orchestrator. Manages the full lifecycle:
-    loading → preview (WhatYoullLearn) → activity (ActivityRouter) → complete (CompletionScreen)
+    loading → preview (LessonLoading) → activity (ActivityRouter) → complete (CompletionScreen)
 
-  On mount:
-    1. POST /api/lessons/generate with user profile params
-    2. initLesson() in the store
-    3. Prefetch TTS audio for all phrases in parallel
-    4. Transition to 'preview' phase
+  TASK-V2-03 additions:
+    - LessonHUD replaces raw progress bar + sundrop counter in the header
+    - RewardModal shown after correct answers (auto-dismisses 1.2s)
+    - PenaltyModal shown after wrong answers (auto-dismisses 1.5s)
+    - BreatherModal shown when hearts run out (manual dismiss)
+    - Sound effects wired to all feedback events
+    - Activity completion now flows: activity → modal → advanceStep
+      (not directly advanceStep as before)
 
-  The lesson ID comes from the URL param. For new lessons, 'new' is passed
-  and the server creates a DB record returning a real ID.
+  MODAL DISMISS FLOW:
+    correct (sunDrops > 0) → setPendingReward → RewardModal.onDismiss → advanceStep
+    correct (sunDrops = 0) → advanceStep immediately (no modal for INFO steps)
+    wrong (hearts > 0)    → setPendingPenalty → PenaltyModal.onDismiss → advanceStep
+    wrong (hearts = 0)    → loseHeart triggers showBreather → BreatherModal.onContinue → restoreHearts + advanceStep
 -->
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
+	import { get } from 'svelte/store';
 
 	import {
 		lessonPlan, lessonPhase, lessonResults, lessonError,
 		currentStep, progress, sunDropsEarned,
+		hearts, consecutiveCorrect, pendingReward, pendingPenalty, showBreather,
 		initLesson, advanceStep, startActivities, resetLesson,
+		recordCorrect, recordWrong, deductSunDrop,
+		incrementStreak, resetStreak, loseHeart, restoreHearts,
+		setPendingReward, clearPendingReward, setPendingPenalty, clearPendingPenalty,
 	} from '$lib/stores/lesson';
 	import { stopAudio } from '$lib/services/audioService';
+	import { playSound, preloadSounds } from '$lib/services/soundService';
+	import { buildRewardEvent, buildPenaltyEvent, SUNDROP_PENALTY_PER_WRONG } from '$lib/services/rewardService';
 
-	// LessonLoading handles both the 'loading' and 'preview' phases in one component.
-	// The plan.audioCache pre-generated server-side is now merged into audioMap in initLesson.
 	import LessonLoading from '$lib/components/lesson/LessonLoading.svelte';
+	import LessonHUD from '$lib/components/lesson/LessonHUD.svelte';
 	import CompletionScreen from '$lib/components/lesson/CompletionScreen.svelte';
 	import ActivityRouter from '$lib/components/activities/ActivityRouter.svelte';
+	import RewardModal from '$lib/components/modals/RewardModal.svelte';
+	import PenaltyModal from '$lib/components/modals/PenaltyModal.svelte';
+	import BreatherModal from '$lib/components/modals/BreatherModal.svelte';
 
 	import type { PageData } from './$types';
 	import type { LessonPlan } from '$lib/types/lesson';
@@ -39,13 +54,16 @@
 	// params.id is always defined for this route — non-null assertion is safe
 	const lessonId: string = $page.params.id ?? 'new';
 
-	// Track start time here (not in store) to compute timeSpentMs
+	// Track lesson start time (not in store — owned by this page)
 	let lessonStartTime = 0;
 
 	// Key for re-mounting ActivityRouter when step advances (resets local state)
 	let stepKey = $state(0);
 
 	onMount(async () => {
+		// Pre-load the most common sounds so they play instantly during the lesson.
+		// This is fire-and-forget — no await needed.
+		preloadSounds(['correct', 'wrong', 'streak-3', 'streak-5', 'lesson-complete']);
 		await generateLesson();
 	});
 
@@ -85,9 +103,8 @@
 			const body = (await response.json()) as { lesson: LessonPlan } | LessonPlan;
 			const plan: LessonPlan = 'lesson' in body ? body.lesson : body;
 
-			// Audio is now pre-generated server-side and embedded in plan.audioCache.
-			// initLesson() merges plan.audioCache into the audioMap automatically.
-			// No client-side prefetch needed — instant audio on first INFO step.
+			// Audio is pre-generated server-side in plan.audioCache.
+			// initLesson() merges it into audioMap automatically.
 			lessonStartTime = Date.now();
 			initLesson(plan);
 
@@ -98,13 +115,94 @@
 		}
 	}
 
-	/** Called by ActivityRouter when an activity finishes */
-	function handleActivityComplete(_correct: boolean, _sunDrops: number) {
-		// Record time spent before potentially transitioning to complete
+	// ─────────────────────────────────────────────────────────────────────────
+	// ACTIVITY COMPLETION HANDLERS
+	// ─────────────────────────────────────────────────────────────────────────
+
+	/**
+	 * Called by ActivityRouter when an activity completes.
+	 *
+	 * Correct + sunDrops > 0: show reward modal → on dismiss → advance
+	 * Correct + sunDrops = 0: advance immediately (INFO steps — no modal needed)
+	 * Wrong: deduct sundrop, lose heart → if breather: wait for user, else show penalty → advance
+	 */
+	function handleActivityComplete(correct: boolean, earnedSunDrops: number) {
+		// Update elapsed time before potentially completing
 		lessonResults.update((r) => ({ ...r, timeSpentMs: Date.now() - lessonStartTime }));
 
-		// Bump the key so ActivityRouter re-mounts fresh for the next step
+		// Bump stepKey so ActivityRouter fully re-mounts for the next step,
+		// but DON'T advance index yet — modal callbacks handle that timing.
 		stepKey += 1;
+
+		if (correct) {
+			// ── CORRECT ANSWER ──────────────────────────────────────────────
+			incrementStreak();
+			recordCorrect(earnedSunDrops);
+			playSound('correct');
+
+			// Play streak sound at milestones
+			const streak = get(consecutiveCorrect);
+			if (streak >= 10) playSound('streak-10');
+			else if (streak >= 5) playSound('streak-5');
+			else if (streak >= 3) playSound('streak-3');
+
+			if (earnedSunDrops > 0) {
+				// Show reward modal — it will call handleRewardDismiss when done
+				setPendingReward(buildRewardEvent(earnedSunDrops, streak));
+				// (don't advanceStep here — modal callback does it)
+			} else {
+				// INFO steps earn 0 sunDrops — skip modal, advance immediately
+				advanceStep();
+			}
+
+		} else {
+			// ── WRONG ANSWER ────────────────────────────────────────────────
+			resetStreak();
+			recordWrong();
+			deductSunDrop(); // -1 sundrop, floored at 0
+			playSound('wrong');
+
+			// Lose a heart — if this hits 0, loseHeart() auto-shows the breather
+			loseHeart();
+
+			const currentHearts = get(hearts);
+
+			if (currentHearts > 0) {
+				// Hearts still remaining — show penalty modal
+				// modal callback will advanceStep()
+				setPendingPenalty(buildPenaltyEvent(SUNDROP_PENALTY_PER_WRONG));
+			}
+			// If hearts === 0: breather is already shown by loseHeart()
+			// handleBreatherContinue() will restoreHearts + advanceStep
+		}
+	}
+
+	// ─────────────────────────────────────────────────────────────────────────
+	// MODAL DISMISS CALLBACKS
+	// ─────────────────────────────────────────────────────────────────────────
+
+	/** Called when RewardModal auto-dismisses or is tapped. Advance to next step. */
+	function handleRewardDismiss() {
+		clearPendingReward();
+		advanceStep();
+		// Play lesson complete sound if lesson is now complete
+		if ($lessonPhase === 'complete') {
+			playSound('lesson-complete');
+		}
+	}
+
+	/** Called when PenaltyModal auto-dismisses. Advance to next step. */
+	function handlePenaltyDismiss() {
+		clearPendingPenalty();
+		advanceStep();
+	}
+
+	/**
+	 * Called when learner taps "Try Again" on the BreatherModal.
+	 * Restores hearts + continues from the next step.
+	 */
+	function handleBreatherContinue() {
+		restoreHearts();
 		advanceStep();
 	}
 
@@ -123,6 +221,7 @@
 
 	<!-- ── Sticky lesson header ── -->
 	<header class="sticky top-0 z-20 bg-white border-b border-bark-150 px-4 py-3 flex items-center gap-3">
+
 		<!-- Exit button -->
 		<button
 			onclick={() => goto('/garden')}
@@ -134,36 +233,40 @@
 			</svg>
 		</button>
 
-		<!-- Progress bar -->
-		<div class="flex-1 h-3 bg-bark-100 rounded-full overflow-hidden">
-			<div
-				class="h-full bg-coral-400 rounded-full transition-all duration-500 ease-out"
-				style="width: {$progress * 100}%"
-			></div>
-		</div>
+		<!-- LessonHUD: progress bar + hearts + sundrops in one component.
+		     Only visible during the activity phase — shows full stats. -->
+		{#if $lessonPhase === 'activity'}
+			<LessonHUD progress={$progress} />
+		{:else}
+			<!-- Loading/preview/complete: simpler header with just progress bar -->
+			<div class="flex-1 h-3 bg-bark-100 rounded-full overflow-hidden">
+				<div
+					class="h-full bg-coral-400 rounded-full transition-all duration-500 ease-out"
+					style="width: {$progress * 100}%"
+				></div>
+			</div>
+			<!-- Sundrop counter (non-HUD version, smaller) -->
+			<div class="flex items-center gap-1 flex-shrink-0 font-bold text-coral-400 text-base min-w-[44px] justify-end">
+				<span>☀️</span>
+				<span>{$sunDropsEarned}</span>
+			</div>
+		{/if}
 
-		<!-- SunDrops counter -->
-		<div class="flex items-center gap-1 flex-shrink-0 font-bold text-coral-400 text-base min-w-[44px] justify-end">
-			<span>☀️</span>
-			<span>{$sunDropsEarned}</span>
-		</div>
 	</header>
 
 	<!-- ── Main content area ── -->
 	<main class="flex-1 flex flex-col items-center px-4 py-6 max-w-md mx-auto w-full">
 
-		<!-- LOADING + PREVIEW — both handled by LessonLoading in one component.
-		     LessonLoading shows stage messages while loading, then the lesson
-		     summary with an active "Let's Go!" when the plan is ready. -->
 		{#if $lessonPhase === 'loading' || $lessonPhase === 'preview'}
+			<!-- Loading + Preview handled by LessonLoading -->
 			<LessonLoading
 				plan={$lessonPlan}
 				isReady={$lessonPhase === 'preview'}
 				onStart={handleStart}
 			/>
 
-		<!-- ERROR -->
 		{:else if $lessonPhase === 'error'}
+			<!-- Error state -->
 			<div class="flex-1 flex flex-col items-center justify-center gap-6 text-center">
 				<span class="text-5xl">😅</span>
 				<div>
@@ -181,9 +284,8 @@
 				</button>
 			</div>
 
-		<!-- ACTIVITY -->
 		{:else if $lessonPhase === 'activity' && $currentStep}
-			<!-- key= forces full re-mount on step change, resetting all local state -->
+			<!-- Activity — key= forces full re-mount on step change -->
 			{#key stepKey}
 				<ActivityRouter
 					step={$currentStep}
@@ -192,8 +294,8 @@
 				/>
 			{/key}
 
-		<!-- COMPLETE -->
 		{:else if $lessonPhase === 'complete' && $lessonPlan}
+			<!-- Completion screen -->
 			<CompletionScreen
 				results={$lessonResults}
 				plan={$lessonPlan}
@@ -203,3 +305,26 @@
 
 	</main>
 </div>
+
+<!-- ── MODAL OVERLAYS ── (rendered outside main flow, always on top) ────── -->
+
+<!-- Reward modal — shown on correct answer with sunDrops > 0 -->
+{#if $pendingReward}
+	<RewardModal
+		event={$pendingReward}
+		onDismiss={handleRewardDismiss}
+	/>
+{/if}
+
+<!-- Penalty modal — shown on wrong answer when hearts > 0 -->
+{#if $pendingPenalty}
+	<PenaltyModal
+		event={$pendingPenalty}
+		onDismiss={handlePenaltyDismiss}
+	/>
+{/if}
+
+<!-- Breather modal — shown when hearts hit 0, requires tap to continue -->
+{#if $showBreather}
+	<BreatherModal onContinue={handleBreatherContinue} />
+{/if}

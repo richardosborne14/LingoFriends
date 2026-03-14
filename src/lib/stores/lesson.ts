@@ -13,11 +13,18 @@
  *   4. recordHelpUsed() — called when help button is tapped
  *   5. resetLesson() — called when navigating away or restarting
  *
+ * TASK-V2-03 additions:
+ *   - hearts / consecutiveCorrect / pendingReward / pendingPenalty / showBreather
+ *   - Actions: loseHeart, restoreHearts, incrementStreak, resetStreak,
+ *              setPendingReward, clearPendingReward, setPendingPenalty, clearPendingPenalty
+ *
  * @module stores/lesson
  */
 
 import { writable, derived, get } from 'svelte/store';
 import type { LessonPlan, LessonStep, LessonResults } from '$lib/types/lesson';
+import type { RewardEvent, PenaltyEvent } from '$lib/services/rewardService';
+import { STARTING_HEARTS } from '$lib/services/rewardService';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CORE STATE STORES
@@ -64,6 +71,46 @@ export const lessonPhase = writable<LessonPhase>('loading');
 
 /** Error message shown when generation or completion fails */
 export const lessonError = writable<string | null>(null);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HEARTS & STREAK (TASK-V2-03)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Remaining hearts (lives) for this lesson session.
+ * Starts at STARTING_HEARTS (3). Decrements on wrong answers.
+ * Resets to STARTING_HEARTS when the learner taps "Try Again" on the breather.
+ *
+ * WHY hearts, not game-over: LingoFriends is gentler than Duolingo.
+ * Hitting 0 triggers a "breather" pause, not failure. See PEDAGOGY.md.
+ */
+export const hearts = writable<number>(STARTING_HEARTS);
+
+/**
+ * Consecutive correct answers since last wrong answer.
+ * Resets to 0 on any wrong answer or on initLesson/resetLesson.
+ * Drives streak bonus detection in the reward system.
+ */
+export const consecutiveCorrect = writable<number>(0);
+
+/**
+ * Pending reward event — non-null means the RewardModal should be visible.
+ * Set by setPendingReward(), cleared by clearPendingReward() after auto-dismiss.
+ */
+export const pendingReward = writable<RewardEvent | null>(null);
+
+/**
+ * Pending penalty event — non-null means the PenaltyModal should be visible.
+ * Set by setPendingPenalty(), cleared by clearPendingPenalty() after auto-dismiss.
+ */
+export const pendingPenalty = writable<PenaltyEvent | null>(null);
+
+/**
+ * Whether the "Take a Breather" modal is visible.
+ * Set to true by loseHeart() when hearts reach 0.
+ * Set to false by restoreHearts() when learner taps "Try Again".
+ */
+export const showBreather = writable<boolean>(false);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DERIVED STORES
@@ -130,6 +177,12 @@ export function initLesson(plan: LessonPlan, audio: Record<string, string> = {})
 	// NOTE: audioMap is set AFTER this block — see audioCache merge below
 	helpUsedThisStep.set(false);
 	lessonError.set(null);
+	// Reset hearts and streak for the new lesson
+	hearts.set(STARTING_HEARTS);
+	consecutiveCorrect.set(0);
+	pendingReward.set(null);
+	pendingPenalty.set(null);
+	showBreather.set(false);
 
 	// Seed the audio map with any server-pre-generated audio from the plan.
 	// This means INFO step phrases + explanations play instantly (no TTS fetch delay).
@@ -250,4 +303,91 @@ export function resetLesson(): void {
 		timeSpentMs: 0,
 		chunkResults: [],
 	});
+	// Reset TASK-V2-03 state
+	hearts.set(STARTING_HEARTS);
+	consecutiveCorrect.set(0);
+	pendingReward.set(null);
+	pendingPenalty.set(null);
+	showBreather.set(false);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HEARTS & STREAK ACTIONS (TASK-V2-03)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Increments the consecutive correct streak by 1.
+ * Called BEFORE building the reward event so the streak count is current.
+ */
+export function incrementStreak(): void {
+	consecutiveCorrect.update((n) => n + 1);
+}
+
+/**
+ * Resets the consecutive correct streak to 0.
+ * Called when the learner gives a wrong answer.
+ */
+export function resetStreak(): void {
+	consecutiveCorrect.set(0);
+}
+
+/**
+ * Decrements hearts by 1 (floor at 0).
+ * If hearts reach 0, automatically sets showBreather = true.
+ *
+ * WHY show breather automatically: when hearts hit 0 we want the breather
+ * to appear as part of the loseHeart call, keeping the calling code simple.
+ */
+export function loseHeart(): void {
+	hearts.update((h) => {
+		const next = Math.max(0, h - 1);
+		if (next === 0) {
+			// Breather triggers when hearts run out
+			showBreather.set(true);
+		}
+		return next;
+	});
+}
+
+/**
+ * Restores hearts to the starting amount and hides the breather modal.
+ * Called when the learner taps "Try Again" on the BreatherModal.
+ */
+export function restoreHearts(): void {
+	hearts.set(STARTING_HEARTS);
+	showBreather.set(false);
+}
+
+/**
+ * Sets the pending reward event (shows RewardModal).
+ *
+ * @param event - The reward event built by buildRewardEvent() in rewardService
+ */
+export function setPendingReward(event: RewardEvent): void {
+	pendingReward.set(event);
+}
+
+/**
+ * Clears the pending reward (hides RewardModal).
+ * Called after the auto-dismiss timer fires.
+ */
+export function clearPendingReward(): void {
+	pendingReward.set(null);
+}
+
+/**
+ * Sets the pending penalty event (shows PenaltyModal).
+ *
+ * @param event - The penalty event built by buildPenaltyEvent() in rewardService
+ */
+export function setPendingPenalty(event: PenaltyEvent): void {
+	pendingPenalty.set(event);
+}
+
+/**
+ * Clears the pending penalty (hides PenaltyModal).
+ * Called after the auto-dismiss timer fires.
+ */
+export function clearPendingPenalty(): void {
+	pendingPenalty.set(null);
 }

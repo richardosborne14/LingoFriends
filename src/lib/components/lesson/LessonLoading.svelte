@@ -18,6 +18,12 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import type { LessonPlan } from '$lib/types/lesson';
+	import {
+		LOADING_STAGES,
+		LOADING_STAGE_INTERVAL_MS,
+		nextLoadingStage,
+		extractPreviewPhrases,
+	} from '$lib/utils/lessonUtils';
 
 	interface Props {
 		/** Lesson plan — null while generation is in progress */
@@ -30,50 +36,27 @@
 
 	let { plan, isReady, onStart }: Props = $props();
 
-	// ── Loading stage messages ─────────────────────────────────────────────
-	// Cycle through these while waiting for the AI to generate the lesson.
-	// Each stage message gives the impression of meaningful work happening.
-	const LOADING_STAGES = [
-		{ emoji: '🌱', text: 'Thinking about what to teach you…' },
-		{ emoji: '✨', text: 'Crafting your activities…' },
-		{ emoji: '🎵', text: 'Preparing the sounds…' },
-		{ emoji: '🌿', text: 'Almost ready…' },
-	] as const;
-
+	// ── Loading stage state ────────────────────────────────────────────────
+	// Stage messages and interval defined in lessonUtils (testable there).
 	let stageIndex = $state(0);
 	let stageInterval: ReturnType<typeof setInterval> | null = null;
 
 	/**
-	 * Extract unique target phrases from INFO steps to preview.
-	 * Shows max 4 to avoid overwhelming the learner before they start.
+	 * Extract unique INFO phrases from the plan for the "What you'll learn" preview.
+	 * Uses the shared extractPreviewPhrases() util — same logic as lessonUtils.ts.
 	 */
 	const previewPhrases = $derived(() => {
 		if (!plan) return [];
-		const seen = new Set<string>();
-		const result: Array<{ phrase: string; translation: string }> = [];
-
-		for (const step of plan.steps) {
-			if (step.activity.type === 'info' && !seen.has(step.activity.targetPhrase)) {
-				seen.add(step.activity.targetPhrase);
-				result.push({
-					phrase: step.activity.targetPhrase,
-					translation: step.activity.nativeTranslation,
-				});
-				// Cap at 4 to keep the screen digestible for kids
-				if (result.length >= 4) break;
-			}
-		}
-		return result;
+		return extractPreviewPhrases(plan);
 	});
 
 	onMount(() => {
-		// Cycle loading stages every 2 seconds while waiting for generation
+		// Cycle loading stages every LOADING_STAGE_INTERVAL_MS while waiting
 		stageInterval = setInterval(() => {
 			if (!isReady) {
-				// Advance through stages but clamp at the last one
-				stageIndex = Math.min(stageIndex + 1, LOADING_STAGES.length - 1);
+				stageIndex = nextLoadingStage(stageIndex);
 			}
-		}, 2000); // 2s per stage — long enough to read, fast enough to feel responsive
+		}, LOADING_STAGE_INTERVAL_MS);
 	});
 
 	onDestroy(() => {
