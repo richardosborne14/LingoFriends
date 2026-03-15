@@ -101,6 +101,20 @@ export const profiles = pgTable('profiles', {
 	lessonsCompleted: integer('lessons_completed').default(0),
 	seedsAvailable: integer('seeds_available').default(1),
 
+	// ── Streak Freeze Passes ────────────────────────────────────────────────
+	// Users get FREEZE_PASSES_PER_WEEK (2) automatic streak protections per week.
+	// When a streak is broken, one freeze is consumed and the streak is preserved.
+	// Resets to 2 every Monday UTC. See streakService.ts for logic.
+	streakFreezesRemaining: integer('streak_freezes_remaining').default(2),
+	// When freezes were last replenished (used to detect new-week reset).
+	streakFreezeLastReset: timestamp('streak_freeze_last_reset'),
+
+	// ── Settings ────────────────────────────────────────────────────────────
+	// User's daily lesson goal (how many new lessons per day they want to do).
+	// Default: 3 (the global cap). Allows lowering to 1 or 2 for lighter days.
+	// NOTE: cannot exceed DAILY_CAPS.new_lessons — enforced in the settings API.
+	dailyGoal: integer('daily_goal').default(3),
+
 	createdAt: timestamp('created_at').defaultNow().notNull(),
 	updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

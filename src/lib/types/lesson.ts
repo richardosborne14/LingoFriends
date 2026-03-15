@@ -168,6 +168,19 @@ export interface LessonPlan {
 	/** Number of chunks in this lesson */
 	chunkCount: number;
 	/**
+	 * True if this is a review (SRS refresh) lesson rather than a new lesson.
+	 * Review lessons: no INTRODUCE steps, only PRACTICE/RECALL.
+	 * Used by the lesson page to show "Review" badge instead of "Lesson N".
+	 */
+	isReview?: boolean;
+	/**
+	 * Target language ISO code (e.g. 'de') — optional, populated by review lesson
+	 * builder so the lesson page can pass correct language to TTS.
+	 */
+	targetLanguage?: string;
+	/** Native language ISO code — optional, same use case as targetLanguage */
+	nativeLanguage?: string;
+	/**
 	 * Pre-generated TTS audio map: text → base64 MP3.
 	 * Populated server-side by preGenerateAudioCache() during lesson generation.
 	 * Persisted automatically in lessonHistory.lessonData (JSONB) when the lesson
