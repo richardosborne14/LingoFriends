@@ -29,6 +29,8 @@
 	import type { ClientLevelRecommendation } from '$lib/server/lessons/completionUtils';
 	import LevelBumpModal from '$lib/components/modals/LevelBumpModal.svelte';
 	import FirstLessonCompleteModal from '$lib/components/modals/FirstLessonCompleteModal.svelte';
+	import DailyCapModal from '$lib/components/modals/DailyCapModal.svelte';
+	import StreakMilestoneModal from '$lib/components/modals/StreakMilestoneModal.svelte';
 
 	interface Props {
 		results: LessonResults;
@@ -60,6 +62,42 @@
 	 * (PATCH /api/profile/level in flight). Prevents double-taps.
 	 */
 	let acceptingLevelChange = $state(false);
+
+	// ── New modals: streak milestone + daily cap (TASK-V2-09) ───────────────
+
+	/**
+	 * Non-null when the API returns a streak milestone result.
+	 * Shown FIRST (quick celebration before the daily cap modal if both fire).
+	 */
+	let streakMilestone = $state<{ streak: number; gems: number; badge?: string } | null>(null);
+
+	/**
+	 * Non-null when the new-lesson cap was just hit (e.g. 3rd lesson today).
+	 * Offers "review" as a gentle continuation option.
+	 */
+	let capResult = $state<{
+		hitNewLessonCap: boolean;
+		reviewAvailable: boolean;
+		capMessage: { title: string; body: string };
+	} | null>(null);
+
+	/**
+	 * Which modal to show right now — computed priority order:
+	 *   streak → dailyCap → levelBump → firstLesson → none (show CTAs)
+	 *
+	 * Only one modal ever shows at a time. Dismissing a modal clears its state
+	 * so the next one in the priority list becomes visible automatically.
+	 * In practice only one modal fires per completion (different conditions).
+	 *
+	 * Uses $derived (Svelte 5 runes) — $: is not allowed in runes mode.
+	 */
+	const activeModal = $derived(
+		streakMilestone !== null ? 'streak' as const :
+		capResult !== null ? 'dailyCap' as const :
+		levelRecommendation !== null ? 'levelBump' as const :
+		showFirstLessonModal ? 'firstLesson' as const :
+		null
+	);
 
 	// ── Score calculations (derived, not reactive — results never change) ──
 
@@ -147,8 +185,19 @@
 			// ── Read new fields from the API response ─────────────────────
 			const data = await response.json();
 
-			// Decide whether to show a post-completion modal.
+			// ── TASK-V2-09: streak milestone + daily cap ──────────────────
+			// These are checked FIRST because they have highest display priority.
+			// Both can co-exist with each other and with levelRecommendation.
+			if (data.streakMilestone) {
+				streakMilestone = data.streakMilestone;
+			}
+			if (data.capResult?.hitNewLessonCap) {
+				capResult = data.capResult;
+			}
+
+			// ── Existing modals: level bump + first lesson ─────────────────
 			// isFirstLesson and levelRecommendation are mutually exclusive (see note at top).
+			// They are checked AFTER streak/cap to keep the priority order consistent.
 			if (data.isFirstLesson === true) {
 				// Show the garden economy explainer (one-time)
 				showFirstLessonModal = true;
@@ -156,7 +205,7 @@
 				// Show the adaptive level bump offer
 				levelRecommendation = data.levelRecommendation as ClientLevelRecommendation;
 			}
-			// else: neither modal — user sees score and navigates with CTA buttons
+			// else: no modal — user sees score and navigates with CTA buttons
 		} catch (err) {
 			// Network error — show locally, XP not persisted this time
 			console.warn('[CompletionScreen] Network error saving results:', err);
@@ -225,13 +274,58 @@
 </script>
 
 <!-- ── Modals (rendered above the completion screen) ────────────────────────── -->
+<!-- One modal at a time, managed by activeModal derived state. -->
+
+<!--
+  StreakMilestoneModal: brief celebration on milestone days (3, 7, 14, 30, 100).
+  Shown FIRST (highest priority). Dismiss → advances to dailyCap if that also fired.
+-->
+{#if activeModal === 'streak' && streakMilestone !== null}
+	<StreakMilestoneModal
+		streak={streakMilestone.streak}
+		gems={streakMilestone.gems}
+		badge={streakMilestone.badge}
+		on:close={() => { streakMilestone = null; }}
+	/>
+{/if}
+
+<!--
+  DailyCapModal: shown when the 3rd new lesson of the day is completed.
+  Offers review as a gentle continuation option (waters a random tree).
+  The user can also choose "I'm done for today" to navigate to garden.
+-->
+{#if activeModal === 'dailyCap' && capResult !== null}
+	<DailyCapModal
+		title={capResult.capMessage.title}
+		body={capResult.capMessage.body}
+		completedFullDay={true}
+		reviewAvailable={capResult.reviewAvailable}
+		on:review={async () => {
+			capResult = null;
+			// Start a review session: call the review API and navigate to the lesson.
+			// Fire-and-forget — if it fails, just go to garden.
+			try {
+				const res = await fetch('/api/lessons/review', { method: 'GET' });
+				if (res.ok) {
+					const d = await res.json();
+					if (d.lessonPlan?.id) {
+						goto(`/lesson/${d.lessonPlan.id}`);
+						return;
+					}
+				}
+			} catch { /* fall through */ }
+			goto('/garden');
+		}}
+		on:close={() => { capResult = null; goto('/garden'); }}
+	/>
+{/if}
 
 <!--
   FirstLessonCompleteModal: 3-page explainer for the garden economy.
   Shown exactly once — gated by profile.firstLessonComplete in the API.
   The modal navigates to /garden itself on the final page.
 -->
-{#if showFirstLessonModal}
+{#if activeModal === 'firstLesson' && showFirstLessonModal}
 	<FirstLessonCompleteModal
 		sunDropsEarned={results.sunDropsEarned}
 		onComplete={handleFirstLessonComplete}
@@ -243,7 +337,7 @@
   Shown when the assessment detects a consistent trend (bump_up or bump_down).
   onAccept patches the profile level; onDecline just navigates.
 -->
-{#if levelRecommendation !== null}
+{#if activeModal === 'levelBump' && levelRecommendation !== null}
 	<LevelBumpModal
 		recommendation={levelRecommendation.recommendation}
 		currentLevel={levelRecommendation.currentLevel}
@@ -316,9 +410,9 @@
 		<p class="text-xs text-mint-500">✓ Progress saved</p>
 	{/if}
 
-	<!-- CTAs — only shown when no modal is active -->
-	<!-- When a modal is active it handles its own navigation via onAccept/onDecline/onComplete -->
-	{#if !showFirstLessonModal && levelRecommendation === null}
+	<!-- CTAs — only shown when no modal is active.
+	     activeModal null = all modal state cleared, safe to show nav buttons. -->
+	{#if activeModal === null}
 		<div class="flex flex-col gap-3 w-full mt-2">
 			<button
 				onclick={doAnotherLesson}

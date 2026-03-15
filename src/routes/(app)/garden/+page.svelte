@@ -25,6 +25,22 @@
 	/** Currently selected tree (null = no panel open) */
 	let selectedTree: TreeData | null = null;
 
+	/**
+	 * Toast message for the water tree flow.
+	 * Shown when review API returns no overdue chunks, or when cap is hit.
+	 * Auto-dismisses after 3s.
+	 */
+	let gardenToast: string | null = null;
+	let toastTimer: ReturnType<typeof setTimeout> | null = null;
+
+	/** Shows a toast message for 3 seconds then clears it */
+	function showToast(msg: string) {
+		gardenToast = msg;
+		if (toastTimer) clearTimeout(toastTimer);
+		// 3000ms — long enough to read, short enough to not be annoying to kids
+		toastTimer = setTimeout(() => { gardenToast = null; }, 3000);
+	}
+
 	/** Handle tree tap from GardenCanvas */
 	function onTreeSelected(event: CustomEvent<string>) {
 		const treeId = event.detail;
@@ -41,6 +57,41 @@
 
 	function closePanel() {
 		selectedTree = null;
+	}
+
+	/**
+	 * Called when the user taps "Water my tree" in TreePanel.
+	 * Calls GET /api/lessons/review with the treeId so the review session
+	 * knows which tree's SRS chunks to use.
+	 * If no overdue chunks exist, shows a friendly toast and stays on the garden.
+	 */
+	async function onWaterTree(event: CustomEvent<string>) {
+		const treeId = event.detail;
+		selectedTree = null;   // close panel immediately — feels responsive
+
+		try {
+			// GET /api/lessons/review?treeId=X returns a pre-built review LessonPlan
+			const res = await fetch(`/api/lessons/review?treeId=${encodeURIComponent(treeId)}`);
+			if (!res.ok) {
+				if (res.status === 404) {
+					// 404 = no overdue chunks — tree is fully reviewed today
+					showToast('🌿 Your tree is all caught up! Come back tomorrow.');
+				} else {
+					showToast("⚠️ Couldn't start a review. Try again in a moment.");
+				}
+				return;
+			}
+			const data = await res.json();
+			// Navigate to the generated review lesson
+			if (data.lessonPlan?.id) {
+				goto(`/lesson/${data.lessonPlan.id}`);
+			} else {
+				showToast('🌿 Your tree is all caught up! Come back tomorrow.');
+			}
+		} catch (_e) {
+			// Network error — stay on garden with friendly message
+			showToast("⚠️ Couldn't connect. Check your internet and try again.");
+		}
 	}
 </script>
 
@@ -76,7 +127,22 @@
 			visible={true}
 			on:close={closePanel}
 			on:lessonStart={onLessonStart}
+			on:waterTree={onWaterTree}
 		/>
+	{/if}
+
+	<!-- Garden toast — shown when water-tree review isn't available -->
+	{#if gardenToast}
+		<div
+			class="absolute bottom-6 left-1/2 -translate-x-1/2 z-60
+			       bg-bark-800 text-white text-sm font-bold
+			       px-5 py-3 rounded-xl shadow-toast text-center
+			       max-w-[90vw] transition-opacity duration-300"
+			role="alert"
+			aria-live="polite"
+		>
+			{gardenToast}
+		</div>
 	{/if}
 
 </div>

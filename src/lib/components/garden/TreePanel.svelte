@@ -28,6 +28,8 @@
 	const dispatch = createEventDispatcher<{
 		close: void;
 		lessonStart: string;
+		/** Dispatched when the user taps "Water my tree" — sends the tree.id for the review API */
+		waterTree: string;
 	}>();
 
 	let lockedMessage: string | null = null;
@@ -238,5 +240,23 @@
 				</ol>
 			</div>
 		{/if}
+</div>
+
+<!-- Water my tree CTA — always shown outside the lesson trail section -->
+<!-- WHY outside: it's a global action (not lesson-specific) — separate visually -->
+	<!-- Water my tree CTA — always shown; parent handles the review API call -->
+	<!-- WHY always shown: the user may want to review at any health level. -->
+	<div class="px-5 pb-6 pt-1 border-t border-bark-100">
+		<button
+			on:click={() => dispatch('waterTree', tree.id)}
+			class="w-full h-12 rounded-xl bg-sky-500 hover:bg-sky-600 active:scale-[0.98]
+			       text-white font-bold transition-all duration-150 flex items-center justify-center gap-2"
+			aria-label="Start a review session to water this tree"
+		>
+			💧 Water my tree (Review)
+		</button>
+		<p class="text-center text-xs text-bark-400 mt-2">
+			Review past lessons to keep your tree healthy
+		</p>
 	</div>
 </div>

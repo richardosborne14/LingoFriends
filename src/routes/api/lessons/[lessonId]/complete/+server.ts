@@ -58,8 +58,10 @@ import {
 	buildPerformanceRecord,
 	isFirstLesson,
 	serializeAssessmentForClient,
+	buildCapResult,
 } from '$lib/server/lessons/completionUtils';
-import type { ClientLevelRecommendation } from '$lib/server/lessons/completionUtils';
+import type { ClientLevelRecommendation, DailyCapCompletionResult } from '$lib/server/lessons/completionUtils';
+import { checkStreakMilestone } from '$lib/services/streakService';
 
 export const POST: RequestHandler = async ({ request, locals, params }) => {
 	if (!locals.user) {
@@ -103,14 +105,27 @@ export const POST: RequestHandler = async ({ request, locals, params }) => {
 	const accuracy = Math.min(1, Math.max(0, b.accuracy as number));
 	const todayStr = new Date().toISOString().split('T')[0];
 
-	// Load today's progress for the daily cap
+	// Whether this is a review session (watering a tree) vs a new lesson.
+	// Tracked separately in dailyProgress to enforce independent daily caps.
+	const isReview = b.isReview === true;
+
+	// Load today's progress for the daily cap.
+	// Reads lessonsCompleted and reviewSessionsCompleted so buildCapResult()
+	// can check whether this completion tips the user to the daily new-lesson cap.
 	const [today] = await db
-		.select({ sunDropsEarned: dailyProgress.sunDropsEarned })
+		.select({
+			sunDropsEarned: dailyProgress.sunDropsEarned,
+			lessonsCompleted: dailyProgress.lessonsCompleted,
+			reviewSessionsCompleted: dailyProgress.reviewSessionsCompleted,
+		})
 		.from(dailyProgress)
 		.where(and(eq(dailyProgress.userId, userId), eq(dailyProgress.date, todayStr)))
 		.limit(1);
 
 	const sunDropsToday = today?.sunDropsEarned ?? 0;
+	// Capture counts BEFORE this completion for cap detection (TASK-V2-09)
+	const newLessonsBeforeThisOne = today?.lessonsCompleted ?? 0;
+	const reviewSessionsBeforeThisOne = today?.reviewSessionsCompleted ?? 0;
 	const sunDropsAwarded = applyCap(requested, sunDropsToday);
 
 	// Load profile for streak + level (level needed for performance record + assessment)
@@ -176,14 +191,18 @@ export const POST: RequestHandler = async ({ request, locals, params }) => {
 			})
 			.where(eq(userTrees.id, resolvedTreeId)),
 
-		// Upsert daily progress row
+		// Upsert daily progress row.
+		// Reviews increment reviewSessionsCompleted, new lessons increment lessonsCompleted.
+		// Both need separate tracking so calculateCapStatus() can enforce independent limits.
 		db
 			.insert(dailyProgress)
 			.values({
 				userId,
 				date: todayStr,
 				sunDropsEarned: sunDropsAwarded,
-				lessonsCompleted: 1,
+				// Insert row with the correct counter set to 1, the other to 0
+				lessonsCompleted: isReview ? 0 : 1,
+				reviewSessionsCompleted: isReview ? 1 : 0,
 				activitiesCompleted: typeof b.activitiesCompleted === 'number' ? b.activitiesCompleted : 0,
 				timeSpentSeconds: typeof b.durationSeconds === 'number' ? Math.round(b.durationSeconds) : 0,
 				updatedAt: now,
@@ -192,7 +211,11 @@ export const POST: RequestHandler = async ({ request, locals, params }) => {
 				target: [dailyProgress.userId, dailyProgress.date],
 				set: {
 					sunDropsEarned: sql`${dailyProgress.sunDropsEarned} + ${sunDropsAwarded}`,
-					lessonsCompleted: sql`${dailyProgress.lessonsCompleted} + 1`,
+					// Only increment the relevant counter — leave the other unchanged
+					...(isReview
+						? { reviewSessionsCompleted: sql`${dailyProgress.reviewSessionsCompleted} + 1` }
+						: { lessonsCompleted: sql`${dailyProgress.lessonsCompleted} + 1` }
+					),
 					updatedAt: now,
 				},
 			}),
@@ -385,17 +408,27 @@ export const POST: RequestHandler = async ({ request, locals, params }) => {
 		}
 	}
 
+	// ── Daily cap + streak milestone (TASK-V2-09) ───────────────────────────
+	// Pure functions — no DB access after this point.
+	// buildCapResult: null unless the new-lesson cap was just hit.
+	// checkStreakMilestone: null unless newStreak is a milestone (3, 7, 14, 30, 100).
+	const capResult = buildCapResult(newLessonsBeforeThisOne, reviewSessionsBeforeThisOne, isReview);
+	const streakMilestone = checkStreakMilestone(newStreak);
+
 	return json({
 		sunDropsAwarded,
 		newStreak,
 		starRating,
 		growthStage,
 		giftEarned,           // null or gift type string — client shows earn modal if set
-		// NEW: first lesson flag — client shows FirstLessonCompleteModal once
 		isFirstLesson: firstLesson,
-		// NEW: level recommendation — client shows LevelBumpModal if not null
-		// null means 'stay' (no modal needed — the common case)
 		levelRecommendation,
+		// Daily cap result — non-null only when new-lesson cap was just reached.
+		// CompletionScreen shows DailyCapModal and offers review as an alternative.
+		capResult,
+		// Streak milestone — non-null only on milestone days (3, 7, 14, 30, 100).
+		// CompletionScreen shows StreakMilestoneModal before DailyCapModal.
+		streakMilestone,
 		message:
 			starRating === 3
 				? `⭐⭐⭐ Amazing! You earned ${sunDropsAwarded} SunDrops!`

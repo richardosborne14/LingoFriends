@@ -20,8 +20,12 @@ export default defineConfig({
 	},
 	resolve: {
 		// Mirror SvelteKit's $lib alias so tests can import from '$lib/...'
+		// Also alias $env/static/private → stub module so server-side files
+		// (db/index.ts, ai/router.ts, etc.) can be imported without a real .env.
+		// See src/tests/setup/sveltekit-env.ts for details.
 		alias: {
 			$lib: path.resolve('./src/lib'),
+			'$env/static/private': path.resolve('./src/tests/setup/sveltekit-env.ts'),
 		},
 		conditions: ['browser'],
 	},

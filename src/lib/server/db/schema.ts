@@ -300,6 +300,10 @@ export const dailyProgress = pgTable(
 
 		sunDropsEarned: integer('sun_drops_earned').default(0),
 		lessonsCompleted: integer('lessons_completed').default(0),
+		// New lessons and review sessions are tracked separately so the daily cap
+		// service can enforce independent limits (3 new / 5 review per day).
+		// Added in migration 0004_daily_review_column.sql.
+		reviewSessionsCompleted: integer('review_sessions_completed').default(0),
 		activitiesCompleted: integer('activities_completed').default(0),
 		timeSpentSeconds: integer('time_spent_seconds').default(0),
 		gemsEarned: integer('gems_earned').default(0),

@@ -12,6 +12,8 @@
  */
 
 import type { LevelAssessment } from '$lib/services/levelAssessment';
+import { calculateCapStatus, getDailyCapMessage, DAILY_CAPS } from '$lib/services/dailyCapService';
+import type { DailyCapStatus } from '$lib/services/dailyCapService';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // INTERFACES
@@ -185,5 +187,83 @@ export function serializeAssessmentForClient(
 		currentLevel: assessment.currentLevel,
 		message,
 		confidence: assessment.confidence,
+	};
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DAILY CAP RESULT BUILDER (TASK-V2-09)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Client-safe result of a daily cap check after a lesson completion.
+ * Returned by the API when the new-lesson cap was just reached.
+ * null is returned when the cap was NOT hit (the common case).
+ */
+export interface DailyCapCompletionResult {
+	/** True when this completion tipped the user to or past the new-lesson cap. */
+	hitNewLessonCap: boolean;
+	/** True when review sessions are still available today. */
+	reviewAvailable: boolean;
+	/** Friendly message for the DailyCapModal (from getDailyCapMessage). */
+	capMessage: { title: string; body: string };
+	/** Full cap status for analytics / future UI (counts remaining, etc.). */
+	capStatus: DailyCapStatus;
+}
+
+/**
+ * Calculates the daily cap result after a lesson has just been completed.
+ *
+ * PURE FUNCTION — no DB access. The API handler reads the counts from
+ * dailyProgress BEFORE the upsert and passes them here; this function
+ * computes what the state AFTER the lesson should be.
+ *
+ * Returns null when the new-lesson cap was NOT hit (most completions).
+ * Returns a DailyCapCompletionResult when the cap was just reached —
+ * the API should include this in the response so CompletionScreen can
+ * show DailyCapModal.
+ *
+ * WHY separate new lessons and reviews: The daily cap service has independent
+ * limits for new material (cognitive load) vs review (lower demand).
+ * A review session should not prevent new lessons and vice versa.
+ *
+ * @param newLessonsBeforeThisOne - DB value of lessonsCompleted for today (BEFORE increment)
+ * @param reviewSessionsBeforeThisOne - DB value of reviewSessionsCompleted for today (BEFORE increment)
+ * @param isReview - Whether this completion was a review session (not a new lesson)
+ * @returns DailyCapCompletionResult if cap was hit, null otherwise
+ */
+export function buildCapResult(
+	newLessonsBeforeThisOne: number,
+	reviewSessionsBeforeThisOne: number,
+	isReview: boolean
+): DailyCapCompletionResult | null {
+	// Compute counts AFTER this lesson completes
+	const newLessonsAfter = isReview
+		? Math.max(0, newLessonsBeforeThisOne)
+		: Math.max(0, newLessonsBeforeThisOne) + 1;
+
+	const reviewSessionsAfter = isReview
+		? Math.max(0, reviewSessionsBeforeThisOne) + 1
+		: Math.max(0, reviewSessionsBeforeThisOne);
+
+	// Get the full cap status with "after" counts
+	const capStatus = calculateCapStatus(newLessonsAfter, reviewSessionsAfter);
+
+	// Only show the daily cap modal when the NEW lesson cap was just reached.
+	// Reviews hitting their cap are less significant — just show a softer message.
+	// We fire on exact equality (newLessonsAfter === cap) to avoid re-firing if
+	// the user somehow sends a duplicate completion request.
+	const hitNewLessonCap =
+		!isReview && newLessonsAfter >= DAILY_CAPS.new_lessons;
+
+	// If the cap wasn't just hit, return null (no modal needed)
+	if (!hitNewLessonCap) return null;
+
+	return {
+		hitNewLessonCap: true,
+		// Review is still available if they haven't hit the review cap
+		reviewAvailable: !capStatus.reviewCapped,
+		// Message is tailored to how many lessons they completed today
+		capMessage: getDailyCapMessage(newLessonsAfter),
+		capStatus,
 	};
 }
