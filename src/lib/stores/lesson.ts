@@ -25,6 +25,16 @@ import { writable, derived, get } from 'svelte/store';
 import type { LessonPlan, LessonStep, LessonResults } from '$lib/types/lesson';
 import type { RewardEvent, PenaltyEvent } from '$lib/services/rewardService';
 import { STARTING_HEARTS } from '$lib/services/rewardService';
+// TASK-AUDIT-03: Adaptive injection engine
+import {
+	createSignalTracker,
+	type LessonSignalTracker,
+} from '$lib/services/lessonSignals';
+import {
+	decideNextStep,
+	type AdaptiveDecision,
+	type MasteredChunk,
+} from '$lib/services/lessonAdapter';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CORE STATE STORES
@@ -207,6 +217,11 @@ export function initLesson(plan: LessonPlan, audio: Record<string, string> = {})
 		lessonData: plan,
 	});
 
+	// Initialise adaptive signal tracker for this lesson session (TASK-AUDIT-03)
+	lessonSignalTracker.set(createSignalTracker());
+	injectedStep.set(null);
+	pendingSkipOffer.set(null);
+
 	// Move to preview phase (WhatYoullLearn screen)
 	lessonPhase.set('preview');
 }
@@ -315,6 +330,10 @@ export function resetLesson(): void {
 	pendingReward.set(null);
 	pendingPenalty.set(null);
 	showBreather.set(false);
+	// Reset TASK-AUDIT-03 adaptive state
+	lessonSignalTracker.set(null);
+	injectedStep.set(null);
+	pendingSkipOffer.set(null);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -396,4 +415,209 @@ export function setPendingPenalty(event: PenaltyEvent): void {
  */
 export function clearPendingPenalty(): void {
 	pendingPenalty.set(null);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ADAPTIVE ENGINE STATE (TASK-AUDIT-03)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * The signal tracker instance for the current lesson.
+ * Created by initLesson(), reset by resetLesson().
+ * The lesson page calls recordAdaptiveSignal() to feed it data.
+ * advanceStepAdaptive() reads it to decide what to do next.
+ */
+export const lessonSignalTracker = writable<LessonSignalTracker | null>(null);
+
+/**
+ * A dynamically injected easy-win step.
+ * Non-null while the child is working through an injected step.
+ * The lesson page renders this INSTEAD of the planned step.
+ * Cleared by clearInjectedStep() when the child completes it.
+ */
+export const injectedStep = writable<LessonStep | null>(null);
+
+/**
+ * A pending skip-ahead offer.
+ * Non-null when the adapter has decided to offer a skip.
+ * The lesson page renders SkipAheadPrompt when this is non-null.
+ * Cleared by acceptSkip() or declineSkip().
+ */
+export const pendingSkipOffer = writable<AdaptiveDecision | null>(null);
+
+/**
+ * Chunks the child has answered correctly (in order, oldest first).
+ * Derived from lessonResults.chunkResults — filtered to correct answers only.
+ * Used by the adapter to build easy-win steps.
+ *
+ * WHY derived: keeps this in sync automatically as results accumulate.
+ * We filter on `correct` — wrong answers don't count as "mastered".
+ */
+export const masteredChunks = derived(
+	lessonResults,
+	($results): MasteredChunk[] =>
+		$results.chunkResults
+			.filter((cr) => cr.correct)
+			.map((cr) => ({
+				targetPhrase: cr.targetPhrase,
+				// ChunkResult stores correct answer as targetPhrase — we need nativeTranslation
+				// For now, we use the targetPhrase as a fallback key for easy wins
+				// (the adapter builds the question around targetPhrase regardless)
+				nativeTranslation: cr.targetPhrase, // TODO: add nativeTranslation to ChunkResult
+			}))
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ADAPTIVE ENGINE ACTIONS (TASK-AUDIT-03)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Records a quiz attempt signal for the adaptive engine.
+ *
+ * Call this ALONGSIDE recordCorrect() or recordWrong() — it feeds the
+ * signal tracker which advanceStepAdaptive() reads later.
+ *
+ * Also records breather signal when the breather modal is shown.
+ *
+ * @param correct - Whether the child got it right
+ * @param responseTimeMs - How long the child took (ms, for future use)
+ */
+export function recordAdaptiveSignal(correct: boolean, responseTimeMs: number): void {
+	const tracker = get(lessonSignalTracker);
+	if (!tracker) return; // Shouldn't happen, but safe guard
+
+	tracker.recordAttempt(correct, responseTimeMs);
+
+	// Also record help usage if it was used on this step
+	// (helpUsedThisStep reflects the CURRENT step, so read it NOW)
+	if (get(helpUsedThisStep)) {
+		tracker.recordHelpUsed();
+	}
+}
+
+/**
+ * Signals that the breather modal was just shown.
+ * The adapter will inject an easy win as the VERY NEXT step after the child
+ * taps "Try Again" on the breather.
+ */
+export function recordBreatherForAdapter(): void {
+	const tracker = get(lessonSignalTracker);
+	tracker?.recordBreather();
+}
+
+/**
+ * Advance to the next step, consulting the adaptive engine first.
+ *
+ * This is the adaptive version of advanceStep(). The lesson page should
+ * call this instead of advanceStep() for quiz steps where adaptation matters.
+ *
+ * Decision outcomes:
+ * - 'continue'   → normal advance (same as advanceStep)
+ * - 'inject'     → set injectedStep; don't advance yet; clear after inject completes
+ * - 'skip_offer' → set pendingSkipOffer; don't advance yet; wait for child choice
+ *
+ * IMPORTANT: Does NOT advance if injecting or offering skip.
+ * The caller must handle the advance AFTER the inject/skip resolves.
+ *
+ * Returns the decision so the lesson page can react to it (e.g., clear skip offer).
+ */
+export function advanceStepAdaptive(): AdaptiveDecision {
+	const plan = get(lessonPlan);
+	const index = get(currentStepIndex);
+	const tracker = get(lessonSignalTracker);
+
+	// If no plan or tracker, fall back to normal advance
+	if (!plan || !tracker) {
+		advanceStep();
+		return { action: 'continue' };
+	}
+
+	const completedStep = plan.steps[index];
+	if (!completedStep) {
+		advanceStep();
+		return { action: 'continue' };
+	}
+
+	// Get mastered chunks from lessonResults
+	const results = get(lessonResults);
+	const mastered: MasteredChunk[] = results.chunkResults
+		.filter((cr) => cr.correct)
+		.map((cr) => ({
+			targetPhrase: cr.targetPhrase,
+			nativeTranslation: cr.targetPhrase, // Fallback — see TODO above
+		}));
+
+	const signals = tracker.getSignals();
+	const decision = decideNextStep(signals, completedStep, plan.steps, index, mastered);
+
+	switch (decision.action) {
+		case 'inject':
+			// Set the injected step — lesson page renders it next
+			injectedStep.set(decision.step);
+			// Don't advance plan index — injected step comes first
+			tracker.recordEasyWinInjected();
+			helpUsedThisStep.set(false);
+			break;
+
+		case 'skip_offer':
+			// Set the pending skip offer — lesson page shows SkipAheadPrompt
+			pendingSkipOffer.set(decision);
+			tracker.recordSkipOffered();
+			// Don't advance plan index yet — wait for child's decision
+			break;
+
+		case 'continue':
+		default:
+			// Normal advance
+			advanceStep();
+			break;
+	}
+
+	return decision;
+}
+
+/**
+ * Child accepted the skip-ahead offer.
+ * Jump to the target index and clear the offer.
+ *
+ * @param skipToIndex - The plan index to jump to (from the skip_offer decision)
+ */
+export function acceptSkip(skipToIndex: number): void {
+	pendingSkipOffer.set(null);
+	helpUsedThisStep.set(false);
+
+	const plan = get(lessonPlan);
+	currentStepIndex.set(skipToIndex);
+
+	// Check if we jumped past the end (shouldn't happen, but be safe)
+	if (plan && skipToIndex >= plan.steps.length) {
+		lessonPhase.set('complete');
+	}
+}
+
+/**
+ * Child declined the skip-ahead offer ("Keep practising").
+ * Clear the offer and advance normally.
+ */
+export function declineSkip(): void {
+	pendingSkipOffer.set(null);
+	advanceStep(); // Continue with the planned step
+}
+
+/**
+ * The injected easy-win step was completed.
+ * Clear the injected step and advance normally.
+ *
+ * @param sunDropsEarned - SunDrops from the easy-win (usually 1)
+ */
+export function completeInjectedStep(earned: number): void {
+	injectedStep.set(null);
+	// Record the SunDrops earned from the easy win
+	lessonResults.update((r) => ({
+		...r,
+		sunDropsEarned: r.sunDropsEarned + earned,
+		correctCount: r.correctCount + 1, // Easy win counts as a correct step
+	}));
+	// Now advance to the next planned step
+	advanceStep();
 }

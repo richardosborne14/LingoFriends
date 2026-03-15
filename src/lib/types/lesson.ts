@@ -178,6 +178,12 @@ export interface LessonStep {
 	activity: ActivityConfig;
 	/** SunDrops awarded for completing this step */
 	sunDrops: number;
+	/**
+	 * True if this step was dynamically injected by the adaptive engine.
+	 * Injected steps are excluded from progress bar calculation.
+	 * Optional — false/undefined means it is a planned step.
+	 */
+	isInjected?: boolean;
 }
 
 /**
