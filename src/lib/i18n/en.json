@@ -122,5 +122,34 @@
     "saving": "Saving...",
     "try_again": "Try again",
     "error_generic": "Oops! Something went wrong. Please try again!"
+  },
+
+  "pronunciation": {
+    "instruction": "Say this out loud:",
+    "listen_first": "Tap to hear it first",
+    "tap_to_speak": "Tap to speak",
+    "recording": "Listening… tap to stop",
+    "processing": "Thinking…",
+    "you_said": "You said:",
+    "try_again": "Try again 🔄",
+    "continue": "Continue →",
+    "attempt_of": "Attempt {current} of {max}",
+    "feedback": {
+      "perfect": "Perfect! You sound amazing! 🌟",
+      "great": "Great pronunciation! Almost perfect! ⭐",
+      "good": "Pretty good! You're getting the hang of it! 👍",
+      "close": "Not bad! The tricky part is \"{word}\" — listen again!",
+      "keep_trying": "Good effort! Let's listen again and try once more 💪"
+    },
+    "encouragement_final": "Well done for keeping at it — that takes real courage!",
+    "skip": "Skip for now"
+  },
+
+  "lesson_adapter": {
+    "easy_win_tutor": "Quick review! 💪",
+    "skip_ahead_title": "🚀 You're on fire!",
+    "skip_ahead_body": "You're nailing this section! Want to jump ahead to the next part?",
+    "skip_ahead_accept": "Skip ahead 🚀",
+    "skip_ahead_decline": "Keep practising"
   }
 }

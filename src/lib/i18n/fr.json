@@ -122,5 +122,34 @@
     "saving": "Enregistrement...",
     "try_again": "Réessayer",
     "error_generic": "Oups ! Quelque chose a mal tourné. Réessaie !"
+  },
+
+  "pronunciation": {
+    "instruction": "Dis cette phrase à voix haute :",
+    "listen_first": "Appuie pour écouter d'abord",
+    "tap_to_speak": "Appuie pour parler",
+    "recording": "J'écoute… appuie pour arrêter",
+    "processing": "Je réfléchis…",
+    "you_said": "Tu as dit :",
+    "try_again": "Réessayer 🔄",
+    "continue": "Continuer →",
+    "attempt_of": "Essai {current} sur {max}",
+    "feedback": {
+      "perfect": "Parfait ! Tu es incroyable ! 🌟",
+      "great": "Super prononciation ! Presque parfait ! ⭐",
+      "good": "Pas mal ! Tu y arrives ! 👍",
+      "close": "Pas mal ! La partie difficile c'est \"{word}\" — écoute encore !",
+      "keep_trying": "Bon effort ! Écoute encore une fois et réessaie 💪"
+    },
+    "encouragement_final": "Bravo pour ta persévérance — ça demande du courage !",
+    "skip": "Passer pour l'instant"
+  },
+
+  "lesson_adapter": {
+    "easy_win_tutor": "Révision rapide ! 💪",
+    "skip_ahead_title": "🚀 Tu es en feu !",
+    "skip_ahead_body": "Tu maîtrises cette section ! Tu veux passer à la suite ?",
+    "skip_ahead_accept": "Passer 🚀",
+    "skip_ahead_decline": "Continuer à pratiquer"
   }
 }

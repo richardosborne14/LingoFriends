@@ -29,6 +29,13 @@ export enum ActivityType {
 	WORD_ARRANGE = 'word_arrange',
 	MATCHING = 'matching',
 	COACHING_CHAT = 'coaching_chat',
+	/**
+	 * TASK-AUDIT-02: Pronunciation practice.
+	 * Child hears the target phrase via TTS, then speaks it.
+	 * Whisper transcribes their attempt; fuzzy comparison gives a star rating.
+	 * NEVER penalises — speaking takes courage (PEDAGOGY.md — Affective Filter).
+	 */
+	SPEAK_IT = 'speak_it',
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -102,6 +109,32 @@ export interface MatchingActivity {
 }
 
 /**
+ * TASK-AUDIT-02: Pronunciation practice — the only activity where kids PRODUCE
+ * language vocally (Swain's Output Hypothesis: production is essential for acquisition).
+ *
+ * SunDrop awards are based on star rating (5★=3, 4★=2, 3★=1, <3★=0 but no penalty).
+ * After 3 attempts: always award 1 SunDrop minimum — speaking takes courage.
+ * The `sunDrops` field here is the MAXIMUM possible; actual awarded by the component.
+ *
+ * @see PEDAGOGY.md — Voice-first interaction, Affective Filter (never punish production)
+ */
+export interface SpeakItActivity {
+	type: ActivityType.SPEAK_IT;
+	/** The phrase the child should say (target language) */
+	targetPhrase: string;
+	/** Native translation shown below for context */
+	nativeTranslation: string;
+	/**
+	 * Key into the lesson's audioCache for "listen first" playback.
+	 * Typically the targetPhrase itself (audioCache is keyed by text).
+	 * If absent, the component fetches TTS on demand via /api/tts.
+	 */
+	audioKey?: string;
+	/** Max possible SunDrops (3). Actual awarded by component based on star rating. */
+	sunDrops: number;
+}
+
+/**
  * Phase 3 activity — NPC coach introduces a chunk warmly.
  * Awards 0 SunDrops. No failure state — all responses get encouragement.
  */
@@ -123,7 +156,8 @@ export type ActivityConfig =
 	| TrueFalseActivity
 	| WordArrangeActivity
 	| MatchingActivity
-	| CoachingChatActivity;
+	| CoachingChatActivity
+	| SpeakItActivity; // TASK-AUDIT-02: pronunciation practice
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LESSON PLAN TYPES

@@ -31,6 +31,7 @@ import {
 	type CoachingChatActivity,
 	type WordArrangeActivity,
 	type TrueFalseActivity,
+	type SpeakItActivity,
 	type LessonStep,
 	type LessonPlan,
 } from '$lib/types/lesson';
@@ -273,6 +274,37 @@ function buildApplyStep(chunk: GeneratedChunk): LessonStep {
 }
 
 /**
+ * TASK-AUDIT-02: SPEAK_IT step — pronunciation practice.
+ *
+ * Placed at different positions depending on chunk index (alternating, for variety):
+ *   Even chunks (0, 2, ...): after INTRODUCE (INFO) — muscle memory while phrase is fresh
+ *   Odd chunks  (1, 3, ...): after RECALL (TRANSLATE) — production after recall practice
+ *
+ * Awards 0-3 SunDrops based on star rating (awarded by the component, not here).
+ * The `sunDrops: 3` here is the MAXIMUM; the actual amount is decided by SpeakItActivity.
+ *
+ * NEVER penalises — speaking takes courage (PEDAGOGY.md — Affective Filter).
+ */
+function buildSpeakStep(chunk: GeneratedChunk): LessonStep {
+	const activity: SpeakItActivity = {
+		type: ActivityType.SPEAK_IT,
+		targetPhrase: chunk.targetPhrase,
+		nativeTranslation: chunk.nativeTranslation,
+		// audioKey defaults to the targetPhrase itself (audioCache is keyed by text)
+		audioKey: chunk.targetPhrase,
+		sunDrops: 3, // maximum possible — actual awarded by component via star rating
+	};
+
+	return {
+		id: nanoid(),
+		tutorText: 'Now try saying it yourself! 🎤',
+		helpText: `Listen to the phrase first, then try to repeat it. Don't worry about being perfect — every attempt helps you improve!`,
+		activity,
+		sunDrops: 3, // matches activity.sunDrops (validator checks consistency)
+	};
+}
+
+/**
  * Final step — MATCHING
  * Connect all chunks (target phrase ↔ native translation).
  * Pairs are shuffled for variety.
@@ -347,6 +379,12 @@ export function assembleLessonPlan(content: ChunkFamilyContent, lessonId: string
 		// Step 1 — INTRODUCE (always INFO — never skip this, pedagogy rule)
 		steps.push(buildIntroduceStep(chunk)); // 0 SunDrops
 
+		// TASK-AUDIT-02: SPEAK_IT — even chunks: right after INFO while phrase is fresh
+		// Odd chunks get SPEAK_IT after RECALL (see below) for position variety
+		if (chunkIndex % 2 === 0) {
+			steps.push(buildSpeakStep(chunk)); // 0-3 SunDrops (component decides)
+		}
+
 		// Step 2 — RECOGNIZE (always MULTIPLE_CHOICE — easiest production check)
 		steps.push(buildRecognizeStep(chunk)); // 1 SunDrop
 
@@ -371,6 +409,11 @@ export function assembleLessonPlan(content: ChunkFamilyContent, lessonId: string
 
 		// Step 4 — RECALL (always TRANSLATE — full production, hardest step)
 		steps.push(buildRecallStep(chunk)); // 3 SunDrops
+
+		// TASK-AUDIT-02: odd chunks get SPEAK_IT after RECALL for production variety
+		if (chunkIndex % 2 !== 0) {
+			steps.push(buildSpeakStep(chunk)); // 0-3 SunDrops (component decides)
+		}
 
 		// Step 5 — APPLY (alternates: true_false or multiple_choice)
 		if (pattern.applyType === 'true_false') {

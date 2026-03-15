@@ -53,7 +53,8 @@ function isQuizActivity(type: ActivityType): boolean {
 		type === ActivityType.FILL_BLANK ||
 		type === ActivityType.TRANSLATE ||
 		type === ActivityType.TRUE_FALSE ||
-		type === ActivityType.WORD_ARRANGE
+		type === ActivityType.WORD_ARRANGE ||
+		type === ActivityType.SPEAK_IT // TASK-AUDIT-02: spoken production requires prior INFO
 	);
 }
 
@@ -75,6 +76,10 @@ function extractTestedPhrase(activity: ActivityConfig): string | null {
 		return activity.targetPhrase ?? null;
 	}
 	if (activity.type === ActivityType.WORD_ARRANGE) {
+		return activity.targetPhrase ?? null;
+	}
+	// TASK-AUDIT-02: SPEAK_IT tests the targetPhrase via spoken production
+	if (activity.type === ActivityType.SPEAK_IT) {
 		return activity.targetPhrase ?? null;
 	}
 	return null;
@@ -160,6 +165,13 @@ export function validateActivityConfig(activity: ActivityConfig, stepIndex: numb
 			if (!activity.coachingText?.trim()) errors.push(`${ctx}: missing coachingText`);
 			if (!activity.discoveryQuestion?.trim())
 				errors.push(`${ctx}: missing discoveryQuestion`);
+			break;
+
+		case ActivityType.SPEAK_IT:
+			// TASK-AUDIT-02: both fields required for pronunciation display
+			if (!activity.targetPhrase?.trim()) errors.push(`${ctx}: missing targetPhrase`);
+			if (!activity.nativeTranslation?.trim())
+				errors.push(`${ctx}: missing nativeTranslation`);
 			break;
 	}
 

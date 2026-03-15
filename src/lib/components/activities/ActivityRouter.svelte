@@ -27,6 +27,7 @@
 	import TrueFalseActivity from './TrueFalseActivity.svelte';
 	import WordArrangeActivity from './WordArrangeActivity.svelte';
 	import MatchingPairsActivity from './MatchingPairsActivity.svelte';
+	import SpeakItActivity from './SpeakItActivity.svelte'; // TASK-AUDIT-02
 
 	interface Props {
 		step: LessonStep;
@@ -164,6 +165,15 @@
 		<!-- MatchingPairs — connect target phrases to native translations -->
 		<MatchingPairsActivity
 			config={step.activity}
+			{onComplete}
+			onShowHelp={showHelp}
+		/>
+
+	{:else if step.activity.type === ActivityType.SPEAK_IT}
+		<!-- TASK-AUDIT-02: SpeakIt — child listens to TTS then speaks it back -->
+		<SpeakItActivity
+			config={step.activity}
+			{targetLanguage}
 			{onComplete}
 			onShowHelp={showHelp}
 		/>
