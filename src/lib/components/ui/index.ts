@@ -11,3 +11,5 @@ export { default as Input } from './Input.svelte';
 export { default as Badge } from './Badge.svelte';
 export { default as ProgressBar } from './ProgressBar.svelte';
 export { default as SunDropCounter } from './SunDropCounter.svelte';
+export { default as MicButton } from './MicButton.svelte';
+export { default as MicPermissionPrompt } from './MicPermissionPrompt.svelte';

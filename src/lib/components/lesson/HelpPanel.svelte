@@ -27,6 +27,7 @@
 	import type { HelpContext } from '$lib/services/helpAssistant';
 	import { BUG_REPORT_TYPES, BUG_REPORT_LABELS, validateBugReportType } from '$lib/services/helpAssistant';
 	import type { BugReportType } from '$lib/services/helpAssistant';
+	import MicButton from '$lib/components/ui/MicButton.svelte';
 
 	// ── Props ──────────────────────────────────────────────────────────────
 	interface Props {
@@ -235,10 +236,17 @@
 				</button>
 			</div>
 
-			<!-- Divider + free text input -->
+			<!-- Divider + free text input with voice option -->
 			<div class="mt-5">
-				<p class="text-bark-400 text-sm mb-2">Or type your question:</p>
-				<div class="flex gap-2">
+				<p class="text-bark-400 text-sm mb-2">Or ask me anything:</p>
+				<!--
+				  Voice input row: text field + mic button + send button.
+				  MicButton inserts transcript into freeQuestion, then
+				  a 500ms delay lets the child see what was heard before sending.
+				  languageHint is omitted so Whisper auto-detects native language —
+				  children ask help questions in their own language.
+				-->
+				<div class="flex gap-2 items-center relative">
 					<input
 						type="text"
 						bind:value={freeQuestion}
@@ -249,6 +257,19 @@
 							if (e.key === 'Enter' && freeQuestion.trim()) {
 								askForHelp('free_question', freeQuestion);
 							}
+						}}
+					/>
+					<!-- Mic button: inserts transcript into the question field, then auto-sends -->
+					<MicButton
+						size="sm"
+						onTranscript={(text) => {
+							freeQuestion = text;
+							// Brief delay so the child can see what was transcribed before sending
+							setTimeout(() => {
+								if (freeQuestion.trim()) {
+									askForHelp('free_question', freeQuestion);
+								}
+							}, 500);
 						}}
 					/>
 					<button
