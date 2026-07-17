@@ -35,6 +35,12 @@
 		/** Called when the activity finishes (correct or wrong accepted) */
 		onComplete: (correct: boolean, sunDropsEarned: number) => void;
 		/**
+		 * True once this step's activity has completed (TASK-FUN-01).
+		 * Freezes the activity body (inert + dimmed) while the reward/penalty
+		 * modal plays out, so the answered question can't be resubmitted.
+		 */
+		disabled?: boolean;
+		/**
 		 * NPC config for the current step — generated deterministically by
 		 * the lesson page using generateNPC(stepIndex, totalSteps, lessonId).
 		 * Optional: if not provided, EncounterScene is not rendered.
@@ -47,7 +53,7 @@
 		userAvatar?: AvatarOptions | null;
 	}
 
-	let { step, targetLanguage, onComplete, npcConfig = null, userAvatar = null }: Props = $props();
+	let { step, targetLanguage, onComplete, disabled = false, npcConfig = null, userAvatar = null }: Props = $props();
 
 	let helpVisible = $state(false);
 
@@ -111,7 +117,15 @@
 		</p>
 	{/if}
 
-	<!-- Activity body — switched by type -->
+	<!-- Activity body — switched by type.
+	     When disabled (step already answered, modal in flight) the whole body
+	     goes inert: no pointer, no keyboard, no focus — and dims so the freeze
+	     is visible (TASK-FUN-01). -->
+	<div
+		inert={disabled}
+		class="flex flex-col gap-4 transition-opacity duration-200 {disabled ? 'opacity-60' : ''}"
+		aria-disabled={disabled}
+	>
 	{#if step.activity.type === ActivityType.INFO}
 		<!-- ChunkIntroduction replaces InfoActivity for TASK-V2-02:
 		     auto-plays explanation TTS, has separate phrase audio button.
@@ -190,6 +204,7 @@
 			</button>
 		</div>
 	{/if}
+	</div>
 
 	<!-- Help drawer — slides up from bottom of activity area -->
 	{#if helpVisible && step.helpText}

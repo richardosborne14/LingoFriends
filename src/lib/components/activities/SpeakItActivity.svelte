@@ -27,6 +27,8 @@
 		type PronunciationResult,
 	} from '$lib/services/pronunciationService';
 	import { audioMap } from '$lib/stores/lesson';
+	import { micPermissionState } from '$lib/stores/micPermission';
+	import { get } from 'svelte/store';
 	import MicButton from '$lib/components/ui/MicButton.svelte';
 
 	// ─── Props ────────────────────────────────────────────────────────────────
@@ -51,10 +53,26 @@
 	 * 'idle'       — waiting for child to tap Mic (shows instruction + listen button)
 	 * 'recording'  — mic is active, capturing audio
 	 * 'processing' — STT request in flight
+	 * 'typing'     — typed fallback: child types the phrase instead of speaking (TASK-FUN-01)
 	 * 'result'     — comparison complete, showing stars + feedback
+	 *
+	 * Children in text_only mode (chose "I'll type instead" at the mic prompt)
+	 * start directly in 'typing' — previously they hit a dead end with no input.
 	 */
-	type Phase = 'idle' | 'recording' | 'processing' | 'result';
-	let phase = $state<Phase>('idle');
+	type Phase = 'idle' | 'recording' | 'processing' | 'typing' | 'result';
+	let phase = $state<Phase>(get(micPermissionState) === 'text_only' ? 'typing' : 'idle');
+
+	/**
+	 * Once the child opts into typing (explicitly or via text_only mode),
+	 * "Try again" returns to the typing panel, not the mic.
+	 */
+	let preferTyping = $state(get(micPermissionState) === 'text_only');
+
+	/** The typed attempt (typing phase only) */
+	let typedAnswer = $state('');
+
+	/** Whether the CURRENT result came from typing (changes "You said/typed" copy) */
+	let lastInputTyped = $state(false);
 
 	/** Which attempt we're on (1, 2, or 3) */
 	let attemptNumber = $state(1);
@@ -155,10 +173,26 @@
 	 */
 	function handleTranscript(transcript: string): void {
 		phase = 'processing'; // Show "Thinking…" briefly
+		lastInputTyped = false;
+		showResult(comparePronunciation(config.targetPhrase, transcript));
+	}
 
-		// Compare synchronously (no async needed — pronunciationService is pure)
-		const result = comparePronunciation(config.targetPhrase, transcript);
+	/**
+	 * Typed fallback submit (TASK-FUN-01). Reuses comparePronunciation so typed
+	 * and spoken attempts share identical star tiers, attempt limits, and the
+	 * never-fail pedagogy rules — typing is a full alternative, not a lesser one.
+	 */
+	function handleTypedSubmit(): void {
+		const answer = typedAnswer.trim();
+		if (!answer) return;
 
+		lastInputTyped = true;
+		typedAnswer = '';
+		showResult(comparePronunciation(config.targetPhrase, answer));
+	}
+
+	/** Shared result bookkeeping for both input paths */
+	function showResult(result: PronunciationResult): void {
 		currentResult = result;
 
 		// Track best across attempts
@@ -181,12 +215,26 @@
 	// ─── Activity flow ────────────────────────────────────────────────────────
 
 	/**
-	 * "Try Again" button handler — reset to idle for another attempt.
+	 * "Try Again" button handler — reset for another attempt.
+	 * Returns to typing if the child opted into it, otherwise the mic.
 	 * Only available when attemptNumber < MAX_ATTEMPTS.
 	 */
 	function tryAgain(): void {
 		attemptNumber += 1;
 		currentResult = null;
+		phase = preferTyping ? 'typing' : 'idle';
+	}
+
+	/** Switch from mic to the typed fallback (idle phase link or mic error) */
+	function switchToTyping(): void {
+		preferTyping = true;
+		processingError = null;
+		phase = 'typing';
+	}
+
+	/** Switch back to the mic (only offered when mic isn't text_only) */
+	function switchToMic(): void {
+		preferTyping = false;
 		phase = 'idle';
 	}
 
@@ -251,9 +299,9 @@
 	<!-- Phrase display card — always visible -->
 	<div class="bg-white rounded-card border border-bark-100 px-5 py-5 text-center shadow-sm">
 
-		<!-- Instruction -->
+		<!-- Instruction — typing fallback gets its own wording -->
 		<p class="text-sm text-bark-400 font-medium mb-3">
-			Say this out loud:
+			{phase === 'typing' ? 'Listen, then type this phrase:' : 'Say this out loud:'}
 		</p>
 
 		<!-- Target phrase — large, prominent -->
@@ -308,10 +356,10 @@
 				{/if}
 			</p>
 
-			<!-- What they said (transparency) -->
+			<!-- What they said/typed (transparency) -->
 			{#if currentResult.transcript}
 				<p class="text-center text-xs text-bark-400 mt-2">
-					You said: "<em>{currentResult.transcript}</em>"
+					{lastInputTyped ? 'You typed:' : 'You said:'} "<em>{currentResult.transcript}</em>"
 				</p>
 			{/if}
 
@@ -359,6 +407,73 @@
 			{/if}
 		</div>
 
+	<!-- ─── TYPING PHASE (TASK-FUN-01 typed fallback) ───────────────────── -->
+	{:else if phase === 'typing'}
+		<form
+			onsubmit={(e) => { e.preventDefault(); handleTypedSubmit(); }}
+			class="flex flex-col gap-3"
+		>
+			<!-- svelte-ignore a11y_autofocus — single-task screen, focus is expected -->
+			<input
+				type="text"
+				bind:value={typedAnswer}
+				placeholder="Type it here…"
+				autofocus
+				autocapitalize="off"
+				autocomplete="off"
+				spellcheck="false"
+				aria-label="Type the phrase"
+				class="w-full px-4 py-3 rounded-card border-2 border-bark-200
+					   focus:border-sky-400 focus:outline-none
+					   text-lg text-bark-700 font-medium bg-white"
+			/>
+			<button
+				type="submit"
+				disabled={!typedAnswer.trim()}
+				class="w-full py-3 rounded-btn bg-coral-400 hover:bg-coral-500
+					   text-white font-bold text-base transition-colors
+					   disabled:opacity-50 disabled:cursor-not-allowed"
+			>
+				Check ✓
+			</button>
+
+			<!-- Help + secondary actions row -->
+			<div class="flex items-center justify-center gap-4 mt-1">
+				<button
+					type="button"
+					onclick={onShowHelp}
+					class="text-sm text-bark-400 hover:text-bark-600 underline"
+				>
+					💡 Need a hint?
+				</button>
+				{#if $micPermissionState !== 'text_only' && $micPermissionState !== 'unavailable'}
+					<span class="text-bark-200">·</span>
+					<button
+						type="button"
+						onclick={switchToMic}
+						class="text-sm text-bark-400 hover:text-bark-600"
+					>
+						🎤 Use my voice
+					</button>
+				{/if}
+				<span class="text-bark-200">·</span>
+				<button
+					type="button"
+					onclick={skip}
+					class="text-sm text-bark-400 hover:text-bark-600"
+				>
+					Skip for now
+				</button>
+			</div>
+
+			<!-- Attempt counter (for attempts 2+) -->
+			{#if attemptNumber > 1}
+				<p class="text-center text-sm text-bark-400">
+					Attempt {attemptNumber} of {MAX_ATTEMPTS}
+				</p>
+			{/if}
+		</form>
+
 	<!-- ─── IDLE PHASE ──────────────────────────────────────────────────── -->
 	{:else}
 		<!-- Error message (shown if previous attempt had a tech error) -->
@@ -367,6 +482,12 @@
 				<p class="text-amber-800 text-sm font-medium">
 					⚠️ Couldn't hear you clearly. Try again, or check your microphone.
 				</p>
+				<button
+					onclick={switchToTyping}
+					class="mt-1 text-sm text-amber-700 font-semibold underline"
+				>
+					⌨️ Type it instead
+				</button>
 			</div>
 		{/if}
 
@@ -391,13 +512,20 @@
 				onError={handleRecordError}
 			/>
 
-			<!-- Help + Skip row -->
+			<!-- Help + Type + Skip row -->
 			<div class="flex items-center gap-4 mt-1">
 				<button
 					onclick={onShowHelp}
 					class="text-sm text-bark-400 hover:text-bark-600 underline"
 				>
 					💡 Need a hint?
+				</button>
+				<span class="text-bark-200">·</span>
+				<button
+					onclick={switchToTyping}
+					class="text-sm text-bark-400 hover:text-bark-600"
+				>
+					⌨️ Type it instead
 				</button>
 				<span class="text-bark-200">·</span>
 				<button

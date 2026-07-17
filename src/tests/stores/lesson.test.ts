@@ -27,6 +27,8 @@ import {
 	deductSunDrop,
 	startActivities,
 	resetLesson,
+	stepCompleted,
+	acceptSkip,
 } from '$lib/stores/lesson';
 import { ActivityType } from '$lib/types/lesson';
 import type { LessonPlan } from '$lib/types/lesson';
@@ -379,5 +381,51 @@ describe('resetLesson()', () => {
 		startActivities();
 		resetLesson();
 		expect(get(lessonPhase)).toBe('loading');
+	});
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// stepCompleted freeze flag (TASK-FUN-01)
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('stepCompleted (TASK-FUN-01 resubmit freeze)', () => {
+	it('starts false after initLesson', () => {
+		stepCompleted.set(true); // simulate stale state from a previous lesson
+		initLesson(makePlan());
+		expect(get(stepCompleted)).toBe(false);
+	});
+
+	it('is cleared by advanceStep', () => {
+		initLesson(makePlan());
+		stepCompleted.set(true); // page sets this when the activity completes
+		advanceStep();
+		expect(get(stepCompleted)).toBe(false);
+	});
+
+	it('is cleared by resetLesson', () => {
+		initLesson(makePlan());
+		stepCompleted.set(true);
+		resetLesson();
+		expect(get(stepCompleted)).toBe(false);
+	});
+
+	it('is cleared by acceptSkip so the skipped-to step is interactive', () => {
+		initLesson(makePlan(5));
+		stepCompleted.set(true);
+		acceptSkip(3);
+		expect(get(stepCompleted)).toBe(false);
+		expect(get(currentStepIndex)).toBe(3);
+	});
+
+	it('stays true between activity completion and modal dismissal', () => {
+		// The page sets the flag on completion; nothing clears it until the
+		// modal-dismiss callback calls advanceStep. Verify no store action
+		// unrelated to advancing clears it.
+		initLesson(makePlan());
+		stepCompleted.set(true);
+		recordCorrect(3);
+		recordHelpUsed();
+		deductSunDrop();
+		expect(get(stepCompleted)).toBe(true);
 	});
 });

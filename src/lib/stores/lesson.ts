@@ -85,6 +85,17 @@ export const helpPanelOpen = writable<boolean>(false);
 export type LessonPhase = 'loading' | 'preview' | 'activity' | 'complete' | 'error';
 export const lessonPhase = writable<LessonPhase>('loading');
 
+/**
+ * True from the moment the current step's activity fires onComplete until
+ * advanceStep() moves to the next step (TASK-FUN-01).
+ *
+ * WHY: the reward/penalty modal delays the actual advance, so the answered
+ * activity stays on screen behind the modal. This flag lets the page freeze
+ * the activity (inert + dimmed) and ignore any duplicate onComplete calls —
+ * otherwise a fast second tap could double-award SunDrops.
+ */
+export const stepCompleted = writable<boolean>(false);
+
 /** Error message shown when generation or completion fails */
 export const lessonError = writable<string | null>(null);
 
@@ -192,6 +203,7 @@ export function initLesson(plan: LessonPlan, audio: Record<string, string> = {})
 	currentStepIndex.set(0);
 	// NOTE: audioMap is set AFTER this block — see audioCache merge below
 	helpUsedThisStep.set(false);
+	stepCompleted.set(false);
 	lessonError.set(null);
 	// Reset hearts and streak for the new lesson
 	hearts.set(STARTING_HEARTS);
@@ -235,6 +247,7 @@ export function initLesson(plan: LessonPlan, audio: Record<string, string> = {})
  */
 export function advanceStep(): void {
 	helpUsedThisStep.set(false);
+	stepCompleted.set(false);
 
 	const plan = get(lessonPlan);
 	const nextIndex = get(currentStepIndex) + 1;
@@ -313,6 +326,7 @@ export function resetLesson(): void {
 	currentStepIndex.set(0);
 	audioMap.set({});
 	helpUsedThisStep.set(false);
+	stepCompleted.set(false);
 	lessonPhase.set('loading');
 	lessonError.set(null);
 	lessonResults.set({
@@ -557,6 +571,8 @@ export function advanceStepAdaptive(): AdaptiveDecision {
 			// Don't advance plan index — injected step comes first
 			tracker.recordEasyWinInjected();
 			helpUsedThisStep.set(false);
+			// A new (injected) step is starting — lift the completed-step freeze
+			stepCompleted.set(false);
 			break;
 
 		case 'skip_offer':
@@ -585,6 +601,7 @@ export function advanceStepAdaptive(): AdaptiveDecision {
 export function acceptSkip(skipToIndex: number): void {
 	pendingSkipOffer.set(null);
 	helpUsedThisStep.set(false);
+	stepCompleted.set(false);
 
 	const plan = get(lessonPlan);
 	currentStepIndex.set(skipToIndex);

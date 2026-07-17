@@ -566,3 +566,27 @@ function updateAnimal(state: AnimalState, delta: number, config: AnimalConfig): 
 | Language fallback wrong language | Match on ISO codes not display names | 2026-02-20 |
 | Translate shows "Missing activity data" | Add correctAnswer to buildRecallStep() | 2026-02-20 |
 | Procedural 3D garden objects | Separate modules, simple AI state machine | 2026-01-03 |
+
+---
+
+## 2026-07-17: Freezing an answered activity behind feedback modals
+
+**Problem:** After answering, the reward/penalty modal delays `advanceStep()`, so the answered activity stayed mounted — and the page force-remounted it immediately (`stepKey += 1`), presenting a fresh, resubmittable copy behind the modal. Double-submit could double-award SunDrops.
+
+**Solution:** Three layers (TASK-FUN-01):
+1. `stepCompleted` store flag — set on completion, cleared by `advanceStep()`/`initLesson()`/`acceptSkip()`. Page-level guard makes `handleActivityComplete` idempotent.
+2. ActivityRouter wraps the activity body in `<div inert={disabled} class="... opacity-60">` — `inert` blocks pointer AND keyboard/focus, unlike `pointer-events-none`.
+3. Key the activity on `$currentStepIndex` (remount only on real advance), never on completion.
+
+**Verified:** Playwright click on the frozen activity times out (inert works against real input); SunDrop counter single-awards.
+
+**Apply to:** Any flow where feedback UI delays state advance past user input.
+
+---
+
+## 2026-07-17: Findings from end-to-end lesson drive (open bugs)
+
+1. **`coaching_chat` steps render "Activity loading…"** — the assembler emits them (steps 0 and 7 of a 15-step plan observed) but ActivityRouter has no branch for `ActivityType.COACHING_CHAT`. Kids' first step of every lesson is a placeholder. → needs a CoachingChat component or assembler suppression until TASK-AUDIT-04.
+2. **Streak bonus displayed but never credited** — RewardModal shows "+6 includes +3 streak bonus!" but the page records only the base via `recordCorrect(earnedSunDrops)`; header stays at +3. Either credit `event.streakBonus` or stop displaying it.
+3. **Adaptive engine unwired** — `advanceStepAdaptive`/`injectedStep`/`SkipAheadPrompt` (TASK-AUDIT-03) exist and are tested but the lesson page calls plain `advanceStep()`; no injection can ever trigger in the real app.
+4. **Garden reachable pre-onboarding** — after registration the enhance/update cycle lands the un-onboarded user on `/garden` (blank plot, no trees) instead of `/onboarding`.

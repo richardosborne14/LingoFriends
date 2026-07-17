@@ -27,9 +27,9 @@
 
 	import {
 		lessonPlan, lessonPhase, lessonResults, lessonError,
-		currentStep, progress, sunDropsEarned,
+		currentStep, currentStepIndex, progress, sunDropsEarned,
 		hearts, consecutiveCorrect, pendingReward, pendingPenalty, showBreather,
-		helpPanelOpen,
+		helpPanelOpen, stepCompleted,
 		initLesson, advanceStep, startActivities, resetLesson,
 		recordCorrect, recordWrong, deductSunDrop,
 		incrementStreak, resetStreak, loseHeart, restoreHearts,
@@ -106,9 +106,6 @@
 	// Track lesson start time (not in store — owned by this page)
 	let lessonStartTime = 0;
 
-	// Key for re-mounting ActivityRouter when step advances (resets local state)
-	let stepKey = $state(0);
-
 	onMount(async () => {
 		// Pre-load the most common sounds so they play instantly during the lesson.
 		// This is fire-and-forget — no await needed.
@@ -176,12 +173,13 @@
 	 * Wrong: deduct sundrop, lose heart → if breather: wait for user, else show penalty → advance
 	 */
 	function handleActivityComplete(correct: boolean, earnedSunDrops: number) {
+		// TASK-FUN-01: the current step already completed — a duplicate call
+		// (double tap, stray Enter) must never double-award or double-penalise.
+		if (get(stepCompleted)) return;
+		stepCompleted.set(true);
+
 		// Update elapsed time before potentially completing
 		lessonResults.update((r) => ({ ...r, timeSpentMs: Date.now() - lessonStartTime }));
-
-		// Bump stepKey so ActivityRouter fully re-mounts for the next step,
-		// but DON'T advance index yet — modal callbacks handle that timing.
-		stepKey += 1;
 
 		if (correct) {
 			// ── CORRECT ANSWER ──────────────────────────────────────────────
@@ -353,13 +351,17 @@
 			</div>
 
 		{:else if $lessonPhase === 'activity' && $currentStep}
-			<!-- Activity — key= forces full re-mount on step change.
+			<!-- Activity — keyed on the step index so it re-mounts only when the
+			     step actually advances. While the reward/penalty modal is up the
+			     answered activity stays mounted but frozen (disabled) so it can't
+			     be resubmitted (TASK-FUN-01).
 			     npcConfig + userAvatar added in TASK-V2-07 for EncounterScene banner. -->
-			{#key stepKey}
+			{#key $currentStepIndex}
 				<ActivityRouter
 					step={$currentStep}
 					targetLanguage={data.profile.targetLanguage}
 					onComplete={handleActivityComplete}
+					disabled={$stepCompleted}
 					{npcConfig}
 					{userAvatar}
 				/>
