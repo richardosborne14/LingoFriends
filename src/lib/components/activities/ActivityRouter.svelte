@@ -28,6 +28,7 @@
 	import WordArrangeActivity from './WordArrangeActivity.svelte';
 	import MatchingPairsActivity from './MatchingPairsActivity.svelte';
 	import SpeakItActivity from './SpeakItActivity.svelte'; // TASK-AUDIT-02
+	import CoachingChatActivity from './CoachingChatActivity.svelte'; // Quick-wins: was falling to the unrouted fallback
 
 	interface Props {
 		step: LessonStep;
@@ -181,6 +182,16 @@
 			config={step.activity}
 			{onComplete}
 			onShowHelp={showHelp}
+		/>
+
+	{:else if step.activity.type === ActivityType.COACHING_CHAT}
+		<!-- Scripted NPC coaching intro — 0 SunDrops, no failure state.
+		     onSpeakingChange drives the EncounterScene jaw like ChunkIntroduction. -->
+		<CoachingChatActivity
+			config={step.activity}
+			{targetLanguage}
+			{onComplete}
+			onSpeakingChange={handleSpeakingChange}
 		/>
 
 	{:else if step.activity.type === ActivityType.SPEAK_IT}

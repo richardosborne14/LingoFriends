@@ -584,9 +584,11 @@ function updateAnimal(state: AnimalState, delta: number, config: AnimalConfig): 
 
 ---
 
-## 2026-07-17: Findings from end-to-end lesson drive (open bugs)
+## 2026-07-17: Findings from end-to-end lesson drive (ALL FIXED in quick-wins sweep, same day)
 
-1. **`coaching_chat` steps render "Activity loading…"** — the assembler emits them (steps 0 and 7 of a 15-step plan observed) but ActivityRouter has no branch for `ActivityType.COACHING_CHAT`. Kids' first step of every lesson is a placeholder. → needs a CoachingChat component or assembler suppression until TASK-AUDIT-04.
-2. **Streak bonus displayed but never credited** — RewardModal shows "+6 includes +3 streak bonus!" but the page records only the base via `recordCorrect(earnedSunDrops)`; header stays at +3. Either credit `event.streakBonus` or stop displaying it.
-3. **Adaptive engine unwired** — `advanceStepAdaptive`/`injectedStep`/`SkipAheadPrompt` (TASK-AUDIT-03) exist and are tested but the lesson page calls plain `advanceStep()`; no injection can ever trigger in the real app.
-4. **Garden reachable pre-onboarding** — after registration the enhance/update cycle lands the un-onboarded user on `/garden` (blank plot, no trees) instead of `/onboarding`.
+1. ~~**`coaching_chat` steps render "Activity loading…"**~~ → FIXED: `CoachingChatActivity.svelte` implements the scripted intro → discover → reveal flow (0 drops, no failure state); routed in ActivityRouter.
+2. ~~**Streak bonus displayed but never credited**~~ → FIXED: the page now builds the RewardEvent first and credits `event.sunDrops` (base + bonus). Verified live: modal +6 = balance +6.
+3. ~~**Adaptive engine unwired**~~ → FIXED: lesson page uses `advanceStepAdaptive` after feedback on quiz steps, feeds `recordAdaptiveSignal` with per-step response times, records breathers, renders `$injectedStep` and `SkipAheadPrompt`. (Inject/skip paths remain unit-verified; runtime drive exercised the 'continue' path.)
+4. ~~**Garden reachable pre-onboarding**~~ → FIXED: (app) layout guard redirects un-onboarded users to /onboarding. Verified live.
+
+**Debugging lesson learned:** a "ghost navigation" that ejected every automated lesson run turned out to be the test driver clicking the header's ✕ exit button — the (app) layout wraps the whole page (header included) in its own `<main>`, so `main button` locators include the empty-text exit button. See `.claude/skills/verify/SKILL.md` drive-script gotchas.

@@ -34,7 +34,12 @@
 		recordCorrect, recordWrong, deductSunDrop,
 		incrementStreak, resetStreak, loseHeart, restoreHearts,
 		setPendingReward, clearPendingReward, setPendingPenalty, clearPendingPenalty,
+		// Adaptive engine (TASK-AUDIT-03 — wired in quick-wins sweep)
+		injectedStep, pendingSkipOffer,
+		advanceStepAdaptive, recordAdaptiveSignal, recordBreatherForAdapter,
+		acceptSkip, declineSkip, completeInjectedStep,
 	} from '$lib/stores/lesson';
+	import SkipAheadPrompt from '$lib/components/lesson/SkipAheadPrompt.svelte';
 	import type { HelpContext } from '$lib/services/helpAssistant';
 	import { stopAudio } from '$lib/services/audioService';
 	import { playSound, preloadSounds } from '$lib/services/soundService';
@@ -51,6 +56,7 @@
 
 	import type { PageData } from './$types';
 	import type { LessonPlan } from '$lib/types/lesson';
+	import { ActivityType } from '$lib/types/lesson';
 	import type { AvatarOptions } from '$lib/types/garden';
 	import { generateNPC } from '$lib/services/npcGenerator';
 
@@ -105,6 +111,56 @@
 
 	// Track lesson start time (not in store — owned by this page)
 	let lessonStartTime = 0;
+
+	// Per-step start time — feeds responseTimeMs to the adaptive signal tracker.
+	// Reset whenever the visible step changes (planned advance OR injection).
+	let stepStartTime = Date.now();
+	$effect(() => {
+		void $currentStepIndex;
+		void $injectedStep;
+		stepStartTime = Date.now();
+	});
+
+	/**
+	 * True when the current step is a scored quiz — only these feed the
+	 * adaptive tracker and trigger adaptive decisions. INFO/COACHING_CHAT are
+	 * teaching steps: auto-"correct", so they'd pollute the signals.
+	 */
+	function currentStepIsQuiz(): boolean {
+		const step = get(currentStep);
+		if (!step) return false;
+		return (
+			step.activity.type !== ActivityType.INFO &&
+			step.activity.type !== ActivityType.COACHING_CHAT
+		);
+	}
+
+	/**
+	 * Post-feedback advance: quiz steps consult the adaptive engine
+	 * (may inject an easy win or offer a skip); teaching steps advance plainly.
+	 * The inject/skip cases don't advance the index — the store sets
+	 * $injectedStep / $pendingSkipOffer and the template reacts.
+	 */
+	function advanceAfterFeedback() {
+		if (currentStepIsQuiz()) {
+			advanceStepAdaptive();
+		} else {
+			advanceStep();
+		}
+	}
+
+	/**
+	 * Completion handler for an INJECTED easy-win step (not part of the plan).
+	 * Easy wins are always answerable — but guard `correct` anyway; a wrong
+	 * answer on an easy win still advances with 0 drops and NO penalty
+	 * (the injection exists to relieve pressure, never to add it).
+	 */
+	function handleInjectedComplete(correct: boolean, earnedSunDrops: number) {
+		if (get(stepCompleted)) return;
+		stepCompleted.set(true);
+		playSound(correct ? 'correct' : 'wrong');
+		completeInjectedStep(correct ? earnedSunDrops : 0);
+	}
 
 	onMount(async () => {
 		// Pre-load the most common sounds so they play instantly during the lesson.
@@ -181,10 +237,15 @@
 		// Update elapsed time before potentially completing
 		lessonResults.update((r) => ({ ...r, timeSpentMs: Date.now() - lessonStartTime }));
 
+		// Feed the adaptive tracker — quiz steps only (teaching steps are
+		// auto-"correct" and would drown the struggle/mastery signals).
+		if (currentStepIsQuiz()) {
+			recordAdaptiveSignal(correct, Date.now() - stepStartTime);
+		}
+
 		if (correct) {
 			// ── CORRECT ANSWER ──────────────────────────────────────────────
 			incrementStreak();
-			recordCorrect(earnedSunDrops);
 			playSound('correct');
 
 			// Play streak sound at milestones
@@ -194,12 +255,20 @@
 			else if (streak >= 3) playSound('streak-3');
 
 			if (earnedSunDrops > 0) {
+				// Build the event FIRST so the credited amount is the modal's
+				// total (base + streak bonus). Previously only the base was
+				// recorded, so the modal promised drops the child never got.
+				const event = buildRewardEvent(earnedSunDrops, streak);
+				recordCorrect(event.sunDrops);
 				// Show reward modal — it will call handleRewardDismiss when done
-				setPendingReward(buildRewardEvent(earnedSunDrops, streak));
+				setPendingReward(event);
 				// (don't advanceStep here — modal callback does it)
 			} else {
-				// INFO steps earn 0 sunDrops — skip modal, advance immediately
-				advanceStep();
+				// INFO steps earn 0 sunDrops — count the correct, skip modal, advance.
+				// Still adaptive-aware: a mastery streak can end on a 0-drop quiz
+				// step (e.g. skipped SpeakIt), and the skip offer should not be lost.
+				recordCorrect(0);
+				advanceAfterFeedback();
 			}
 
 		} else {
@@ -218,9 +287,12 @@
 				// Hearts still remaining — show penalty modal
 				// modal callback will advanceStep()
 				setPendingPenalty(buildPenaltyEvent(SUNDROP_PENALTY_PER_WRONG));
+			} else {
+				// Breather shown by loseHeart() — tell the adapter so it injects
+				// an easy win as the VERY NEXT step after "Try Again" (TASK-AUDIT-03)
+				recordBreatherForAdapter();
 			}
-			// If hearts === 0: breather is already shown by loseHeart()
-			// handleBreatherContinue() will restoreHearts + advanceStep
+			// handleBreatherContinue() will restoreHearts + adaptive advance
 		}
 	}
 
@@ -228,29 +300,30 @@
 	// MODAL DISMISS CALLBACKS
 	// ─────────────────────────────────────────────────────────────────────────
 
-	/** Called when RewardModal auto-dismisses or is tapped. Advance to next step. */
+	/** Called when RewardModal auto-dismisses or is tapped. Advance (adaptively). */
 	function handleRewardDismiss() {
 		clearPendingReward();
-		advanceStep();
+		advanceAfterFeedback();
 		// Play lesson complete sound if lesson is now complete
 		if ($lessonPhase === 'complete') {
 			playSound('lesson-complete');
 		}
 	}
 
-	/** Called when PenaltyModal auto-dismisses. Advance to next step. */
+	/** Called when PenaltyModal auto-dismisses. Advance (adaptively). */
 	function handlePenaltyDismiss() {
 		clearPendingPenalty();
-		advanceStep();
+		advanceAfterFeedback();
 	}
 
 	/**
 	 * Called when learner taps "Try Again" on the BreatherModal.
-	 * Restores hearts + continues from the next step.
+	 * Restores hearts, then advances adaptively — the tracker recorded the
+	 * breather, so the adapter injects an easy win here (TASK-AUDIT-03).
 	 */
 	function handleBreatherContinue() {
 		restoreHearts();
-		advanceStep();
+		advanceAfterFeedback();
 	}
 
 	function handleStart() {
@@ -350,6 +423,20 @@
 				</button>
 			</div>
 
+		{:else if $lessonPhase === 'activity' && $injectedStep}
+			<!-- Adaptive easy-win step (TASK-AUDIT-03) — rendered INSTEAD of the
+			     planned step at the same index. Completing it advances the plan. -->
+			{#key `inject-${$currentStepIndex}`}
+				<ActivityRouter
+					step={$injectedStep}
+					targetLanguage={data.profile.targetLanguage}
+					onComplete={handleInjectedComplete}
+					disabled={$stepCompleted}
+					{npcConfig}
+					{userAvatar}
+				/>
+			{/key}
+
 		{:else if $lessonPhase === 'activity' && $currentStep}
 			<!-- Activity — keyed on the step index so it re-mounts only when the
 			     step actually advances. While the reward/penalty modal is up the
@@ -400,6 +487,15 @@
 <!-- Breather modal — shown when hearts hit 0, requires tap to continue -->
 {#if $showBreather}
 	<BreatherModal onContinue={handleBreatherContinue} />
+{/if}
+
+<!-- Skip-ahead offer (TASK-AUDIT-03) — shown when the adapter detects mastery -->
+{#if $pendingSkipOffer?.action === 'skip_offer'}
+	{@const skipTo = $pendingSkipOffer.skipToIndex}
+	<SkipAheadPrompt
+		onSkip={() => acceptSkip(skipTo)}
+		onContinue={declineSkip}
+	/>
 {/if}
 
 <!-- ── Floating help button — visible only during activity phase ── -->

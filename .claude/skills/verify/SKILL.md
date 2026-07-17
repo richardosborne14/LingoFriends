@@ -31,6 +31,21 @@ How to drive the running app end-to-end for verification.
 - Detect lesson end by URL leaving `/lesson`, not by completion-screen text.
 - Garden page fires `load` slowly in dev (Three.js cold compile) — use `waitUntil: 'commit'`.
 
+## Drive-script gotchas (learned the hard way)
+
+- **The (app) layout wraps the ENTIRE page — including the lesson page's header — in its own
+  `<main>`.** So `page.locator('main')` matches TWO elements (strict-mode errors on innerText;
+  use `.last()`), and `main button` includes the header's ✕ **Exit lesson** button. It has
+  empty text, so text filters pass it — a generic "click first button" driver will click it
+  and silently eject the lesson. ALWAYS skip empty-text buttons (`if (!txt) continue`).
+- Audio buttons change label while playing: filter `/hear it|playing|speaking/i`.
+- In headless Chromium audio never fires `ended` — "Speaking…"/"Playing…" states persist
+  forever. Harmless (audioService resolves on rejection; buttons still work) but expect it.
+- Submit the final onboarding step ONCE, then `waitForURL(/garden/)` — the enhance action
+  is slow and re-clicking queues duplicate POSTs.
+- Reward/penalty modals are `.fixed.inset-0.z-50` with `pointer-events-none` — they auto-
+  dismiss in 1.2–1.5s and do NOT block clicks underneath (the inert freeze does that).
+
 ## Working example
 
 A complete working drive script from TASK-FUN-01 verification (register → onboard →
