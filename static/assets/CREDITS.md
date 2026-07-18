@@ -25,6 +25,7 @@ Walk animation = rows 8–11 (up, left, down, right), 9 columns each.
 | `characters/hat/beanie.png` (knit "christmas" hat, blue) | `hat/holiday/christmas/adult/blue.png` | JaidynReiman, Tuomo Untinen | GPL 3.0 / OGA-BY 3.0 |
 | `characters/hat/headband.png` (thick headband, yellow) | `hat/headband/thick/adult/yellow.png` | JaidynReiman, bluecarrot16 | OGA-BY 3.0 / CC-BY-SA 3.0 |
 | `characters/hat/crown.png` (gold crown) | `hat/formal/crown/adult/crown_gold.png` | bluecarrot16, Lanea Zimmerman (Sharm) | CC-BY-SA 3.0 / GPL 3.0 |
+| `characters/legs/jeans.png` (thin pants, blue) | `legs/pants/thin/blue.png` | bluecarrot16, JaidynReiman, ElizaWy and LPC contributors | CC-BY-SA 3.0 / GPL 3.0 |
 
 Full per-asset credits (authors, source OGA submissions) are maintained upstream in
 the generator repo's `CREDITS.csv` and per-sheet `sheet_definitions/*.json`.
@@ -52,6 +53,25 @@ Licence: CC-BY-SA 3.0 / GPL 3.0.
 [LPC Trees](https://opengameart.org/content/lpc-trees) by bluecarrot16.
 Licence: CC-BY-SA 3.0 / GPL 3.0.
 Colour variants map to tree health tiers (green = healthy, pale = poor, dead = critical).
+
+**`props/plants.png`** — [\[LPC\] Flowers / Plants / Fungi / Wood](https://opengameart.org/content/lpc-flowers-plants-fungi-wood)
+compiled by bluecarrot16 (many contributing artists — full list in `CREDITS-plants.txt`
+alongside this file, required by the licence). Licence: CC-BY-SA 3.0.
+
+**`props/house.png`** — assembled in-repo (scripts documented in TASK-FUN-03) from:
+[\[LPC\] Thatched-roof Cottage](https://opengameart.org/content/lpc-thatched-roof-cottage)
+by bluecarrot16, Lanea Zimmerman (Sharm), William.Thompsonj (walls + thatched roof),
+plus door/window pieces from the [LPC Tile Atlas 2 / build atlas](https://opengameart.org/content/lpc-tile-atlas2)
+(authors as listed there). Licence: CC-BY-SA 3.0 / GPL 3.0.
+
+**`props/rabbit.png`** — [Bunny Rabbit LPC style for PixelFarm](https://opengameart.org/content/bunny-rabbit-lpc-style-for-pixelfarm)
+by Stephen Challener (Redshrike), commissioned by tebruno99; reorganised grid by Evert
+([Reorganised LPC rabbit](https://opengameart.org/content/reorganised-lpc-rabbit)).
+Licence: CC-BY 3.0 / CC-BY-SA 3.0 / OGA-BY 3.0.
+
+**`props/bird-robin.png`, `props/bird-bluejay.png`** — [\[LPC\] Birds](https://opengameart.org/content/lpc-birds)
+by bluecarrot16 (commissioned by castelonia). Licence: CC-BY 3.0+ / OGA-BY 3.0+
+(also CC-BY-SA/GPL). Attribution requires a link back to the OGA page (done here).
 
 ---
 

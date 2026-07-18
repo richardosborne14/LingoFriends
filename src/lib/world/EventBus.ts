@@ -36,6 +36,19 @@ export interface WorldEvents {
 	'ground-tap': { tileX: number; tileY: number };
 	/** BootScene finished loading + compositing — world is visible. */
 	'world-ready': void;
+	/**
+	 * Post-lesson growth celebration finished (camera back with the player).
+	 * Payload = SunDrops earned, so Svelte can show the tally toast.
+	 */
+	'celebration-done': { sunDrops: number };
+	/**
+	 * Tutorial guide wants a speech bubble shown. Svelte renders the bubble
+	 * (DOM overlay — text stays out of the canvas for i18n) at the given
+	 * SCREEN coordinates. `step` indexes the i18n message; null = hide.
+	 */
+	'tutorial-bubble': { step: number; screenX: number; screenY: number } | null;
+	/** Tutorial finished (walked through or skipped) — Svelte persists the flag. */
+	'tutorial-done': void;
 	/** Reserved for TASK-FUN-04/05 (visiting + battles). */
 	'plot-entered': string;
 	'npc-reached': string;

@@ -27,6 +27,15 @@ export const TEX = {
 	treesPale: 'trees-pale',
 	/** LPC Trees sheet — critical (dead) variant */
 	treesDead: 'trees-dead',
+	/** LPC flora compilation (flowers, reeds, stumps, logs, mushrooms) */
+	plants: 'plants',
+	/** Baked thatched cottage (assembled from LPC cottage pieces) */
+	house: 'house',
+	/** Reorganised LPC rabbit — 32px frames, 3 cols × 4 rows */
+	rabbit: 'rabbit',
+	/** LPC birds — 32px frames, 3 cols × 8 rows */
+	birdRobin: 'bird-robin',
+	birdBluejay: 'bird-bluejay',
 } as const;
 
 /** URL paths (relative to site root — files live in static/assets/). */
@@ -35,7 +44,16 @@ export const ASSET_PATHS: Record<string, string> = {
 	[TEX.treesGreen]: '/assets/props/trees-green.png',
 	[TEX.treesPale]: '/assets/props/trees-pale.png',
 	[TEX.treesDead]: '/assets/props/trees-dead.png',
+	[TEX.plants]: '/assets/props/plants.png',
+	[TEX.house]: '/assets/props/house.png',
+	[TEX.rabbit]: '/assets/props/rabbit.png',
+	[TEX.birdRobin]: '/assets/props/bird-robin.png',
+	[TEX.birdBluejay]: '/assets/props/bird-bluejay.png',
 };
+
+/** The authored home-plot base map (see scripts/generate-plot-map.mjs). */
+export const PLOT_MAP_KEY = 'plot-base';
+export const PLOT_MAP_PATH = '/maps/plot-base.json';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TILE GEOMETRY (locked decision — LPC terrain ships on a 32px grid)
@@ -79,47 +97,92 @@ export const TILE = {
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TREE FRAMES (named crop regions inside the trees-* sheets)
+// TREE GROWTH VISUALS (TASK-FUN-03 — 5 readable stages + wilt variants)
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Growth-stage frames, cropped from the 1024×1024 LPC Trees sheets.
- * Same coordinates apply to green/pale/dead variants (identical layout).
- *
- * Coordinates were located visually on the sheet:
- *   sapling — small tree, top-left corner
- *   young   — medium round tree, second row
- *   mature  — large classic oak, second row right
+ * The 5 visual growth tiers, in order. Kid-readable from across the plot:
+ *   seed     — dirt mound (terrain atlas farm tile)
+ *   sprout   — green shoots (terrain atlas farm tile)
+ *   sapling  — small tree (LPC Trees sheet)
+ *   healthy  — medium round tree
+ *   blooming — large classic oak
+ */
+export const TREE_STAGES = ['seed', 'sprout', 'sapling', 'healthy', 'blooming'] as const;
+export type TreeStageName = (typeof TREE_STAGES)[number];
+
+/**
+ * Frame rects for the tree stages that come from the LPC Trees sheets
+ * (1024×1024; same layout in green/pale/dead variants).
  */
 export const TREE_FRAMES = {
 	sapling: { x: 0, y: 0, w: 64, h: 64 },
-	young: { x: 128, y: 96, w: 96, h: 128 },
-	mature: { x: 320, y: 96, w: 112, h: 128 },
+	healthy: { x: 128, y: 96, w: 96, h: 128 },
+	blooming: { x: 320, y: 96, w: 112, h: 128 },
 } as const;
 
-export type TreeFrameName = keyof typeof TREE_FRAMES;
+/**
+ * Frame rects for seed/sprout — farm tiles inside the TERRAIN atlas
+ * (mound at atlas (288,928), shoots at (288,800); verified visually).
+ * These stages have no wilt variant — a seed can't droop; wilting starts
+ * once there's an actual plant (sapling+).
+ */
+export const TREE_EARLY_FRAMES = {
+	seed: { x: 288, y: 928, w: 32, h: 32 },
+	sprout: { x: 288, y: 800, w: 32, h: 32 },
+} as const;
 
 /**
  * Maps a tree's growth stage (0–14, from sunDropService.calculateGrowthStage)
- * to a visual frame. Coarse 3-tier mapping is a TASK-FUN-02 placeholder —
- * TASK-FUN-03 replaces it with per-stage sprites and growth celebrations.
+ * to one of the 5 visual tiers. Early stages are deliberately short (0–1 and
+ * 2–3) so a brand-new learner sees visible progress within their first two
+ * lessons — the strongest retention window we have.
  */
-export function growthStageToFrame(growthStage: number): TreeFrameName {
-	if (growthStage >= 10) return 'mature';
-	if (growthStage >= 5) return 'young';
-	return 'sapling';
+export function growthStageToVisual(growthStage: number): TreeStageName {
+	if (growthStage >= 11) return 'blooming';
+	if (growthStage >= 7) return 'healthy';
+	if (growthStage >= 4) return 'sapling';
+	if (growthStage >= 2) return 'sprout';
+	return 'seed';
 }
 
 /**
  * Maps tree health (0–100) to a tree sheet variant.
  * Thresholds mirror treeHealthService's display tiers: the kid should see a
  * clearly struggling tree well before it "dies" (SRS decay motivator).
+ * The wilt threshold (health < 31 → dead sheet) matches the task spec.
  */
 export function healthToTreeTexture(health: number): string {
 	if (health >= 60) return TEX.treesGreen;
-	if (health >= 30) return TEX.treesPale;
+	if (health >= 31) return TEX.treesPale;
 	return TEX.treesDead;
 }
+
+/** A tree "needs water" (shows the 💧 puff) below this health. */
+export const NEEDS_WATER_HEALTH = 60;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PROP FRAMES (wild flora — crop rects on the plants sheet / trees sheet)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Frame rects for plot props, keyed by the `kind` property authored in
+ * plot-base.json. `tex` names the source texture; rects were located
+ * visually on the sheets (see TASK-FUN-03 notes).
+ */
+export const PROP_FRAMES: Record<string, { tex: string; x: number; y: number; w: number; h: number }> = {
+	house: { tex: TEX.house, x: 0, y: 0, w: 152, h: 196 },
+	'flower-red': { tex: TEX.plants, x: 96, y: 96, w: 32, h: 32 },
+	'flower-blue': { tex: TEX.plants, x: 224, y: 128, w: 32, h: 32 },
+	sunflower: { tex: TEX.plants, x: 144, y: 160, w: 32, h: 48 },
+	reeds: { tex: TEX.plants, x: 32, y: 424, w: 32, h: 56 },
+	lily: { tex: TEX.plants, x: 0, y: 484, w: 40, h: 36 },
+	stump: { tex: TEX.plants, x: 0, y: 796, w: 44, h: 44 },
+	log: { tex: TEX.plants, x: 0, y: 860, w: 92, h: 56 },
+	mushrooms: { tex: TEX.plants, x: 96, y: 704, w: 32, h: 32 },
+	bush: { tex: TEX.plants, x: 208, y: 700, w: 56, h: 52 },
+	rock: { tex: TEX.terrain, x: 896, y: 704, w: 32, h: 32 },
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LPC CHARACTER SHEET GEOMETRY (shared by compositor + AvatarSprite)

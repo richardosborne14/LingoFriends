@@ -85,6 +85,8 @@ export const profiles = pgTable('profiles', {
 	// Track whether the user has completed their very first lesson.
 	// Used to show the Garden Economy explanation modal exactly once.
 	firstLessonComplete: boolean('first_lesson_complete').default(false),
+	// TASK-FUN-03: the one-time garden arrival tutorial (guide NPC at the gate)
+	hasSeenGardenIntro: boolean('has_seen_garden_intro').default(false),
 
 	// Avatar customisation
 	avatarSkinTone: varchar('avatar_skin_tone', { length: 7 }).default('#F5D0A9'),

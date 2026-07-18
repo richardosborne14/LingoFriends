@@ -19,9 +19,13 @@ import {
 	TILE_SIZE,
 	ATLAS_COLS,
 	TREE_FRAMES,
+	TREE_EARLY_FRAMES,
+	PROP_FRAMES,
 	TEX,
-	growthStageToFrame,
+	PLOT_MAP_PATH,
+	growthStageToVisual,
 	healthToTreeTexture,
+	NEEDS_WATER_HEALTH,
 	LPC_FRAME,
 	LPC_SHEET_COLS,
 	LPC_WALK_BAND_Y,
@@ -65,30 +69,88 @@ describe('tile indices', () => {
 	});
 });
 
-describe('tree frames', () => {
-	it('every growth frame fits inside the 1024×1024 tree sheets', () => {
+describe('tree growth visuals (TASK-FUN-03)', () => {
+	it('every tree-sheet frame fits inside the 1024×1024 tree sheets', () => {
 		for (const [name, f] of Object.entries(TREE_FRAMES)) {
 			expect(f.x + f.w, name).toBeLessThanOrEqual(1024);
 			expect(f.y + f.h, name).toBeLessThanOrEqual(1024);
 		}
 	});
 
-	it('growthStageToFrame covers the full 0–14 stage range', () => {
-		expect(growthStageToFrame(0)).toBe('sapling');
-		expect(growthStageToFrame(4)).toBe('sapling');
-		expect(growthStageToFrame(5)).toBe('young');
-		expect(growthStageToFrame(9)).toBe('young');
-		expect(growthStageToFrame(10)).toBe('mature');
-		expect(growthStageToFrame(14)).toBe('mature');
+	it('seed/sprout frames fit inside the terrain atlas', () => {
+		for (const [name, f] of Object.entries(TREE_EARLY_FRAMES)) {
+			expect(f.x + f.w, name).toBeLessThanOrEqual(1024);
+			expect(f.y + f.h, name).toBeLessThanOrEqual(1024);
+		}
 	});
 
-	it('healthToTreeTexture maps health tiers to the right sheet', () => {
+	it('growthStageToVisual covers the full 0–14 range with all 5 tiers', () => {
+		expect(growthStageToVisual(0)).toBe('seed');
+		expect(growthStageToVisual(1)).toBe('seed');
+		expect(growthStageToVisual(2)).toBe('sprout');
+		expect(growthStageToVisual(3)).toBe('sprout');
+		expect(growthStageToVisual(4)).toBe('sapling');
+		expect(growthStageToVisual(6)).toBe('sapling');
+		expect(growthStageToVisual(7)).toBe('healthy');
+		expect(growthStageToVisual(10)).toBe('healthy');
+		expect(growthStageToVisual(11)).toBe('blooming');
+		expect(growthStageToVisual(14)).toBe('blooming');
+	});
+
+	it('healthToTreeTexture maps health tiers incl. the wilt threshold (31)', () => {
 		expect(healthToTreeTexture(100)).toBe(TEX.treesGreen);
 		expect(healthToTreeTexture(60)).toBe(TEX.treesGreen);
 		expect(healthToTreeTexture(59)).toBe(TEX.treesPale);
-		expect(healthToTreeTexture(30)).toBe(TEX.treesPale);
-		expect(healthToTreeTexture(29)).toBe(TEX.treesDead);
+		expect(healthToTreeTexture(31)).toBe(TEX.treesPale);
+		expect(healthToTreeTexture(30)).toBe(TEX.treesDead);
 		expect(healthToTreeTexture(0)).toBe(TEX.treesDead);
+	});
+
+	it('needs-water threshold sits between healthy and wilted', () => {
+		expect(NEEDS_WATER_HEALTH).toBeGreaterThan(31);
+		expect(NEEDS_WATER_HEALTH).toBeLessThanOrEqual(60);
+	});
+});
+
+describe('prop frames + plot map (TASK-FUN-03)', () => {
+	it('every prop frame references a texture that is in the manifest', () => {
+		for (const [kind, f] of Object.entries(PROP_FRAMES)) {
+			expect(ASSET_PATHS[f.tex], `${kind} → ${f.tex}`).toBeDefined();
+		}
+	});
+
+	it('the authored plot map exists and references known prop kinds', () => {
+		const mapPath = path.resolve('static', PLOT_MAP_PATH.replace(/^\//, ''));
+		expect(existsSync(mapPath)).toBe(true);
+
+		const map = JSON.parse(readFileSync(mapPath, 'utf-8'));
+		const props = map.layers.find((l: { name: string }) => l.name === 'props');
+		expect(props.objects.length).toBeGreaterThanOrEqual(15); // "born furnished" criterion
+
+		// Every authored `kind` must resolve to a frame — a typo in the map
+		// generator would otherwise silently render nothing
+		for (const obj of props.objects) {
+			const kind = obj.properties?.find((p: { name: string }) => p.name === 'kind')?.value;
+			expect(PROP_FRAMES[kind], `map prop kind '${kind}'`).toBeDefined();
+		}
+	});
+
+	it('the map has the object layers PlotScene depends on', () => {
+		const mapPath = path.resolve('static', PLOT_MAP_PATH.replace(/^\//, ''));
+		const map = JSON.parse(readFileSync(mapPath, 'utf-8'));
+		const names = map.layers.map((l: { name: string }) => l.name);
+		for (const required of ['ground', 'paths', 'water', 'fence', 'props', 'tree-anchors', 'markers', 'critter-zones']) {
+			expect(names, required).toContain(required);
+		}
+		// Markers PlotScene reads by name
+		const markers = map.layers.find((l: { name: string }) => l.name === 'markers');
+		const markerNames = markers.objects.map((o: { name: string }) => o.name);
+		expect(markerNames).toContain('spawn');
+		expect(markerNames).toContain('gate');
+		expect(markerNames).toContain('guide');
+		// Enough anchors for a full orchard
+		const anchors = map.layers.find((l: { name: string }) => l.name === 'tree-anchors');
+		expect(anchors.objects.length).toBeGreaterThanOrEqual(8);
 	});
 });
 

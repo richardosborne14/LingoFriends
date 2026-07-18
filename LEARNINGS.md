@@ -620,3 +620,26 @@ can import Phaser statically. One bus per canvas instance (created in the
 component) prevents listener leaks across garden↔lesson navigation.
 
 **Apply to:** every world feature from TASK-FUN-03 onward
+
+## 2026-07-18: Drizzle journal drift + more world gotchas (TASK-FUN-03)
+
+**Problem 1:** `drizzle/0003_streak_freeze_daily_goal.sql` and
+`0004_daily_review_column.sql` were hand-written and applied manually — they
+are NOT in `drizzle/meta/_journal.json`. Running `db:generate` bundles all
+that drift into a new migration that then fails on apply (columns exist).
+
+**Solution:** follow the repo convention: hand-write the migration SQL with
+`IF NOT EXISTS`, apply via `psql lingofriends -f drizzle/000N_name.sql`, and
+do NOT let drizzle-kit regenerate (revert its journal entry if it does).
+Long-term fix (introspect + re-baseline) deferred.
+
+**Problem 2:** Importing any module that imports 'phaser' crashes vitest
+(jsdom has no real canvas: `Cannot set properties of null (fillStyle)` in
+Phaser's device detection). Keep unit-testable logic in Phaser-free modules
+(lpcLayers.ts, critterLogic.ts pattern).
+
+**Problem 3:** LPC teen bodies have no trousers — without a legs layer the
+avatar is visibly pantless (fine on dark skins, glaring on light). Every
+composited character needs `legs/…` between body and shirt.
+
+**Apply to:** all future world tasks + any schema change

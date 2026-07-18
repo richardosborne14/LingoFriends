@@ -420,6 +420,12 @@ export const POST: RequestHandler = async ({ request, locals, params }) => {
 		newStreak,
 		starRating,
 		growthStage,
+		// TASK-FUN-03: stage transition for the garden growth celebration.
+		// previousGrowthStage is the tree's stage BEFORE this lesson's
+		// SunDrops were added; the client compares visuals to decide between
+		// the full grow celebration and the smaller leaf-shimmer.
+		treeId: resolvedTreeId,
+		previousGrowthStage: tree.growthStage ?? 0,
 		giftEarned,           // null or gift type string — client shows earn modal if set
 		isFirstLesson: firstLesson,
 		levelRecommendation,

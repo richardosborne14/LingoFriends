@@ -152,6 +152,9 @@ export function resolveAvatarLayers(options: AvatarOptions): AvatarLayerRecipe {
 
 	const layers = [
 		`/assets/characters/body/${skin}.png`,
+		// Everyone wears blue jeans — the customiser has no trouser option
+		// (yet), and LPC bodies are literally trouserless without this layer.
+		'/assets/characters/legs/jeans.png',
 		`/assets/characters/shirt/${shirt}.png`,
 		`/assets/characters/head/${head}/${skin}.png`,
 		`/assets/characters/hair/${hairStyle}/${hairColor}.png`,
@@ -229,6 +232,7 @@ export function resolveNPCLayers(config: NPCConfig): AvatarLayerRecipe {
 
 	const layers = [
 		`/assets/characters/body/${skin}.png`,
+		'/assets/characters/legs/jeans.png',
 		`/assets/characters/shirt/${shirt}.png`,
 		`/assets/characters/head/${head}/${skin}.png`,
 		`/assets/characters/hair/${hairStyle}/${hairColor}.png`,

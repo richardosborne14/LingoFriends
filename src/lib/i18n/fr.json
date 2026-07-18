@@ -3,24 +3,18 @@
     "welcome_title": "Bienvenue, {name} !",
     "welcome_subtitle": "Créons ton jardin en quelques étapes.",
     "welcome_cta": "C'est parti ! 🌱",
-
     "native_title": "Quelle langue tu parles à la maison ?",
     "native_subtitle": "On va l'utiliser pour tout dans l'appli.",
-
     "target_title": "Qu'est-ce que tu veux apprendre ?",
     "target_subtitle": "Choisis ton aventure !",
     "target_coming_soon": "Bientôt disponible !",
-
     "level_title": "Tu connais déjà combien de mots ?",
     "level_subtitle": "T'inquiète — je m'adapte au fur et à mesure !",
     "level_reassurance": "Ne t'inquiète pas, on va trouver le bon niveau ensemble !",
-
     "interests_title": "Tu aimes quoi ?",
     "interests_subtitle": "Choisis autant que tu veux !",
     "interests_skip": "Passer pour l'instant",
-
     "age_title": "Tu as quel âge ?",
-
     "avatar_title": "Crée ton personnage !",
     "avatar_gender_title": "Choisis ton type de personnage",
     "avatar_gender_boy": "Garçon",
@@ -31,40 +25,32 @@
     "avatar_shirt": "Couleur du t-shirt",
     "avatar_hat": "Chapeau",
     "avatar_save": "Super ! 🎉",
-
     "reveal_title": "Ton premier arbre est planté !",
     "reveal_subtitle": "Aide-le à grandir en apprenant quelque chose de nouveau.",
     "reveal_cta": "Commencer ma première leçon 🌸",
-
     "next": "Suivant",
     "back": "Retour",
     "skip": "Passer"
   },
-
   "levels": {
     "total_beginner": "Débutant total",
     "total_beginner_desc": "Je n'ai jamais appris cette langue avant",
     "total_beginner_plant": "🌱",
-
     "know_some_words": "Je connais quelques mots",
     "know_some_words_desc": "Bonjour, au revoir, les chiffres... les bases",
     "know_some_words_plant": "🌿",
-
     "simple_sentences": "Des phrases simples",
     "simple_sentences_desc": "Je peux poser des questions et dire ce que je veux",
     "simple_sentences_plant": "🌳",
-
     "can_have_conversations": "On peut causer !",
     "can_have_conversations_desc": "Je peux avoir de vraies conversations",
     "can_have_conversations_plant": "🌸"
   },
-
   "interests": {
     "category_hobbies": "Loisirs",
     "category_sports": "Sports",
     "category_music": "Musique",
     "category_other": "Autre",
-
     "dancing": "Danse",
     "drawing": "Dessin",
     "gaming": "Gaming",
@@ -98,20 +84,17 @@
     "magic": "Magie",
     "history": "Histoire"
   },
-
   "languages": {
     "en": "Anglais",
     "fr": "Français",
     "de": "Allemand",
     "coming_soon": "Bientôt disponible"
   },
-
   "age_groups": {
     "7-10": "7–10 ans",
     "11-14": "11–14 ans",
     "15-18": "15–18 ans"
   },
-
   "common": {
     "sundrops": "Gouttes de Soleil",
     "gems": "Gemmes",
@@ -123,7 +106,6 @@
     "try_again": "Réessayer",
     "error_generic": "Oups ! Quelque chose a mal tourné. Réessaie !"
   },
-
   "pronunciation": {
     "instruction": "Dis cette phrase à voix haute :",
     "listen_first": "Appuie pour écouter d'abord",
@@ -144,12 +126,18 @@
     "encouragement_final": "Bravo pour ta persévérance — ça demande du courage !",
     "skip": "Passer pour l'instant"
   },
-
   "lesson_adapter": {
     "easy_win_tutor": "Révision rapide ! 💪",
     "skip_ahead_title": "🚀 Tu es en feu !",
     "skip_ahead_body": "Tu maîtrises cette section ! Tu veux passer à la suite ?",
     "skip_ahead_accept": "Passer 🚀",
     "skip_ahead_decline": "Continuer à pratiquer"
+  },
+  "garden": {
+    "tutorial_1": "Bienvenue — c'est TON jardin ! 🌱",
+    "tutorial_2": "Touche un arbre pour apprendre. Chaque leçon le fait grandir !",
+    "tutorial_3": "Gagne des SunDrops 🌞 pour décorer ton jardin. Amuse-toi bien !",
+    "tutorial_tap_hint": "Touche l'écran pour continuer",
+    "tutorial_skip": "Passer"
   }
 }

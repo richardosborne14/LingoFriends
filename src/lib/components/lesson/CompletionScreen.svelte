@@ -185,6 +185,25 @@
 			// ── Read new fields from the API response ─────────────────────
 			const data = await response.json();
 
+			// ── TASK-FUN-03: stash the growth celebration for the garden ───
+			// sessionStorage (not a URL param) so refreshes/back-nav don't
+			// replay it — the garden page reads AND clears it in +page.ts.
+			if (data.treeId && typeof data.growthStage === 'number') {
+				try {
+					sessionStorage.setItem(
+						'lf-garden-celebration',
+						JSON.stringify({
+							treeId: data.treeId,
+							fromStage: data.previousGrowthStage ?? data.growthStage,
+							toStage: data.growthStage,
+							sunDrops: data.sunDropsAwarded ?? 0,
+						})
+					);
+				} catch {
+					// Storage full/blocked — celebration is a nice-to-have, not critical
+				}
+			}
+
 			// ── TASK-V2-09: streak milestone + daily cap ──────────────────
 			// These are checked FIRST because they have highest display priority.
 			// Both can co-exist with each other and with levelRecommendation.

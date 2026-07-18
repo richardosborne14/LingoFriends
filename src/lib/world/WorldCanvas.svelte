@@ -25,6 +25,26 @@
 
 	export let trees: TreeData[] = [];
 	export let avatarOptions: AvatarOptions;
+	/** Opaque per-user seed — drives deterministic critters (TASK-FUN-03). */
+	export let plotSeed = 'plot-anon';
+	/** True on the user's first ever garden visit — runs the arrival tutorial. */
+	export let showTutorial = false;
+	/** Post-lesson growth celebration (from garden/+page.ts), or null. */
+	export let celebration: {
+		treeId: string;
+		fromStage: number;
+		toStage: number;
+		sunDrops: number;
+	} | null = null;
+
+	/**
+	 * Ends the tutorial early. Exposed for the Svelte skip button (bubbles
+	 * are DOM overlays) — bind:this on this component and call it.
+	 * Uses the registry (Svelte→Phaser channel), not the event bus.
+	 */
+	export function skipTutorial(): void {
+		game?.registry.set('tutorial-skip', Date.now());
+	}
 
 	/** Wrapper div Phaser mounts its canvas into. */
 	let container: HTMLDivElement;
@@ -41,6 +61,12 @@
 		groundTap: { tileX: number; tileY: number };
 		/** World finished booting — parent can hide any skeleton UI. */
 		ready: void;
+		/** Growth celebration finished — show the SunDrop tally toast. */
+		celebrationDone: { sunDrops: number };
+		/** Tutorial wants a speech bubble at these screen coords (null = hide). */
+		tutorialBubble: { step: number; screenX: number; screenY: number } | null;
+		/** Tutorial finished/skipped — parent persists the seen-flag. */
+		tutorialDone: void;
 	}>();
 
 	onMount(() => {
@@ -50,13 +76,24 @@
 		bus.on('tree-selected', (id) => dispatch('treeSelected', id));
 		bus.on('ground-tap', (tile) => dispatch('groundTap', tile));
 		bus.on('world-ready', () => dispatch('ready'));
+		bus.on('celebration-done', (p) => dispatch('celebrationDone', p));
+		bus.on('tutorial-bubble', (p) => dispatch('tutorialBubble', p));
+		bus.on('tutorial-done', () => dispatch('tutorialDone'));
 
 		// Dynamic import keeps Phaser out of the SSR bundle entirely
 		import('./game').then(({ createGame }) => {
 			// Component may already be destroyed (fast navigation) — don't
 			// create a game nothing will ever clean up.
 			if (cancelled) return;
-			game = createGame({ parent: container, bus, trees, avatarOptions });
+			game = createGame({
+				parent: container,
+				bus,
+				trees,
+				avatarOptions,
+				plotSeed,
+				showTutorial,
+				celebration,
+			});
 		});
 
 		return () => {

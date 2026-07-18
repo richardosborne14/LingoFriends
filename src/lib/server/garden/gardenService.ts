@@ -81,7 +81,10 @@ export async function getUserTrees(userId: string): Promise<TreeData[]> {
 		})
 		.from(userTrees)
 		.leftJoin(skillPaths, eq(userTrees.skillPathId, skillPaths.id))
-		.where(eq(userTrees.userId, userId));
+		.where(eq(userTrees.userId, userId))
+		// Creation order is the tree→anchor assignment contract (TASK-FUN-03):
+		// tree N always plants at anchor N, so trees never swap spots between visits
+		.orderBy(userTrees.createdAt);
 
 	// Fetch lesson history for this user (to determine step states)
 	const history = await db

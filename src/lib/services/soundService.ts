@@ -36,7 +36,8 @@ export type SoundEvent =
 	| 'lesson-complete'  // celebrate.wav — lesson finished
 	| 'tap'              // tap.wav — general UI tap feedback
 	| 'skip'             // skip.wav — skip activity tap
-	| 'npc-greet';       // npc-greet.wav — NPC encounter starts
+	| 'npc-greet'        // npc-greet.wav — NPC encounter starts
+	| 'tree-grow';       // levelup.wav — garden tree grows a stage (TASK-FUN-03)
 
 /**
  * Maps typed SoundEvent → file path under /public/sounds/.
@@ -52,6 +53,7 @@ const SOUND_PATHS: Record<SoundEvent, string> = {
 	'tap':             '/sounds/tap.wav',
 	'skip':            '/sounds/skip.wav',
 	'npc-greet':       '/sounds/npc-greet.wav',
+	'tree-grow':       '/sounds/levelup.wav',
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

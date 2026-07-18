@@ -22,6 +22,12 @@ export interface CreateGameParams {
 	/** Initial data pushed into the game registry for scenes to read. */
 	trees: TreeData[];
 	avatarOptions: AvatarOptions;
+	/** Deterministic per-user seed for critters (TASK-FUN-03). */
+	plotSeed: string;
+	/** Run the first-arrival tutorial this boot. */
+	showTutorial: boolean;
+	/** Post-lesson growth celebration, or null. */
+	celebration: { treeId: string; fromStage: number; toStage: number; sunDrops: number } | null;
 }
 
 /**
@@ -60,6 +66,9 @@ export function createGame(params: CreateGameParams): Phaser.Game {
 	game.registry.set('bus', params.bus);
 	game.registry.set('trees', params.trees);
 	game.registry.set('avatarOptions', params.avatarOptions);
+	game.registry.set('plotSeed', params.plotSeed);
+	game.registry.set('showTutorial', params.showTutorial);
+	game.registry.set('celebration', params.celebration);
 
 	return game;
 }

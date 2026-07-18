@@ -76,8 +76,8 @@ describe('resolveAvatarLayers — full customiser matrix', () => {
 			shirtColor: '#FF8A6A',
 			hat: 'none',
 		};
-		expect(resolveAvatarLayers(base).layers).toHaveLength(4);
-		expect(resolveAvatarLayers({ ...base, hat: 'cap' }).layers).toHaveLength(5);
+		expect(resolveAvatarLayers(base).layers).toHaveLength(5);
+		expect(resolveAvatarLayers({ ...base, hat: 'cap' }).layers).toHaveLength(6);
 	});
 
 	it('draws layers in body → shirt → head → hair → hat order (LPC zPos)', () => {
@@ -89,10 +89,11 @@ describe('resolveAvatarLayers — full customiser matrix', () => {
 			hat: 'headband',
 		});
 		expect(recipe.layers[0]).toContain('/body/');
-		expect(recipe.layers[1]).toContain('/shirt/');
-		expect(recipe.layers[2]).toContain('/head/');
-		expect(recipe.layers[3]).toContain('/hair/');
-		expect(recipe.layers[4]).toContain('/hat/');
+		expect(recipe.layers[1]).toContain('/legs/');
+		expect(recipe.layers[2]).toContain('/shirt/');
+		expect(recipe.layers[3]).toContain('/head/');
+		expect(recipe.layers[4]).toContain('/hair/');
+		expect(recipe.layers[5]).toContain('/hat/');
 	});
 
 	it('head layer matches the body skin tone (same variant name)', () => {
@@ -104,7 +105,7 @@ describe('resolveAvatarLayers — full customiser matrix', () => {
 			hat: 'none',
 		});
 		expect(recipe.layers[0]).toBe('/assets/characters/body/bronze.png');
-		expect(recipe.layers[2]).toBe('/assets/characters/head/male/bronze.png');
+		expect(recipe.layers[3]).toBe('/assets/characters/head/male/bronze.png');
 	});
 
 	it('falls back to defaults for unknown values instead of crashing', () => {
@@ -119,6 +120,7 @@ describe('resolveAvatarLayers — full customiser matrix', () => {
 		// Defaults: light skin, blue shirt, female head, bob hair, no hat
 		expect(recipe.layers).toEqual([
 			'/assets/characters/body/light.png',
+			'/assets/characters/legs/jeans.png',
 			'/assets/characters/shirt/blue.png',
 			'/assets/characters/head/female/light.png',
 			'/assets/characters/hair/bob/dark_brown.png',
@@ -136,8 +138,8 @@ describe('resolveAvatarLayers — full customiser matrix', () => {
 			shirtColor: '#4A90D9',
 			hat: 'crown',
 		});
-		expect(recipe.layers[4]).toBe('/assets/characters/hat/crown.png');
-		expect(existsSync(assetFile(recipe.layers[4]))).toBe(true);
+		expect(recipe.layers[5]).toBe('/assets/characters/hat/crown.png');
+		expect(existsSync(assetFile(recipe.layers[5]))).toBe(true);
 	});
 
 	it('recipe keys: same look → same key, different look → different key', () => {
@@ -196,7 +198,7 @@ describe('resolveNPCLayers', () => {
 	it('different names can pick different hair styles, same name never does', () => {
 		const a = resolveNPCLayers({ ...npc, name: 'Felix' });
 		const b = resolveNPCLayers({ ...npc, name: 'Felix' });
-		expect(a.layers[3]).toBe(b.layers[3]);
+		expect(a.layers[4]).toBe(b.layers[4]);
 	});
 
 	it('bosses wear the gold crown', () => {
