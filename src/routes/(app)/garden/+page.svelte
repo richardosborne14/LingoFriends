@@ -3,19 +3,19 @@
 	 * Garden Page — Main view
 	 *
 	 * Wires together:
-	 *   - GardenCanvas: Three.js scene with trees + avatar
+	 *   - WorldCanvas: Phaser 2D tile world with trees + walkable avatar
 	 *   - TreePanel: bottom sheet for lesson trail
 	 *   - Stats header: ☀️ SunDrops | 🔥 Streak
 	 *
 	 * Flow:
 	 *   1. Load: server provides trees, avatar, stats
-	 *   2. Mount: GardenCanvas initialises Three.js scene
+	 *   2. Mount: WorldCanvas boots the Phaser world (client-only)
 	 *   3. Tree tap: TreePanel slides up with lesson trail
 	 *   4. Lesson tap in TreePanel: navigate to /lesson/[id]
 	 *   5. Return from lesson: SvelteKit invalidates data → trees refresh
 	 */
 	import { goto } from '$app/navigation';
-	import GardenCanvas from '$lib/three/garden/GardenCanvas.svelte';
+	import WorldCanvas from '$lib/world/WorldCanvas.svelte';
 	import TreePanel from '$lib/components/garden/TreePanel.svelte';
 	import type { PageData } from './$types';
 	import type { TreeData } from '$lib/types/garden';
@@ -41,7 +41,7 @@
 		toastTimer = setTimeout(() => { gardenToast = null; }, 3000);
 	}
 
-	/** Handle tree tap from GardenCanvas */
+	/** Handle tree tap from WorldCanvas */
 	function onTreeSelected(event: CustomEvent<string>) {
 		const treeId = event.detail;
 		selectedTree = data.trees.find((t) => t.id === treeId) ?? null;
@@ -99,7 +99,7 @@
 	<title>My Garden — LingoFriends</title>
 </svelte:head>
 
-<!-- Full-viewport container — Three.js fills the whole screen -->
+<!-- Full-viewport container — the Phaser world fills the whole screen -->
 <div class="relative w-full h-screen overflow-hidden">
 
 	<!-- Stats floating header -->
@@ -113,8 +113,8 @@
 		<span title="Current streak">🔥 {data.stats.currentStreak} day streak</span>
 	</div>
 
-	<!-- Three.js garden scene — fills viewport -->
-	<GardenCanvas
+	<!-- Phaser tile world — fills viewport -->
+	<WorldCanvas
 		trees={data.trees}
 		avatarOptions={data.avatar}
 		on:treeSelected={onTreeSelected}

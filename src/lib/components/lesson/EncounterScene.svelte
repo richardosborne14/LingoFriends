@@ -1,423 +1,140 @@
 <!--
-  EncounterScene.svelte — Dual-avatar Three.js banner shown above every lesson activity.
+  EncounterScene.svelte — Sprite face-off banner shown above every lesson activity.
 
-  Shows the user's avatar (left) and the current step's NPC (right) facing each other.
-  Both run idle animations (gentle breathing bob). The NPC's jaw opens when `isSpeaking`
-  is true (synced to TTS playback by ActivityRouter).
+  Shows the user's LPC sprite avatar (left) and the current step's NPC (right)
+  facing each other, with name badges. Replaces the old Three.js banner
+  (TASK-FUN-02: Three.js is removed from the app entirely).
 
-  WHY a shared scene for all steps (Option B): The NPC watches the learner throughout
-  the lesson, creating a sense of ongoing relationship. Different NPCs per step keep
-  it visually fresh.
+  Same public contract as the Three.js version — props userAvatar, npcConfig,
+  isSpeaking — so ActivityRouter/lesson page needed no changes.
 
-  WHY inline geometry for the NPC (not reusing NPCScene.ts):
-  NPCScene is designed for a 120×120 close-up canvas. EncounterScene needs a wide banner
-  with two characters side by side. The NPC here includes a jaw mesh for speaking
-  animation — same technique as NPCScene but adapted for the wider layout.
+  HOW the characters are drawn:
+  Both are composited from LPC spritesheet layers by the shared world
+  compositor (src/lib/world/sprites/) — the same pipeline the garden uses,
+  so the kid sees the SAME character in lessons as in their garden.
+  We extract one standing frame each (user faces right, NPC faces left)
+  and scale it up with image-rendering: pixelated.
 
-  WHY AvatarBuilder for the user avatar:
-  The user's avatar has all their customisations (skin tone, hair, shirt, hat, gender).
-  AvatarBuilder already handles all of these. We just place the resulting group on the left.
+  Animation without Phaser (this is UI chrome, not a game scene):
+  - Both sprites get a gentle CSS idle bob (offset phases — feels alive)
+  - While isSpeaking, the NPC gets a livelier "talking" bounce
+  - Emotion tilts the NPC slightly (thinking = head-tilt angle)
+  - Boss NPCs render 1.3× with the LPC gold crown layer composited on
 
-  Canvas sizing: fixed height (130px), full container width.
-  The container is max-w-md on the lesson page so width is bounded.
-
-  TASK-V2-07: New file — Part B of avatar/NPC encounter system.
+  TASK-FUN-05 will replace this banner with the full battle theatre; keeping
+  it a slim Svelte component (not Phaser) makes that swap cheap.
 
   @component
 -->
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
-	import * as THREE from 'three';
-	import { AvatarBuilder } from '$lib/three/avatars/AvatarBuilder';
+	import { onMount } from 'svelte';
 	import type { AvatarOptions, NPCConfig } from '$lib/types/garden';
+	import { resolveAvatarLayers, resolveNPCLayers } from '$lib/world/sprites/lpcLayers';
 
-	// ── Props ─────────────────────────────────────────────────────────────────
+	// ── Props (contract unchanged from the Three.js version) ─────────────────
 
 	interface Props {
 		/** User's avatar options from their profile */
 		userAvatar: AvatarOptions;
 		/** NPC configuration for this step (generated deterministically) */
 		npcConfig: NPCConfig;
-		/**
-		 * Whether the NPC is currently "speaking" (TTS audio is playing).
-		 * When true, the NPC's jaw animates open/closed.
-		 * Controlled by ActivityRouter based on ChunkIntroduction audio state.
-		 */
+		/** True while TTS audio plays — NPC gets a livelier bounce */
 		isSpeaking?: boolean;
 	}
 
 	let { userAvatar, npcConfig, isSpeaking = false }: Props = $props();
 
-	// ── Layout ────────────────────────────────────────────────────────────────
-
-	/** Fixed canvas height — wide enough for both avatars, short enough not to overwhelm */
+	/** Banner height — matches the old Three.js canvas so lesson layout is stable */
 	const CANVAS_HEIGHT = 130;
 
-	// ── Animation constants ───────────────────────────────────────────────────
+	/** LPC frames are 64px; ×1.6 ≈ 102px tall characters inside the 130px banner */
+	const SPRITE_SCALE = 1.6;
 
-	/** Idle breathing speed (radians/frame) */
-	const IDLE_BOB_SPEED = 0.025;
-	/** Idle breathing amplitude (metres) */
-	const IDLE_BOB_AMPLITUDE = 0.012;
-	/** NPC jaw open/close frequency while speaking */
-	const JAW_FREQUENCY = 0.18;
-	/** Maximum jaw rotation angle when fully open (radians) */
-	const JAW_OPEN_MAX = 0.14;
+	// ── Composited frame data URLs ───────────────────────────────────────────
 
-	// ── DOM refs ──────────────────────────────────────────────────────────────
-
-	let canvasEl: HTMLCanvasElement;
-	let containerEl: HTMLDivElement;
-
-	// ── Three.js state ────────────────────────────────────────────────────────
-
-	let scene: THREE.Scene | null = null;
-	let camera: THREE.PerspectiveCamera | null = null;
-	let renderer: THREE.WebGLRenderer | null = null;
-	let animId: number | null = null;
-
-	/** Incrementing frame counter — drives sine-wave animations */
-	let animFrame = 0;
-
-	/** The user's avatar group (left side) */
-	let userGroup: THREE.Group | null = null;
-	/** The NPC group (right side) */
-	let npcGroup: THREE.Group | null = null;
-
-	// ─────────────────────────────────────────────────────────────────────────
-	// LIFECYCLE
-	// ─────────────────────────────────────────────────────────────────────────
+	/** Data URL of the user's standing frame (facing right, toward the NPC) */
+	let userFrame = $state<string | null>(null);
+	/** Data URL of the NPC's standing frame (facing left, toward the user) */
+	let npcFrame = $state<string | null>(null);
 
 	onMount(() => {
-		// Brief delay so the container has its final dimensions after CSS layout
-		const timer = setTimeout(() => setupScene(), 50);
-		return () => clearTimeout(timer);
-	});
+		let cancelled = false;
 
-	onDestroy(() => {
-		teardown();
-	});
+		// Compositing is browser-only (canvas + Image), so the module is
+		// imported here rather than at the top: keeps SSR clean, mirrors the
+		// WorldCanvas dynamic-import rule for world code.
+		(async () => {
+			const { compositeWalkBand, extractFrame } = await import('$lib/world/sprites/compositor');
 
-	// React to isSpeaking changes — reset jaw when speaking stops
-	$effect(() => {
-		if (!isSpeaking && npcGroup) {
-			const jaw = npcGroup.getObjectByName('jaw');
-			if (jaw) (jaw as THREE.Mesh).rotation.x = 0;
-		}
-	});
+			const [userBand, npcBand] = await Promise.all([
+				compositeWalkBand(resolveAvatarLayers(userAvatar)),
+				compositeWalkBand(resolveNPCLayers(npcConfig)),
+			]);
+			if (cancelled) return;
 
-	// ─────────────────────────────────────────────────────────────────────────
-	// SCENE SETUP
-	// ─────────────────────────────────────────────────────────────────────────
-
-	/**
-	 * Initialises the Three.js scene with lighting, both avatars, and the render loop.
-	 * Called once after mount with a small delay to ensure container dimensions are ready.
-	 */
-	function setupScene() {
-		if (!canvasEl || !containerEl) return;
-
-		// Use container width, falling back to 400 if not yet laid out.
-		// 400px is the max-w-md content area width, so this is a safe fallback.
-		const width = containerEl.clientWidth || 400;
-
-		// ── Scene ──────────────────────────────────────────────────────────
-		scene = new THREE.Scene();
-		// sky-50 blue-tinted background — matches lesson card colours
-		scene.background = new THREE.Color('#EFF6FF');
-
-		// ── Camera ─────────────────────────────────────────────────────────
-		// Wide FOV + close position shows both avatars clearly in the banner height.
-		// Camera looks slightly down (y=0.9) to frame the avatars from chest up.
-		camera = new THREE.PerspectiveCamera(50, width / CANVAS_HEIGHT, 0.1, 20);
-		camera.position.set(0, 1.1, 3.5);
-		camera.lookAt(0, 0.9, 0);
-
-		// ── Renderer ───────────────────────────────────────────────────────
-		renderer = new THREE.WebGLRenderer({
-			canvas: canvasEl,
-			antialias: true,
-		});
-		renderer.setSize(width, CANVAS_HEIGHT);
-		renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-		// ── Lighting ───────────────────────────────────────────────────────
-		// Ambient keeps shadow areas from going fully black on toon materials.
-		// Directional fill adds depth from top-front-left.
-		const ambient = new THREE.AmbientLight(0xffffff, 0.85);
-		scene.add(ambient);
-
-		const fill = new THREE.DirectionalLight(0xfff0e0, 0.7);
-		fill.position.set(-2, 3, 3);
-		scene.add(fill);
-
-		// ── User avatar (left, facing toward NPC) ─────────────────────────
-		const builder = new AvatarBuilder();
-		userGroup = builder.buildAvatar(userAvatar);
-		// Position left of centre, rotated slightly toward the NPC
-		userGroup.position.set(-1.0, 0, 0);
-		userGroup.rotation.y = Math.PI * 0.18;
-		scene.add(userGroup);
-
-		// ── NPC (right, facing toward user) ───────────────────────────────
-		npcGroup = buildNPCGeometry(npcConfig);
-		npcGroup.position.set(1.0, 0, 0);
-		// Mirror rotation — NPC faces left toward the user
-		npcGroup.rotation.y = -Math.PI * 0.18;
-		scene.add(npcGroup);
-
-		// Apply emotion head tilt immediately on load
-		applyEmotion(npcGroup, npcConfig.emotion);
-
-		// ── Start render loop ─────────────────────────────────────────────
-		startLoop();
-	}
-
-	// ─────────────────────────────────────────────────────────────────────────
-	// NPC GEOMETRY BUILDER
-	// ─────────────────────────────────────────────────────────────────────────
-
-	/**
-	 * Builds the NPC's geometry avatar inline.
-	 *
-	 * WHY not using AvatarBuilder: We need a jaw mesh for speaking animation.
-	 * AvatarBuilder doesn't include a jaw. This builder is similar to NPCScene.ts
-	 * but adapted for the encounter layout (no scale baked in — applied separately).
-	 *
-	 * Parts:
-	 *   - headGroup: sphere + eyes + jaw + hair (jaw is animatable child)
-	 *   - body: cylinder (shoulders down)
-	 *   - crown: only for boss NPCs
-	 *
-	 * @param config - NPC appearance from npcGenerator
-	 */
-	function buildNPCGeometry(config: NPCConfig): THREE.Group {
-		const group = new THREE.Group();
-
-		const skinMat = new THREE.MeshToonMaterial({ color: new THREE.Color(config.skinTone) });
-		const bodyMat = new THREE.MeshToonMaterial({ color: new THREE.Color(config.bodyColor) });
-		const hairMat = new THREE.MeshToonMaterial({ color: new THREE.Color(config.hairColor) });
-		const darkMat = new THREE.MeshToonMaterial({ color: new THREE.Color('#2A2A2A') });
-
-		// ── Head group ─────────────────────────────────────────────────────
-		const headGroup = new THREE.Group();
-		headGroup.name = 'head';
-
-		const headGeo = new THREE.SphereGeometry(0.18, 12, 10);
-		const headMesh = new THREE.Mesh(headGeo, skinMat);
-		headMesh.name = 'head-sphere';
-		headGroup.add(headMesh);
-
-		// Eyes
-		[-0.07, 0.07].forEach((x, i) => {
-			const eyeGeo = new THREE.SphereGeometry(0.025, 6, 6);
-			const eye = new THREE.Mesh(eyeGeo, darkMat);
-			eye.name = `eye-${i}`;
-			eye.position.set(x, 0.04, 0.15);
-			headGroup.add(eye);
+			// Standing poses: user faces right toward the NPC, NPC faces left
+			userFrame = extractFrame(userBand, 'right').toDataURL();
+			npcFrame = extractFrame(npcBand, 'left').toDataURL();
+		})().catch((err) => {
+			// A failed composite leaves the badges-only banner — lesson still
+			// fully playable, and the error is visible to devs.
+			console.error('[EncounterScene] sprite compositing failed:', err);
 		});
 
-		// JAW — lower half-sphere, separate so it can rotate for speaking animation
-		// The jaw hinges at the back of the head (negative Y pivot). Simple but readable.
-		const jawGeo = new THREE.SphereGeometry(
-			0.12,             // radius — smaller than head
-			8,                // width segments
-			6,                // height segments
-			0,                // phiStart
-			Math.PI * 2,      // phiLength — full circle
-			Math.PI * 0.5,    // thetaStart — start at equator
-			Math.PI * 0.4     // thetaLength — lower half-ish
-		);
-		const jaw = new THREE.Mesh(jawGeo, skinMat);
-		jaw.name = 'jaw';
-		jaw.position.y = -0.1; // below head centre
-		headGroup.add(jaw);
-
-		// Hair cap
-		const hairGeo = new THREE.SphereGeometry(0.19, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.55);
-		const hair = new THREE.Mesh(hairGeo, hairMat);
-		hair.name = 'hair';
-		hair.position.y = 0.06;
-		headGroup.add(hair);
-
-		// Boss crown — always a crown hat for the final-step NPC
-		if (config.isBoss) {
-			const crownMat = new THREE.MeshToonMaterial({ color: new THREE.Color('#FFD84A') });
-
-			const ringGeo = new THREE.TorusGeometry(0.21, 0.035, 6, 12);
-			const ring = new THREE.Mesh(ringGeo, crownMat);
-			ring.rotation.x = Math.PI / 2;
-			ring.position.y = 0.22;
-			headGroup.add(ring);
-
-			// Three evenly-spaced spikes
-			for (let i = 0; i < 3; i++) {
-				const angle = (i / 3) * Math.PI * 2;
-				const spikeGeo = new THREE.ConeGeometry(0.04, 0.13, 6);
-				const spike = new THREE.Mesh(spikeGeo, crownMat);
-				spike.position.set(Math.cos(angle) * 0.2, 0.30, Math.sin(angle) * 0.2);
-				headGroup.add(spike);
-			}
-		}
-
-		headGroup.position.y = 1.15;
-		group.add(headGroup);
-
-		// ── Body ───────────────────────────────────────────────────────────
-		const bodyGeo = new THREE.CylinderGeometry(0.12, 0.14, 0.40, 10);
-		const body = new THREE.Mesh(bodyGeo, bodyMat);
-		body.name = 'body';
-		body.position.y = 0.78;
-		group.add(body);
-
-		// Apply scale (boss NPCs are 1.3×, normal = 1.0)
-		group.scale.setScalar(config.scale);
-
-		return group;
-	}
-
-	// ─────────────────────────────────────────────────────────────────────────
-	// EMOTION
-	// ─────────────────────────────────────────────────────────────────────────
-
-	/**
-	 * Applies static emotion pose to the NPC's head.
-	 * Called once when the scene loads — emotion is set per-step and doesn't change.
-	 *
-	 * @param group - NPC root group
-	 * @param emotion - The emotion from NPCConfig
-	 */
-	function applyEmotion(group: THREE.Group, emotion: NPCConfig['emotion']): void {
-		const head = group.getObjectByName('head');
-		if (!head) return;
-
-		switch (emotion) {
-			case 'happy':
-				head.rotation.z = 0;
-				head.rotation.x = -0.04; // slight forward nod
-				break;
-			case 'thinking':
-				head.rotation.z = 0.13; // tilted to the side
-				head.rotation.x = 0;
-				break;
-			case 'surprised':
-				head.rotation.z = 0;
-				head.rotation.x = -0.1; // slightly back
-				break;
-		}
-	}
-
-	// ─────────────────────────────────────────────────────────────────────────
-	// RENDER LOOP
-	// ─────────────────────────────────────────────────────────────────────────
-
-	/**
-	 * Starts the Three.js render loop.
-	 * Runs idle bob animations and jaw speaking animation each frame.
-	 *
-	 * WHY separate loop (not sharing with GardenScene):
-	 * This scene is independent and can be mounted/unmounted per activity step.
-	 * Sharing a render loop with the garden would require complex cross-component
-	 * coordination and makes the garden unnecessarily heavy during lessons.
-	 */
-	function startLoop(): void {
-		const loop = () => {
-			animId = requestAnimationFrame(loop);
-			animFrame++;
-
-			// ── User avatar idle bob ───────────────────────────────────────
-			if (userGroup) {
-				// Sin wave at IDLE_BOB_SPEED, amplitude IDLE_BOB_AMPLITUDE
-				userGroup.position.y = Math.sin(animFrame * IDLE_BOB_SPEED) * IDLE_BOB_AMPLITUDE;
-			}
-
-			// ── NPC idle bob + optional jaw ───────────────────────────────
-			if (npcGroup) {
-				// Offset by 30 frames so NPC and user don't bob in perfect sync —
-				// slight offset makes both feel like independent living beings
-				npcGroup.position.y =
-					Math.sin((animFrame + 30) * IDLE_BOB_SPEED) * IDLE_BOB_AMPLITUDE;
-
-				// Jaw animation while TTS is playing
-				if (isSpeaking) {
-					const jaw = npcGroup.getObjectByName('jaw');
-					if (jaw) {
-						// Abs(sin) creates a quick open-close-open pattern
-						jaw.rotation.x =
-							Math.abs(Math.sin(animFrame * JAW_FREQUENCY)) * JAW_OPEN_MAX;
-					}
-				}
-			}
-
-			// Render the frame
-			if (renderer && scene && camera) {
-				renderer.render(scene, camera);
-			}
+		return () => {
+			cancelled = true;
 		};
-
-		loop();
-	}
-
-	// ─────────────────────────────────────────────────────────────────────────
-	// CLEANUP
-	// ─────────────────────────────────────────────────────────────────────────
+	});
 
 	/**
-	 * Disposes all Three.js resources.
-	 * MUST be called on component destroy to prevent GPU memory leaks.
-	 * Svelte calls onDestroy automatically — this is wired there.
+	 * Emotion → CSS tilt for the NPC, mirroring the old 3D head tilts:
+	 * thinking tilts sideways, surprised leans back slightly.
 	 */
-	function teardown(): void {
-		// Stop the animation loop first
-		if (animId !== null) {
-			cancelAnimationFrame(animId);
-			animId = null;
-		}
-
-		// Dispose all geometries and materials in the scene
-		if (scene) {
-			scene.traverse((obj) => {
-				if (obj instanceof THREE.Mesh) {
-					obj.geometry.dispose();
-					if (Array.isArray(obj.material)) {
-						obj.material.forEach((m) => m.dispose());
-					} else {
-						obj.material.dispose();
-					}
-				}
-			});
-		}
-
-		// Release the WebGL context
-		if (renderer) {
-			renderer.dispose();
-			renderer = null;
-		}
-
-		scene = null;
-		camera = null;
-		userGroup = null;
-		npcGroup = null;
-	}
+	const emotionTilt = $derived(
+		npcConfig.emotion === 'thinking' ? -7 : npcConfig.emotion === 'surprised' ? 4 : 0
+	);
 </script>
 
 <!--
-  Container — rounded top corners to blend into the lesson card.
-  Canvas fills the container. Two name badges are absolutely positioned.
-  pointer-events:none on the canvas so touch events pass through to activity UI.
+  Container — rounded, sky-tinted like the lesson cards (was the 3D scene's
+  background colour). pointer-events-none so lesson touches pass through.
 -->
 <div
-	bind:this={containerEl}
-	class="w-full rounded-xl overflow-hidden relative"
-	style="height: {CANVAS_HEIGHT}px;"
+	class="w-full rounded-xl overflow-hidden relative bg-[#EFF6FF]"
+	style="height: {CANVAS_HEIGHT}px; pointer-events: none;"
 	aria-hidden="true"
 >
-	<!-- Three.js canvas — pointer-events:none prevents it intercepting lesson touches -->
-	<canvas
-		bind:this={canvasEl}
-		class="w-full block"
-		style="height: {CANVAS_HEIGHT}px; pointer-events: none;"
-	></canvas>
+	<!-- Grass strip the characters stand on — grounds them visually -->
+	<div class="absolute bottom-0 left-0 right-0 h-6 bg-[#A8D89B]"></div>
+
+	<div class="absolute inset-0 flex items-end justify-between px-8 pb-4">
+		<!-- User avatar (left, facing right) -->
+		{#if userFrame}
+			<img
+				src={userFrame}
+				alt=""
+				class="idle-bob"
+				style="width: {64 * SPRITE_SCALE}px; height: {64 * SPRITE_SCALE}px;
+				       image-rendering: pixelated;"
+			/>
+		{/if}
+
+		<!-- "VS" spark between them — a hint of the coming battle theatre -->
+		<span class="text-lg font-extrabold text-bark-300 mb-6 select-none">✦</span>
+
+		<!-- NPC (right, facing left) — boss is 1.3×, same rule as the old 3D scene -->
+		{#if npcFrame}
+			<img
+				src={npcFrame}
+				alt=""
+				class={isSpeaking ? 'talking-bounce' : 'idle-bob-offset'}
+				style="width: {64 * SPRITE_SCALE * (npcConfig.isBoss ? 1.3 : 1)}px;
+				       height: {64 * SPRITE_SCALE * (npcConfig.isBoss ? 1.3 : 1)}px;
+				       image-rendering: pixelated;
+				       transform: rotate({emotionTilt}deg);"
+			/>
+		{/if}
+	</div>
 
 	<!-- "You" label — bottom-left corner -->
 	<div
@@ -445,3 +162,37 @@
 		<span class="text-xs font-bold text-bark-700">{npcConfig.name}</span>
 	</div>
 </div>
+
+<style>
+	/*
+	 * Idle breathing bob — mirrors the old 3D sine-wave bob (±3px, slow).
+	 * The NPC runs the same animation phase-shifted so the two characters
+	 * never bob in sync (reads as two independent living beings).
+	 */
+	@keyframes bob {
+		0%, 100% { translate: 0 0; }
+		50% { translate: 0 -3px; }
+	}
+
+	.idle-bob {
+		animation: bob 2.4s ease-in-out infinite;
+	}
+
+	.idle-bob-offset {
+		animation: bob 2.4s ease-in-out infinite;
+		animation-delay: -1.2s; /* half-cycle offset from the user's bob */
+	}
+
+	/* Livelier bounce while TTS plays — the sprite-world stand-in for the
+	   old jaw animation (LPC frames have no separate jaw). */
+	@keyframes talk {
+		0%, 100% { translate: 0 0; }
+		25% { translate: 0 -4px; }
+		50% { translate: 0 -1px; }
+		75% { translate: 0 -5px; }
+	}
+
+	.talking-bounce {
+		animation: talk 0.55s ease-in-out infinite;
+	}
+</style>

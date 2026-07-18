@@ -592,3 +592,31 @@ function updateAnimal(state: AnimalState, delta: number, config: AnimalConfig): 
 4. ~~**Garden reachable pre-onboarding**~~ → FIXED: (app) layout guard redirects un-onboarded users to /onboarding. Verified live.
 
 **Debugging lesson learned:** a "ghost navigation" that ejected every automated lesson run turned out to be the test driver clicking the header's ✕ exit button — the (app) layout wraps the whole page (header included) in its own `<main>`, so `main button` locators include the empty-text exit button. See `.claude/skills/verify/SKILL.md` drive-script gotchas.
+
+## 2026-07-18: LPC bodies are headless — head is a separate layer
+
+**Problem:** First composited LPC avatar rendered without a head (floating
+hair + headband above a neck stump). The modern Universal LPC generator
+splits the head into its own layer: `head/heads/human/{male,female}/{skin}.png`,
+zPos 100 (between clothes 35 and hair 120).
+
+**Solution:** Compositing order is body → shirt → head → hair → hat, with the
+head variant matching the body's skin-tone name. See `lpcLayers.ts`.
+
+**Gotcha 2:** ULPC layer sheets come in TWO heights (classic 21-row 1344px,
+expanded 46-row 2944px) but rows 0–20 are identical, so cropping the walk band
+(y=512, h=256) works for every sheet.
+
+**Gotcha 3:** LPC terrain is a 32px grid (not 16px) — characters are
+proportioned for it. World uses 32px tiles at ×2 camera zoom.
+
+**Apply to:** TASK-FUN-03/04/05 (any new character or NPC compositing)
+
+## 2026-07-18: Phaser × SvelteKit SSR pattern
+
+**Solution:** Only `WorldCanvas.svelte` may touch Phaser, via
+`await import('./game')` inside onMount. `game.ts` and everything below it
+can import Phaser statically. One bus per canvas instance (created in the
+component) prevents listener leaks across garden↔lesson navigation.
+
+**Apply to:** every world feature from TASK-FUN-03 onward
